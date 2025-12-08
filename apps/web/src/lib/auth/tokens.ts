@@ -15,10 +15,11 @@ function setCookie(
   maxAgeSeconds: number,
   options: { secure?: boolean; sameSite?: 'strict' | 'lax' | 'none' } = {},
 ): void {
-  if (typeof document === 'undefined') return;
+  if (typeof document === 'undefined') {
+    return;
+  }
 
-  const { secure = process.env.NODE_ENV === 'production', sameSite = 'lax' } =
-    options;
+  const { secure = process.env.NODE_ENV === 'production', sameSite = 'lax' } = options;
 
   const parts = [
     `${encodeURIComponent(name)}=${encodeURIComponent(value)}`,
@@ -35,7 +36,9 @@ function setCookie(
 }
 
 function getCookie(name: string): string | null {
-  if (typeof document === 'undefined') return null;
+  if (typeof document === 'undefined') {
+    return null;
+  }
 
   const cookies = document.cookie.split('; ');
 
@@ -50,7 +53,9 @@ function getCookie(name: string): string | null {
 }
 
 function deleteCookie(name: string): void {
-  if (typeof document === 'undefined') return;
+  if (typeof document === 'undefined') {
+    return;
+  }
   document.cookie = `${encodeURIComponent(name)}=; path=/; max-age=0`;
 }
 
@@ -85,14 +90,14 @@ export function setTokens(
   accessToken: string,
   refreshToken: string,
   expiresIn: number,
+  refreshMaxAge: number = 30 * 24 * 60 * 60,
 ): void {
   // Access token — expires when the JWT itself expires (minus a small buffer)
   const accessMaxAge = Math.max(expiresIn - 30, 60); // at least 60 s
   setCookie(ACCESS_TOKEN_KEY, accessToken, accessMaxAge);
 
-  // Refresh token — typically valid for 7–30 days; we use 30 days as a ceiling
-  const THIRTY_DAYS = 30 * 24 * 60 * 60;
-  setCookie(REFRESH_TOKEN_KEY, refreshToken, THIRTY_DAYS);
+  // Refresh token — max-age matches the actual JWT lifetime (7d or 30d)
+  setCookie(REFRESH_TOKEN_KEY, refreshToken, refreshMaxAge);
 }
 
 /**

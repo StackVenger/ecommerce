@@ -1,3 +1,5 @@
+import { randomBytes } from 'crypto';
+
 import {
   Injectable,
   Logger,
@@ -10,17 +12,16 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
-import { randomBytes } from 'crypto';
 
 import { PrismaService } from '../prisma/prisma.service';
-import { RegisterDto } from './dto/register.dto';
+import { ChangePasswordDto } from './dto/change-password.dto';
+import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { LoginDto } from './dto/login.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
-import { VerifyEmailDto, ResendVerificationDto } from './dto/verify-email.dto';
-import { ForgotPasswordDto } from './dto/forgot-password.dto';
+import { RegisterDto } from './dto/register.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
-import { ChangePasswordDto } from './dto/change-password.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
+import { VerifyEmailDto, ResendVerificationDto } from './dto/verify-email.dto';
 
 @Injectable()
 export class AuthService {
@@ -38,28 +39,26 @@ export class AuthService {
       'JWT_REFRESH_SECRET',
       'refresh-super-secret-key-change-in-production',
     );
-    this.refreshTokenExpiresIn = this.configService.get<string>(
-      'JWT_REFRESH_EXPIRES_IN',
-      '7d',
-    );
+    this.refreshTokenExpiresIn = this.configService.get<string>('JWT_REFRESH_EXPIRES_IN', '7d');
     this.bcryptSaltRounds = this.configService.get<number>('BCRYPT_SALT_ROUNDS', 12);
   }
 
   /**
    * Generate access and refresh token pair for a user.
    */
-  async generateTokens(userId: string, email: string, role: string) {
+  async generateTokens(userId: string, email: string, role: string, refreshExpiresIn?: string) {
     const payload = { sub: userId, email, role };
+    const actualRefreshExpiresIn = refreshExpiresIn ?? this.refreshTokenExpiresIn;
 
     const [accessToken, refreshToken] = await Promise.all([
       this.jwtService.signAsync(payload),
       this.jwtService.signAsync(payload, {
         secret: this.refreshTokenSecret,
-        expiresIn: this.refreshTokenExpiresIn,
+        expiresIn: actualRefreshExpiresIn,
       }),
     ]);
 
-    return { accessToken, refreshToken };
+    return { accessToken, refreshToken, refreshExpiresIn: actualRefreshExpiresIn };
   }
 
   /**
@@ -161,9 +160,7 @@ export class AuthService {
 
     // Check if the account is active
     if (user.status !== 'ACTIVE') {
-      throw new UnauthorizedException(
-        'Your account has been deactivated. Please contact support.',
-      );
+      throw new UnauthorizedException('Your account has been deactivated. Please contact support.');
     }
 
     // Social/phone users don't have a password — they must use their provider
@@ -181,11 +178,12 @@ export class AuthService {
     }
 
     // Generate tokens (extend refresh token for "remember me")
-    const tokens = rememberMe
-      ? {
-          ...(await this.generateTokens(user.id, user.email, user.role)),
-        }
-      : await this.generateTokens(user.id, user.email, user.role);
+    const tokens = await this.generateTokens(
+      user.id,
+      user.email,
+      user.role,
+      rememberMe ? '30d' : undefined,
+    );
 
     // Store the hashed refresh token and update last login
     const hashedRefreshToken = await bcrypt.hash(tokens.refreshToken, 10);
@@ -255,9 +253,7 @@ export class AuthService {
 
     if (!isTokenValid) {
       // Possible token reuse attack - revoke all tokens for this user
-      this.logger.warn(
-        `Potential refresh token reuse detected for user: ${user.email}`,
-      );
+      this.logger.warn(`Potential refresh token reuse detected for user: ${user.email}`);
       await this.prisma.user.update({
         where: { id: user.id },
         data: { refreshToken: null },
@@ -349,8 +345,7 @@ export class AuthService {
     if (!user) {
       // Don't reveal whether the email exists for security
       return {
-        message:
-          'If an account with this email exists, a verification email has been sent.',
+        message: 'If an account with this email exists, a verification email has been sent.',
       };
     }
 
@@ -386,8 +381,7 @@ export class AuthService {
     // TODO: Send verification email via email service
 
     return {
-      message:
-        'If an account with this email exists, a verification email has been sent.',
+      message: 'If an account with this email exists, a verification email has been sent.',
     };
   }
 
@@ -477,9 +471,7 @@ export class AuthService {
     if (user.password) {
       const isSamePassword = await bcrypt.compare(newPassword, user.password);
       if (isSamePassword) {
-        throw new BadRequestException(
-          'New password must be different from the current password.',
-        );
+        throw new BadRequestException('New password must be different from the current password.');
       }
     }
 
@@ -499,7 +491,9 @@ export class AuthService {
 
     this.logger.log(`Password reset completed for: ${user.email}`);
 
-    return { message: 'Password has been reset successfully. Please login with your new password.' };
+    return {
+      message: 'Password has been reset successfully. Please login with your new password.',
+    };
   }
 
   /**
@@ -531,10 +525,7 @@ export class AuthService {
     }
 
     // Verify the current password
-    const isCurrentPasswordValid = await bcrypt.compare(
-      currentPassword,
-      user.password,
-    );
+    const isCurrentPasswordValid = await bcrypt.compare(currentPassword, user.password);
 
     if (!isCurrentPasswordValid) {
       throw new UnauthorizedException('Current password is incorrect');
@@ -543,9 +534,7 @@ export class AuthService {
     // Ensure the new password is different from the current one
     const isSamePassword = await bcrypt.compare(newPassword, user.password);
     if (isSamePassword) {
-      throw new BadRequestException(
-        'New password must be different from the current password.',
-      );
+      throw new BadRequestException('New password must be different from the current password.');
     }
 
     // Hash the new password

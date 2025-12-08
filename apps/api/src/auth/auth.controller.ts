@@ -13,20 +13,20 @@ import {
 import { Request } from 'express';
 
 import { AuthService } from './auth.service';
-import { SocialAuthService } from './social-auth.service';
-import { RegisterDto } from './dto/register.dto';
-import { LoginDto } from './dto/login.dto';
-import { RefreshTokenDto } from './dto/refresh-token.dto';
-import { VerifyEmailDto, ResendVerificationDto } from './dto/verify-email.dto';
-import { ForgotPasswordDto } from './dto/forgot-password.dto';
-import { ResetPasswordDto } from './dto/reset-password.dto';
+import { CurrentUser } from './decorators/current-user.decorator';
 import { ChangePasswordDto } from './dto/change-password.dto';
-import { UpdateProfileDto } from './dto/update-profile.dto';
-import { GoogleAuthDto } from './dto/google-auth.dto';
 import { FacebookAuthDto } from './dto/facebook-auth.dto';
+import { ForgotPasswordDto } from './dto/forgot-password.dto';
+import { GoogleAuthDto } from './dto/google-auth.dto';
+import { LoginDto } from './dto/login.dto';
 import { PhoneAuthDto } from './dto/phone-auth.dto';
+import { RefreshTokenDto } from './dto/refresh-token.dto';
+import { RegisterDto } from './dto/register.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
+import { UpdateProfileDto } from './dto/update-profile.dto';
+import { VerifyEmailDto, ResendVerificationDto } from './dto/verify-email.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
-import { CurrentUser, AuthenticatedUser } from './decorators/current-user.decorator';
+import { SocialAuthService } from './social-auth.service';
 
 @Controller('auth')
 export class AuthController {
@@ -124,9 +124,7 @@ export class AuthController {
   @Post('login')
   @HttpCode(HttpStatus.OK)
   async login(@Body() dto: LoginDto, @Req() req: Request) {
-    const ipAddress =
-      (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim() ||
-      req.ip;
+    const ipAddress = (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim() || req.ip;
 
     const result = await this.authService.login(dto, ipAddress);
 
@@ -137,6 +135,7 @@ export class AuthController {
         user: result.user,
         accessToken: result.accessToken,
         refreshToken: result.refreshToken,
+        refreshExpiresIn: result.refreshExpiresIn,
       },
     };
   }
@@ -229,10 +228,7 @@ export class AuthController {
   @Patch('change-password')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
-  async changePassword(
-    @Body() dto: ChangePasswordDto,
-    @CurrentUser('id') userId: string,
-  ) {
+  async changePassword(@Body() dto: ChangePasswordDto, @CurrentUser('id') userId: string) {
     const result = await this.authService.changePassword(userId, dto);
 
     return {
@@ -314,10 +310,7 @@ export class AuthController {
   @Patch('me')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
-  async updateProfile(
-    @CurrentUser('id') userId: string,
-    @Body() dto: UpdateProfileDto,
-  ) {
+  async updateProfile(@CurrentUser('id') userId: string, @Body() dto: UpdateProfileDto) {
     const user = await this.authService.updateProfile(userId, dto);
 
     return {

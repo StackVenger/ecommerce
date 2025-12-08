@@ -9,22 +9,12 @@ import {
   useState,
   type ReactNode,
 } from 'react';
-
-import type {
-  AuthUser,
-  LoginRequest,
-  RegisterRequest,
-} from '@ecommerce/types';
-
 import { toast } from 'sonner';
 
+import type { AuthUser, LoginRequest, RegisterRequest } from '@ecommerce/types';
+
 import * as authApi from '@/lib/api/auth';
-import {
-  clearTokens,
-  getRefreshToken,
-  hasAuthTokens,
-  setTokens,
-} from '@/lib/auth/tokens';
+import { clearTokens, getRefreshToken, hasAuthTokens, setTokens } from '@/lib/auth/tokens';
 
 // ──────────────────────────────────────────────────────────
 // Context value shape
@@ -59,9 +49,7 @@ export interface AuthContextValue {
 // Context (exported for direct consumption if needed)
 // ──────────────────────────────────────────────────────────
 
-export const AuthContext = createContext<AuthContextValue | undefined>(
-  undefined,
-);
+export const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
 // ──────────────────────────────────────────────────────────
 // Token refresh interval — refresh 2 minutes before expiry.
@@ -92,7 +80,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
     refreshTimerRef.current = setInterval(async () => {
       try {
         const refreshToken = getRefreshToken();
-        if (!refreshToken) return;
+        if (!refreshToken) {
+          return;
+        }
 
         const tokens = await authApi.refreshTokens(refreshToken);
         setTokens(tokens.accessToken, tokens.refreshToken, tokens.expiresIn);
@@ -134,7 +124,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       }
     }
 
-    initAuth();
+    void initAuth();
 
     return () => {
       stopAutoRefresh();
@@ -148,8 +138,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
       setIsSubmitting(true);
       try {
         const response = await authApi.login(payload);
-        const { tokens, user: authUser } = response;
-        setTokens(tokens.accessToken, tokens.refreshToken, tokens.expiresIn);
+        const { tokens, user: authUser, refreshMaxAge } = response;
+        setTokens(tokens.accessToken, tokens.refreshToken, tokens.expiresIn, refreshMaxAge);
         setUser(authUser);
         startAutoRefresh();
       } finally {
@@ -265,10 +255,19 @@ export function AuthProvider({ children }: AuthProviderProps) {
       logout,
       refreshUser,
     }),
-    [user, isLoading, isSubmitting, login, register, loginWithGoogle, loginWithFacebook, loginWithPhone, logout, refreshUser],
+    [
+      user,
+      isLoading,
+      isSubmitting,
+      login,
+      register,
+      loginWithGoogle,
+      loginWithFacebook,
+      loginWithPhone,
+      logout,
+      refreshUser,
+    ],
   );
 
-  return (
-    <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
