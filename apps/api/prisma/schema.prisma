@@ -101,10 +101,12 @@ model Address {
   phone        String
   addressLine1 String
   addressLine2 String?
+  city         String?
   division     String
   district     String
   area         String?
   postalCode   String
+  landmark     String?
   country      String   @default("Bangladesh")
   isDefault    Boolean  @default(false)
   createdAt    DateTime @default(now())

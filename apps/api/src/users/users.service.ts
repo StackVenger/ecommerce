@@ -1,12 +1,8 @@
-import {
-  Injectable,
-  Logger,
-  NotFoundException,
-  BadRequestException,
-} from '@nestjs/common';
-import * as sharp from 'sharp';
-import * as path from 'path';
 import * as fs from 'fs/promises';
+import * as path from 'path';
+
+import { Injectable, Logger, NotFoundException, BadRequestException } from '@nestjs/common';
+import * as sharp from 'sharp';
 
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateAddressDto } from './dto/create-address.dto';
@@ -18,7 +14,7 @@ export class UsersService {
   private readonly uploadDir = path.join(process.cwd(), 'uploads', 'avatars');
 
   constructor(private readonly prisma: PrismaService) {
-    this.ensureUploadDir();
+    void this.ensureUploadDir();
   }
 
   private async ensureUploadDir() {
@@ -40,9 +36,7 @@ export class UsersService {
 
     const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
     if (!allowedTypes.includes(file.mimetype)) {
-      throw new BadRequestException(
-        'Invalid file type. Only JPEG, PNG, and WebP are allowed.',
-      );
+      throw new BadRequestException('Invalid file type. Only JPEG, PNG, and WebP are allowed.');
     }
 
     const maxSize = 5 * 1024 * 1024; // 5MB
@@ -150,9 +144,7 @@ export class UsersService {
     });
 
     if (existingCount >= 10) {
-      throw new BadRequestException(
-        'Maximum 10 addresses allowed per account',
-      );
+      throw new BadRequestException('Maximum 10 addresses allowed per account');
     }
 
     if (dto.isDefault || existingCount === 0) {
@@ -164,7 +156,7 @@ export class UsersService {
 
     const address = await this.prisma.address.create({
       data: {
-        userId,
+        user: { connect: { id: userId } },
         fullName: dto.fullName,
         phone: dto.phone,
         addressLine1: dto.addressLine1,
@@ -185,7 +177,7 @@ export class UsersService {
   }
 
   async updateAddress(userId: string, addressId: string, dto: UpdateAddressDto) {
-    const existing = await this.getAddressById(userId, addressId);
+    await this.getAddressById(userId, addressId);
 
     if (dto.isDefault) {
       await this.prisma.address.updateMany({
@@ -279,7 +271,7 @@ export class UsersService {
               },
             },
           },
-          payment: true,
+          payments: { take: 1 },
         },
         orderBy: { createdAt: 'desc' },
         skip,
@@ -292,19 +284,19 @@ export class UsersService {
       id: order.id,
       orderNumber: order.orderNumber,
       status: order.status,
-      paymentStatus: order.paymentStatus,
-      paymentMethod: order.payment?.method ?? null,
+      paymentStatus: order.payments?.[0]?.status ?? null,
+      paymentMethod: order.payments?.[0]?.method ?? null,
       subtotal: order.subtotal,
       shippingCost: order.shippingCost,
-      total: order.total,
-      totalFormatted: `৳${order.total.toLocaleString('en-BD')}`,
+      total: order.totalAmount,
+      totalFormatted: `৳${Number(order.totalAmount).toLocaleString('en-BD')}`,
       itemCount: order.items.length,
       items: order.items.map((item) => ({
         id: item.id,
-        productName: item.product.name,
+        productName: item.productName,
         quantity: item.quantity,
-        price: item.price,
-        image: item.product.images[0]?.url ?? null,
+        price: item.unitPrice,
+        image: item.productImage ?? null,
       })),
       createdAt: order.createdAt,
       updatedAt: order.updatedAt,
