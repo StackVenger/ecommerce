@@ -1,7 +1,7 @@
 import { Injectable, Logger, NotFoundException, BadRequestException } from '@nestjs/common';
 
 import { PrismaService } from '../prisma/prisma.service';
-import { CheckoutDto, PaymentMethod } from './dto/checkout.dto';
+import { CheckoutDto } from './dto/checkout.dto';
 import {
   UpdateOrderStatusDto,
   OrderStatus,
@@ -127,11 +127,11 @@ export class OrdersService {
 
     for (const item of cart.items) {
       const product = item.product;
-      const inStock = product.stock >= item.quantity;
+      const inStock = product.quantity >= item.quantity;
 
       if (!inStock) {
         errors.push(
-          `"${product.name}" has only ${product.stock} in stock (requested ${item.quantity})`,
+          `"${product.name}" has only ${product.quantity} in stock (requested ${item.quantity})`,
         );
       }
 
@@ -143,7 +143,7 @@ export class OrdersService {
         productId: product.id,
         name: product.name,
         requestedQuantity: item.quantity,
-        availableStock: product.stock,
+        availableStock: product.quantity,
         unitPrice: Number(product.price),
         lineTotal: Number(product.price) * item.quantity,
         inStock,
@@ -296,10 +296,10 @@ export class OrdersService {
       for (const item of cart.items) {
         const product = await tx.product.update({
           where: { id: item.productId },
-          data: { stock: { decrement: item.quantity } },
+          data: { quantity: { decrement: item.quantity } },
         });
 
-        if (product.stock < 0) {
+        if (product.quantity < 0) {
           throw new BadRequestException(`"${item.product.name}" went out of stock during checkout`);
         }
       }
@@ -309,37 +309,28 @@ export class OrdersService {
           orderNumber,
           userId: userId || null,
           status: 'PENDING',
-          paymentMethod: dto.paymentMethod,
-          paymentStatus: dto.paymentMethod === PaymentMethod.COD ? 'PENDING' : 'AWAITING',
           subtotal: validation.subtotal,
-          discount: validation.discount,
+          discountAmount: validation.discount,
           shippingCost: validation.shippingCost,
-          tax: 0,
-          total: validation.total,
+          taxAmount: 0,
+          totalAmount: validation.total,
           couponCode: dto.couponCode?.toUpperCase() || null,
+          shippingAddressId: address.id,
           // Guest contact info
           guestEmail: isGuest ? dto.guestEmail : null,
           guestPhone: isGuest ? dto.guestPhone : null,
           guestFullName: isGuest ? dto.guestFullName : null,
-          // Shipping address snapshot
-          shippingName: address.fullName,
-          shippingPhone: address.phone,
-          shippingAddress: address.addressLine1,
-          shippingAddress2: address.addressLine2 || null,
-          shippingCity: address.district,
-          shippingDistrict: address.district,
-          shippingDivision: address.division,
-          shippingPostalCode: address.postalCode,
           items: {
             create: cart.items.map((item) => ({
               productId: item.productId,
               variantId: item.variantId || null,
-              name: item.product.name,
+              productName: item.product.name,
+              productSlug: item.product.slug,
               sku: item.product.sku,
-              price: Number(item.product.price),
+              unitPrice: Number(item.product.price),
               quantity: item.quantity,
-              total: Number(item.product.price) * item.quantity,
-              imageUrl: item.product.images?.[0]?.url || null,
+              totalPrice: Number(item.product.price) * item.quantity,
+              productImage: item.product.images?.[0]?.url || null,
             })),
           },
         },
