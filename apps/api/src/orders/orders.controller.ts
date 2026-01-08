@@ -7,13 +7,18 @@ import {
   Param,
   Query,
   Headers,
+  Header,
+  Res,
+  StreamableFile,
   UseGuards,
   DefaultValuePipe,
   ParseIntPipe,
 } from '@nestjs/common';
+import { Response } from 'express';
 
 import { CheckoutDto } from './dto/checkout.dto';
 import { UpdateOrderStatusDto } from './dto/update-order-status.dto';
+import { InvoiceService } from './invoice.service';
 import { OrdersService } from './orders.service';
 import { ShippingService } from './shipping.service';
 import { CurrentUser, AuthenticatedUser } from '../auth/decorators/current-user.decorator';
@@ -35,6 +40,7 @@ export class OrdersController {
   constructor(
     private readonly ordersService: OrdersService,
     private readonly shippingService: ShippingService,
+    private readonly invoiceService: InvoiceService,
   ) {}
 
   // ─── Checkout ─────────────────────────────────────────────────────────────────
@@ -169,6 +175,39 @@ export class OrdersController {
     @Query('status') status?: string,
   ) {
     return this.ordersService.findAllOrders({ page, limit, status });
+  }
+
+  /**
+   * Download invoice as PDF for a given order.
+   *
+   * GET /admin/orders/:id/invoice
+   */
+  @Get('admin/orders/:id/invoice')
+  @UseGuards(RolesGuard)
+  @Roles('ADMIN', 'SUPER_ADMIN')
+  @Header('Content-Type', 'application/pdf')
+  async downloadInvoice(
+    @Param('id') id: string,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<StreamableFile> {
+    const pdfBuffer = await this.invoiceService.generateInvoice(id);
+    res.set({
+      'Content-Disposition': `attachment; filename="invoice-${id}.pdf"`,
+    });
+    return new StreamableFile(pdfBuffer);
+  }
+
+  /**
+   * Get invoice data as JSON (used by frontend print page).
+   *
+   * GET /admin/orders/:id/invoice-data
+   */
+  @Get('admin/orders/:id/invoice-data')
+  @UseGuards(RolesGuard)
+  @Roles('ADMIN', 'SUPER_ADMIN')
+  async getInvoiceData(@Param('id') id: string) {
+    const data = await this.invoiceService.getInvoiceData(id);
+    return { success: true, data };
   }
 
   /**
