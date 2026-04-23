@@ -2,16 +2,17 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { ScheduleModule } from '@nestjs/schedule';
 
+import { AdminModule } from './admin/admin.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { AdminModule } from './admin/admin.module';
 import { AuditModule } from './audit/audit.module';
 import { AuthModule } from './auth/auth.module';
 import { BannersModule } from './banners/banners.module';
 import { BrandsModule } from './brands/brands.module';
 import { CartModule } from './cart/cart.module';
-import { ChatModule } from './chat/chat.module';
 import { CategoriesModule } from './categories/categories.module';
+import { ChatModule } from './chat/chat.module';
+import { RevalidateModule } from './common/revalidate/revalidate.module';
 import { CouponsModule } from './coupons/coupons.module';
 import { EmailModule } from './email/email.module';
 import { HealthModule } from './health/health.module';
@@ -40,6 +41,7 @@ import { WishlistModule } from './wishlist/wishlist.module';
     }),
     ScheduleModule.forRoot(),
     PrismaModule,
+    RevalidateModule,
     AdminModule,
     AuditModule,
     AuthModule,

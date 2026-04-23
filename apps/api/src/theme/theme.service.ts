@@ -1,4 +1,6 @@
 import { Injectable } from '@nestjs/common';
+
+import { RevalidateService } from '../common/revalidate/revalidate.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { UpdateThemeDto } from './dto/update-theme.dto';
 
@@ -55,7 +57,10 @@ const DEFAULT_THEME = {
 
 @Injectable()
 export class ThemeService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly revalidate: RevalidateService,
+  ) {}
 
   private readonly THEME_WHERE = { group_key: { group: 'THEME' as const, key: 'config' } };
 
@@ -69,7 +74,7 @@ export class ThemeService {
     }
 
     try {
-      const stored = JSON.parse(settings.value);
+      const stored = JSON.parse(settings.value) as Partial<ThemeShape>;
       return this.mergeWithDefaults(stored);
     } catch {
       return DEFAULT_THEME;
@@ -101,6 +106,7 @@ export class ThemeService {
       },
     });
 
+    void this.revalidate.revalidate({ tags: ['site-config', 'theme'] });
     return updatedTheme;
   }
 
@@ -117,56 +123,55 @@ export class ThemeService {
       },
     });
 
+    void this.revalidate.revalidate({ tags: ['site-config', 'theme'] });
     return DEFAULT_THEME;
   }
 
-  private mergeWithDefaults(stored: any) {
+  private mergeWithDefaults(stored: Partial<ThemeShape>): ThemeShape {
     return {
-      colors: { ...DEFAULT_THEME.colors, ...(stored.colors || {}) },
-      typography: { ...DEFAULT_THEME.typography, ...(stored.typography || {}) },
-      borders: { ...DEFAULT_THEME.borders, ...(stored.borders || {}) },
-      layout: { ...DEFAULT_THEME.layout, ...(stored.layout || {}) },
-      customCSS: stored.customCSS || DEFAULT_THEME.customCSS,
-      logoUrl: stored.logoUrl || DEFAULT_THEME.logoUrl,
-      faviconUrl: stored.faviconUrl || DEFAULT_THEME.faviconUrl,
+      colors: { ...DEFAULT_THEME.colors, ...(stored.colors ?? {}) },
+      typography: { ...DEFAULT_THEME.typography, ...(stored.typography ?? {}) },
+      borders: { ...DEFAULT_THEME.borders, ...(stored.borders ?? {}) },
+      layout: { ...DEFAULT_THEME.layout, ...(stored.layout ?? {}) },
+      customCSS: stored.customCSS ?? DEFAULT_THEME.customCSS,
+      logoUrl: stored.logoUrl ?? DEFAULT_THEME.logoUrl,
+      faviconUrl: stored.faviconUrl ?? DEFAULT_THEME.faviconUrl,
     };
   }
 
-  generateCSSVariables(theme: any): string {
+  generateCSSVariables(theme: ThemeShape): string {
     const vars: string[] = [];
 
-    // Colors
     if (theme.colors) {
-      Object.entries(theme.colors).forEach(([key, value]) => {
+      for (const [key, value] of Object.entries(theme.colors)) {
         const cssKey = key.replace(/([A-Z])/g, '-$1').toLowerCase();
-        vars.push(`  --color-${cssKey}: ${value};`);
-      });
+        vars.push(`  --color-${cssKey}: ${String(value)};`);
+      }
     }
 
-    // Typography
-    if (theme.typography) {
-      vars.push(`  --font-heading: '${theme.typography.headingFont}', sans-serif;`);
-      vars.push(`  --font-body: '${theme.typography.bodyFont}', sans-serif;`);
-      vars.push(`  --font-bangla: '${theme.typography.banglaFont}', sans-serif;`);
-      vars.push(`  --font-mono: '${theme.typography.monoFont}', monospace;`);
-      vars.push(`  --font-size-base: ${theme.typography.baseFontSize};`);
-      vars.push(`  --font-weight-heading: ${theme.typography.headingWeight};`);
-      vars.push(`  --font-weight-body: ${theme.typography.bodyWeight};`);
-      vars.push(`  --line-height: ${theme.typography.lineHeight};`);
+    const t = theme.typography;
+    if (t) {
+      vars.push(`  --font-heading: '${t.headingFont}', sans-serif;`);
+      vars.push(`  --font-body: '${t.bodyFont}', sans-serif;`);
+      vars.push(`  --font-bangla: '${t.banglaFont}', sans-serif;`);
+      vars.push(`  --font-mono: '${t.monoFont}', monospace;`);
+      vars.push(`  --font-size-base: ${t.baseFontSize};`);
+      vars.push(`  --font-weight-heading: ${t.headingWeight};`);
+      vars.push(`  --font-weight-body: ${t.bodyWeight};`);
+      vars.push(`  --line-height: ${t.lineHeight};`);
     }
 
-    // Borders
-    if (theme.borders) {
-      vars.push(`  --border-radius: ${theme.borders.radius};`);
-      vars.push(`  --border-radius-sm: ${theme.borders.radiusSm};`);
-      vars.push(`  --border-radius-md: ${theme.borders.radiusMd};`);
-      vars.push(`  --border-radius-lg: ${theme.borders.radiusLg};`);
-      vars.push(`  --border-radius-full: ${theme.borders.radiusFull};`);
-      vars.push(`  --border-width: ${theme.borders.width};`);
-      vars.push(`  --border-color: ${theme.borders.color};`);
+    const b = theme.borders;
+    if (b) {
+      vars.push(`  --border-radius: ${b.radius};`);
+      vars.push(`  --border-radius-sm: ${b.radiusSm};`);
+      vars.push(`  --border-radius-md: ${b.radiusMd};`);
+      vars.push(`  --border-radius-lg: ${b.radiusLg};`);
+      vars.push(`  --border-radius-full: ${b.radiusFull};`);
+      vars.push(`  --border-width: ${b.width};`);
+      vars.push(`  --border-color: ${b.color};`);
     }
 
-    // Layout
     if (theme.layout) {
       vars.push(`  --container-max-width: ${theme.layout.containerMaxWidth};`);
     }
@@ -174,3 +179,5 @@ export class ThemeService {
     return `:root {\n${vars.join('\n')}\n}`;
   }
 }
+
+type ThemeShape = typeof DEFAULT_THEME;
