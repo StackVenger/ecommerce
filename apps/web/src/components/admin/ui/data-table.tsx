@@ -91,16 +91,19 @@ export function DataTable<Row>({
         : (row: Row) => row[col.sortKey as keyof Row] as unknown;
 
     const dir = effectiveSort.direction === 'asc' ? 1 : -1;
+    const isNil = (v: unknown) => v === null || v === undefined;
     return [...rows].sort((a, b) => {
       const va = get(a);
       const vb = get(b);
-      if (va === null || (va === undefined && vb === null) || vb === undefined) {
+      // Treat null/undefined as larger than any real value so they sort
+      // to the bottom on ascending order, to the top on descending.
+      if (isNil(va) && isNil(vb)) {
         return 0;
       }
-      if (va === null || va === undefined) {
+      if (isNil(va)) {
         return 1;
       }
-      if (vb === null || vb === undefined) {
+      if (isNil(vb)) {
         return -1;
       }
       if (typeof va === 'number' && typeof vb === 'number') {
