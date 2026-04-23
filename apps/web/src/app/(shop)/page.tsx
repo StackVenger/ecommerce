@@ -85,9 +85,24 @@ function discountPercent(price: number, compare?: number): number {
   return Math.round((1 - price / compare) * 100);
 }
 
-// Hero slide data
-const HERO_SLIDES = [
+// A HERO slide derived from either an admin Banner row or the baked-in
+// defaults below. Each slide is a single image + overlay + copy + link.
+interface HeroSlide {
+  id: string;
+  title: string;
+  subtitle?: string;
+  cta?: string;
+  href: string;
+  image: string;
+  overlay: string;
+}
+
+// Fallbacks used when no HERO banners exist in the DB (fresh install /
+// admin cleared the carousel). Keep this lean — admins are expected to
+// replace these with real promotions in /admin/banners.
+const DEFAULT_HERO_SLIDES: HeroSlide[] = [
   {
+    id: 'default-eid',
     title: 'Eid Collection 2026',
     subtitle: 'Discover the finest traditional & modern wear',
     cta: 'Shop Now',
@@ -97,6 +112,7 @@ const HERO_SLIDES = [
       'https://images.unsplash.com/photo-1607082349566-187342175e2f?w=1400&h=700&fit=crop&q=80',
   },
   {
+    id: 'default-electronics',
     title: 'Electronics Festival',
     subtitle: 'Up to 40% off on smartphones & gadgets',
     cta: 'Explore Deals',
@@ -106,6 +122,7 @@ const HERO_SLIDES = [
       'https://images.unsplash.com/photo-1468495244123-6c6c332eeece?w=1400&h=700&fit=crop&q=80',
   },
   {
+    id: 'default-home',
     title: 'Home & Living Sale',
     subtitle: 'Transform your space with up to 30% off furniture & decor',
     cta: 'Shop Home',
@@ -115,6 +132,7 @@ const HERO_SLIDES = [
       'https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?w=1400&h=700&fit=crop&q=80',
   },
   {
+    id: 'default-beauty',
     title: 'Beauty & Wellness',
     subtitle: 'Premium skincare, makeup & self-care essentials',
     cta: 'Explore Beauty',
@@ -124,6 +142,7 @@ const HERO_SLIDES = [
       'https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=1400&h=700&fit=crop&q=80',
   },
   {
+    id: 'default-free-delivery',
     title: 'Free Delivery Week',
     subtitle: 'Free shipping on all orders over ৳1,000',
     cta: 'Shop All',
@@ -132,6 +151,37 @@ const HERO_SLIDES = [
     image: 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=1400&h=700&fit=crop&q=80',
   },
 ];
+
+/**
+ * Normalise the Banner model rows coming from GET /banners?position=HERO
+ * into the HeroSlide shape the carousel renders. Skips rows without an
+ * image. Falls back to a sensible dark overlay since the Banner model
+ * doesn't currently carry an overlay gradient.
+ */
+function bannersToHeroSlides(raw: unknown): HeroSlide[] {
+  if (!Array.isArray(raw)) {
+    return [];
+  }
+  const rows = raw as Array<{
+    id: string;
+    title: string;
+    subtitle?: string | null;
+    image: string;
+    link?: string | null;
+    ctaText?: string | null;
+  }>;
+  return rows
+    .filter((r) => r?.image && r.title)
+    .map((r) => ({
+      id: r.id,
+      title: r.title,
+      subtitle: r.subtitle ?? undefined,
+      cta: r.ctaText ?? 'Shop Now',
+      href: r.link ?? '/products',
+      image: r.image,
+      overlay: 'from-black/70 via-black/45 to-black/20',
+    }));
+}
 
 const CATEGORY_ICONS: Record<string, string> = {
   electronics: '📱',
@@ -152,6 +202,7 @@ export default function HomePage() {
   const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
   const [newArrivals, setNewArrivals] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [heroSlides, setHeroSlides] = useState<HeroSlide[]>(DEFAULT_HERO_SLIDES);
   const [heroIndex, setHeroIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   const { addItem } = useCart();
@@ -160,7 +211,7 @@ export default function HomePage() {
   useEffect(() => {
     async function fetchData() {
       try {
-        const [featuredRes, newRes, catRes] = await Promise.all([
+        const [featuredRes, newRes, catRes, heroRes] = await Promise.all([
           apiClient.get('/products', {
             params: { limit: 8, sortBy: 'viewCount', sortOrder: 'desc', isFeatured: true },
           }),
@@ -168,6 +219,7 @@ export default function HomePage() {
             params: { limit: 8, sortBy: 'createdAt', sortOrder: 'desc' },
           }),
           apiClient.get('/categories'),
+          apiClient.get('/banners', { params: { position: 'HERO' } }).catch(() => null),
         ]);
 
         setFeaturedProducts((featuredRes.data.data || []).map(normalizeProduct));
@@ -179,6 +231,16 @@ export default function HomePage() {
               ? catRes.data.data
               : [],
         );
+
+        // Use admin HERO banners when configured; keep defaults otherwise.
+        // The API response has `{ banners, data }` — prefer `data`.
+        if (heroRes) {
+          const payload = heroRes.data?.data ?? heroRes.data?.banners ?? heroRes.data;
+          const fromAdmin = bannersToHeroSlides(payload);
+          if (fromAdmin.length > 0) {
+            setHeroSlides(fromAdmin);
+          }
+        }
       } catch (err) {
         console.error('Failed to fetch homepage data:', err);
       } finally {
@@ -188,11 +250,15 @@ export default function HomePage() {
     fetchData();
   }, []);
 
-  // Auto-rotate hero
+  // Auto-rotate hero — depends on `heroSlides` so swapping the source
+  // mid-session (defaults → admin) picks up the new length cleanly.
   useEffect(() => {
-    const timer = setInterval(() => setHeroIndex((i) => (i + 1) % HERO_SLIDES.length), 5000);
+    if (heroSlides.length <= 1) {
+      return;
+    }
+    const timer = setInterval(() => setHeroIndex((i) => (i + 1) % heroSlides.length), 5000);
     return () => clearInterval(timer);
-  }, []);
+  }, [heroSlides.length]);
 
   const handleAddToCart = useCallback(
     (product: Product) => {
@@ -325,9 +391,9 @@ export default function HomePage() {
       {/* ─── Hero Carousel ───────────────────────────────────────────── */}
       <section className="relative h-[420px] overflow-hidden sm:h-[480px] md:h-[540px] lg:h-[600px]">
         {/* Slide images — all stacked, opacity controls visibility */}
-        {HERO_SLIDES.map((slide, i) => (
+        {heroSlides.map((slide, i) => (
           <div
-            key={i}
+            key={slide.id}
             className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
               i === heroIndex ? 'opacity-100 z-10' : 'opacity-0 z-0'
             }`}
@@ -386,13 +452,13 @@ export default function HomePage() {
 
         {/* Carousel controls */}
         <button
-          onClick={() => setHeroIndex((i) => (i - 1 + HERO_SLIDES.length) % HERO_SLIDES.length)}
+          onClick={() => setHeroIndex((i) => (i - 1 + heroSlides.length) % heroSlides.length)}
           className="absolute left-4 top-1/2 z-20 -translate-y-1/2 rounded-full bg-black/25 p-2.5 text-white backdrop-blur-sm transition-all hover:bg-black/40 hover:scale-110"
         >
           <ChevronLeft className="h-5 w-5" />
         </button>
         <button
-          onClick={() => setHeroIndex((i) => (i + 1) % HERO_SLIDES.length)}
+          onClick={() => setHeroIndex((i) => (i + 1) % heroSlides.length)}
           className="absolute right-4 top-1/2 z-20 -translate-y-1/2 rounded-full bg-black/25 p-2.5 text-white backdrop-blur-sm transition-all hover:bg-black/40 hover:scale-110"
         >
           <ChevronRight className="h-5 w-5" />
@@ -400,9 +466,9 @@ export default function HomePage() {
 
         {/* Indicators */}
         <div className="absolute bottom-6 left-1/2 z-20 flex -translate-x-1/2 gap-2">
-          {HERO_SLIDES.map((_, i) => (
+          {heroSlides.map((slide, i) => (
             <button
-              key={i}
+              key={slide.id}
               onClick={() => setHeroIndex(i)}
               className={`h-2.5 rounded-full transition-all duration-500 ${
                 i === heroIndex ? 'w-10 bg-white shadow-lg' : 'w-2.5 bg-white/40 hover:bg-white/60'
