@@ -4,6 +4,7 @@ import NextTopLoader from 'nextjs-toploader';
 import type { Metadata, Viewport } from 'next';
 
 import { getSiteConfig } from '@/lib/config/site-config';
+import { themeToCssVars } from '@/lib/theme/css-vars';
 import { Providers } from '@/providers';
 
 import './globals.css';
@@ -107,6 +108,8 @@ export default async function RootLayout({
   const { settings, theme } = await getSiteConfig();
   const siteName = settings.general.site_name;
   const faviconUrl = theme.faviconUrl;
+  const themeCss = themeToCssVars(theme);
+  const customCss = theme.customCSS;
 
   return (
     <html
@@ -115,6 +118,20 @@ export default async function RootLayout({
       suppressHydrationWarning
     >
       <head>
+        {/* Admin-set theme tokens; emitted server-side so there is no
+            flash between the default palette and the configured one. */}
+        <style
+          id="site-theme-vars"
+          // eslint-disable-next-line react/no-danger
+          dangerouslySetInnerHTML={{ __html: themeCss }}
+        />
+        {customCss && (
+          <style
+            id="site-custom-css"
+            // eslint-disable-next-line react/no-danger
+            dangerouslySetInnerHTML={{ __html: customCss }}
+          />
+        )}
         <link rel="manifest" href="/manifest.json" />
         {faviconUrl ? (
           <link rel="apple-touch-icon" href={faviconUrl} />

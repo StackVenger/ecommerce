@@ -2,6 +2,8 @@
 
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 
+import { tailwindThemeVars, type ThemeColorsInput } from '@/lib/theme/color-utils';
+
 interface ThemeColors {
   primary: string;
   primaryLight: string;
@@ -83,15 +85,20 @@ export const useTheme = () => useContext(ThemeContext);
 function getCachedTheme(): ThemeConfig | null {
   try {
     const cached = localStorage.getItem(THEME_CACHE_KEY);
-    if (!cached) return null;
+    if (!cached) {
+      return null;
+    }
 
-    const { theme, timestamp } = JSON.parse(cached);
-    if (Date.now() - timestamp > THEME_CACHE_TTL) {
+    const parsed = JSON.parse(cached) as {
+      theme: ThemeConfig;
+      timestamp: number;
+    };
+    if (Date.now() - parsed.timestamp > THEME_CACHE_TTL) {
       localStorage.removeItem(THEME_CACHE_KEY);
       return null;
     }
 
-    return theme;
+    return parsed.theme;
   } catch {
     return null;
   }
@@ -99,10 +106,7 @@ function getCachedTheme(): ThemeConfig | null {
 
 function setCachedTheme(theme: ThemeConfig): void {
   try {
-    localStorage.setItem(
-      THEME_CACHE_KEY,
-      JSON.stringify({ theme, timestamp: Date.now() }),
-    );
+    localStorage.setItem(THEME_CACHE_KEY, JSON.stringify({ theme, timestamp: Date.now() }));
   } catch {
     // localStorage may be full or unavailable
   }
@@ -111,7 +115,15 @@ function setCachedTheme(theme: ThemeConfig): void {
 function generateCSSVariables(theme: ThemeConfig): string {
   const vars: string[] = [];
 
-  // Colors
+  // Colors: emit two flavours side by side.
+  //
+  // 1. Legacy `--color-*` in raw hex — consumed by any existing inline
+  //    style / custom CSS that references e.g. `var(--color-primary)`.
+  // 2. Tailwind shadcn-style `--primary`, `--accent`, ... in HSL-space-
+  //    separated format, so `bg-primary`, `text-accent-foreground`, etc.
+  //    resolve correctly. This is the same mapping the SSR helper in
+  //    lib/theme/css-vars.ts produces, so live admin edits flip Tailwind
+  //    classes without a reload.
   if (theme.colors) {
     const colorMap: Record<string, string> = {
       primary: theme.colors.primary,
@@ -133,8 +145,15 @@ function generateCSSVariables(theme: ThemeConfig): string {
     };
 
     Object.entries(colorMap).forEach(([key, value]) => {
-      if (value) vars.push(`--color-${key}: ${value}`);
+      if (value) {
+        vars.push(`--color-${key}: ${value}`);
+      }
     });
+
+    const twVars = tailwindThemeVars(theme.colors as ThemeColorsInput);
+    for (const [name, value] of Object.entries(twVars)) {
+      vars.push(`${name}: ${value}`);
+    }
   }
 
   // Typography
@@ -184,7 +203,9 @@ function getGoogleFontsUrl(typography: ThemeTypography): string {
     fonts.add(typography.monoFont);
   }
 
-  if (fonts.size === 0) return '';
+  if (fonts.size === 0) {
+    return '';
+  }
 
   const familyParam = Array.from(fonts)
     .map((f) => `family=${f.replace(/ /g, '+')}`)
@@ -257,10 +278,7 @@ interface ThemeProviderProps {
   apiBaseUrl?: string;
 }
 
-export default function ThemeProvider({
-  children,
-  apiBaseUrl = '/api',
-}: ThemeProviderProps) {
+export default function ThemeProvider({ children, apiBaseUrl = '/api' }: ThemeProviderProps) {
   const [theme, setTheme] = useState<ThemeConfig | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -275,8 +293,8 @@ export default function ThemeProvider({
         setLoading(false);
 
         // Still fetch fresh theme in background
-        fetch(`${apiBaseUrl}/theme`)
-          .then((res) => res.json())
+        void fetch(`${apiBaseUrl}/theme`)
+          .then((res) => res.json() as Promise<ThemeConfig>)
           .then((freshTheme) => {
             setTheme(freshTheme);
             setCachedTheme(freshTheme);
@@ -289,22 +307,26 @@ export default function ThemeProvider({
       }
 
       const response = await fetch(`${apiBaseUrl}/theme`);
-      if (!response.ok) throw new Error('Failed to fetch theme');
+      if (!response.ok) {
+        throw new Error('Failed to fetch theme');
+      }
 
-      const data = await response.json();
+      const data = (await response.json()) as ThemeConfig;
       setTheme(data);
       setCachedTheme(data);
       applyThemeToDOM(data);
-    } catch (err: any) {
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to load theme';
+      // eslint-disable-next-line no-console
       console.error('Theme loading error:', err);
-      setError(err.message || 'Failed to load theme');
+      setError(message);
     } finally {
       setLoading(false);
     }
   }, [apiBaseUrl]);
 
   useEffect(() => {
-    fetchTheme();
+    void fetchTheme();
   }, [fetchTheme]);
 
   // Listen for theme updates (e.g., from admin panel in another tab)
@@ -312,9 +334,12 @@ export default function ThemeProvider({
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === THEME_CACHE_KEY && e.newValue) {
         try {
-          const { theme: updatedTheme } = JSON.parse(e.newValue);
-          setTheme(updatedTheme);
-          applyThemeToDOM(updatedTheme);
+          const parsed = JSON.parse(e.newValue) as {
+            theme: ThemeConfig;
+            timestamp: number;
+          };
+          setTheme(parsed.theme);
+          applyThemeToDOM(parsed.theme);
         } catch {
           // Ignore parse errors
         }
@@ -335,11 +360,7 @@ export default function ThemeProvider({
     [theme, loading, error, refreshTheme],
   );
 
-  return (
-    <ThemeContext.Provider value={contextValue}>
-      {children}
-    </ThemeContext.Provider>
-  );
+  return <ThemeContext.Provider value={contextValue}>{children}</ThemeContext.Provider>;
 }
 
 // Hook to get specific theme values
