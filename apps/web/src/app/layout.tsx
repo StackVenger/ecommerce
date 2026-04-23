@@ -1,7 +1,9 @@
-import type { Metadata, Viewport } from 'next';
 import { Inter, Noto_Sans_Bengali } from 'next/font/google';
 import NextTopLoader from 'nextjs-toploader';
 
+import type { Metadata, Viewport } from 'next';
+
+import { getSiteConfig } from '@/lib/config/site-config';
 import { Providers } from '@/providers';
 
 import './globals.css';
@@ -19,63 +21,77 @@ const notoSansBengali = Noto_Sans_Bengali({
   weight: ['400', '500', '600', '700'],
 });
 
-export const metadata: Metadata = {
-  title: {
-    default: 'Ecommerce — Shop the Best Deals Online',
-    template: '%s | Ecommerce',
-  },
-  description:
-    'Discover amazing products at great prices. Shop electronics, fashion, home goods, and more with fast delivery and secure payments.',
-  keywords: [
-    'ecommerce',
-    'online shopping',
-    'best deals',
-    'electronics',
-    'fashion',
-    'home goods',
-  ],
-  authors: [{ name: 'Ecommerce Team' }],
-  creator: 'Ecommerce',
-  publisher: 'Ecommerce',
-  manifest: '/manifest.json',
-  metadataBase: new URL(
-    process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
-  ),
-  openGraph: {
-    type: 'website',
-    locale: 'en_US',
-    siteName: 'Ecommerce',
-    title: 'Ecommerce — Shop the Best Deals Online',
-    description:
-      'Discover amazing products at great prices. Shop electronics, fashion, home goods, and more.',
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'Ecommerce — Shop the Best Deals Online',
-    description:
-      'Discover amazing products at great prices. Shop electronics, fashion, home goods, and more.',
-  },
-  robots: {
-    index: true,
-    follow: true,
-    googleBot: {
-      index: true,
-      follow: true,
-      'max-video-preview': -1,
-      'max-image-preview': 'large',
-      'max-snippet': -1,
+const metadataBase = new URL(process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000');
+
+/**
+ * Metadata is dynamic so site name, description, OG, favicon and robots
+ * all reflect the admin-controlled settings without a rebuild. Falls
+ * back to sensible defaults (baked into getSiteConfig) when the API is
+ * unreachable, so dev is never blocked on the backend being up.
+ */
+export async function generateMetadata(): Promise<Metadata> {
+  const { settings, theme } = await getSiteConfig();
+  const g = settings.general;
+  const seo = settings.seo;
+
+  const title = seo.meta_title || g.site_name;
+  const titleTemplate = `%s | ${g.site_name}`;
+  const description = seo.meta_description || g.site_tagline;
+  const ogImage = seo.og_image;
+
+  return {
+    title: { default: title, template: titleTemplate },
+    description,
+    keywords: seo.meta_keywords.length > 0 ? seo.meta_keywords : undefined,
+    authors: [{ name: g.site_name }],
+    creator: g.site_name,
+    publisher: g.site_name,
+    manifest: '/manifest.json',
+    metadataBase,
+    openGraph: {
+      type: 'website',
+      locale: g.default_language === 'bn' ? 'bn_BD' : 'en_US',
+      siteName: g.site_name,
+      title,
+      description,
+      images: ogImage ? [ogImage] : undefined,
     },
-  },
-  appleWebApp: {
-    capable: true,
-    statusBarStyle: 'default',
-    title: 'E-Commerce',
-  },
-};
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      images: ogImage ? [ogImage] : undefined,
+    },
+    robots: seo.allow_indexing
+      ? {
+          index: true,
+          follow: true,
+          googleBot: {
+            index: true,
+            follow: true,
+            'max-video-preview': -1,
+            'max-image-preview': 'large',
+            'max-snippet': -1,
+          },
+        }
+      : { index: false, follow: false },
+    appleWebApp: {
+      capable: true,
+      statusBarStyle: 'default',
+      title: g.site_name,
+    },
+    icons: theme.faviconUrl
+      ? {
+          icon: theme.faviconUrl,
+          apple: theme.faviconUrl,
+        }
+      : undefined,
+  };
+}
 
 export const viewport: Viewport = {
   themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#1e40af' },
+    { media: '(prefers-color-scheme: light)', color: '#ffffff' },
     { media: '(prefers-color-scheme: dark)', color: '#0a0a0a' },
   ],
   width: 'device-width',
@@ -83,23 +99,31 @@ export const viewport: Viewport = {
   maximumScale: 5,
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const { settings, theme } = await getSiteConfig();
+  const siteName = settings.general.site_name;
+  const faviconUrl = theme.faviconUrl;
+
   return (
     <html
-      lang="en"
+      lang={settings.general.default_language || 'en'}
       className={`${inter.variable} ${notoSansBengali.variable}`}
       suppressHydrationWarning
     >
       <head>
         <link rel="manifest" href="/manifest.json" />
-        <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
+        {faviconUrl ? (
+          <link rel="apple-touch-icon" href={faviconUrl} />
+        ) : (
+          <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
+        )}
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-        <meta name="apple-mobile-web-app-title" content="E-Commerce" />
+        <meta name="apple-mobile-web-app-title" content={siteName} />
       </head>
       <body className="min-h-screen bg-background font-sans antialiased">
         <NextTopLoader color="#0d9488" height={3} showSpinner={false} />

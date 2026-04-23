@@ -1,11 +1,11 @@
 'use client';
 
-import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 
-import { useAuth } from '@/hooks/use-auth';
 import { CartIcon } from '@/components/cart/cart-icon';
+import { useAuth } from '@/hooks/use-auth';
 
 // ──────────────────────────────────────────────────────────
 // Search Bar
@@ -64,9 +64,7 @@ function AuthLinks() {
   const { user, isAuthenticated, isLoading, logout } = useAuth();
 
   if (isLoading) {
-    return (
-      <div className="h-8 w-8 animate-pulse rounded-full bg-gray-200" />
-    );
+    return <div className="h-8 w-8 animate-pulse rounded-full bg-gray-200" />;
   }
 
   if (!isAuthenticated) {
@@ -99,9 +97,7 @@ function AuthLinks() {
         <div className="flex h-8 w-8 items-center justify-center rounded-full bg-teal-100 text-sm font-medium text-teal-700">
           {user?.firstName?.charAt(0)?.toUpperCase() || 'U'}
         </div>
-        <span className="hidden md:inline text-sm font-medium">
-          {user?.firstName}
-        </span>
+        <span className="hidden md:inline text-sm font-medium">{user?.firstName}</span>
         <svg
           xmlns="http://www.w3.org/2000/svg"
           width="14"
@@ -220,6 +216,13 @@ const NAV_LINKS = [
 // Header Component
 // ──────────────────────────────────────────────────────────
 
+interface HeaderProps {
+  /** Site name rendered next to / in place of the logo. */
+  siteName?: string;
+  /** Admin-uploaded logo URL; falls back to the default bag SVG when empty. */
+  logoUrl?: string;
+}
+
 /**
  * Main site header with navigation, search, cart icon, and auth links.
  *
@@ -229,8 +232,11 @@ const NAV_LINKS = [
  * - Integrated search bar
  * - Cart icon with animated item count badge
  * - Auth links (sign in/up for guests, account dropdown for users)
+ *
+ * `siteName` and `logoUrl` come from the server-side site config so the
+ * storefront reflects admin-edited branding without a rebuild.
  */
-export function Header() {
+export function Header({ siteName = 'ShopBD', logoUrl }: HeaderProps = {}) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
@@ -247,24 +253,34 @@ export function Header() {
             <Link
               href="/"
               className="flex items-center gap-2 text-xl font-bold text-gray-900"
+              aria-label={siteName}
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="28"
-                height="28"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="text-teal-600"
-              >
-                <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" />
-                <line x1="3" y1="6" x2="21" y2="6" />
-                <path d="M16 10a4 4 0 01-8 0" />
-              </svg>
-              <span className="hidden sm:inline">Ecommerce</span>
+              {logoUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={logoUrl}
+                  alt={siteName}
+                  className="h-8 w-auto max-w-[180px] object-contain"
+                />
+              ) : (
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="28"
+                  height="28"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="text-teal-600"
+                >
+                  <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" />
+                  <line x1="3" y1="6" x2="21" y2="6" />
+                  <path d="M16 10a4 4 0 01-8 0" />
+                </svg>
+              )}
+              {!logoUrl && <span className="hidden sm:inline">{siteName}</span>}
             </Link>
           </div>
 
