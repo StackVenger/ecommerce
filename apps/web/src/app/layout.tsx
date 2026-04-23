@@ -110,6 +110,8 @@ export default async function RootLayout({
   const faviconUrl = theme.faviconUrl;
   const themeCss = themeToCssVars(theme);
   const customCss = theme.customCSS;
+  const gaId = settings.seo.google_analytics_id;
+  const fbPixelId = settings.seo.facebook_pixel_id;
 
   return (
     <html
@@ -141,6 +143,32 @@ export default async function RootLayout({
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta name="apple-mobile-web-app-title" content={siteName} />
+
+        {/* Analytics: rendered only when the corresponding ID is set in
+            /admin/settings/seo. Anonymous sites and dev environments
+            ship without any trackers. */}
+        {gaId && (
+          <>
+            <script
+              async
+              src={`https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(gaId)}`}
+            />
+            <script
+              // eslint-disable-next-line react/no-danger
+              dangerouslySetInnerHTML={{
+                __html: `window.dataLayer = window.dataLayer || [];function gtag(){dataLayer.push(arguments);}gtag('js', new Date());gtag('config', ${JSON.stringify(gaId)});`,
+              }}
+            />
+          </>
+        )}
+        {fbPixelId && (
+          <script
+            // eslint-disable-next-line react/no-danger
+            dangerouslySetInnerHTML={{
+              __html: `!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window, document,'script','https://connect.facebook.net/en_US/fbevents.js');fbq('init', ${JSON.stringify(fbPixelId)});fbq('track', 'PageView');`,
+            }}
+          />
+        )}
       </head>
       <body className="min-h-screen bg-background font-sans antialiased">
         <NextTopLoader color="#0d9488" height={3} showSpinner={false} />
