@@ -6,11 +6,15 @@ import {
 } from '@nestjs/common';
 
 import { PrismaService } from '../prisma/prisma.service';
+import { UploadService } from '../upload/upload.service';
 import { CreateReviewDto } from './dto/create-review.dto';
 
 @Injectable()
 export class ReviewsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly uploadService: UploadService,
+  ) {}
 
   /** Submit a review (customer must have purchased the product). */
   async create(userId: string, dto: CreateReviewDto) {
@@ -30,9 +34,7 @@ export class ReviewsService {
     });
 
     if (!hasPurchased) {
-      throw new BadRequestException(
-        'You can only review products you have purchased',
-      );
+      throw new BadRequestException('You can only review products you have purchased');
     }
 
     return this.prisma.review.create({
@@ -61,7 +63,9 @@ export class ReviewsService {
       },
     });
 
-    if (!review) throw new NotFoundException('Review not found');
+    if (!review) {
+      throw new NotFoundException('Review not found');
+    }
     return review;
   }
 
@@ -92,6 +96,9 @@ export class ReviewsService {
     }
 
     await this.prisma.review.delete({ where: { id } });
+    if (Array.isArray(review.images) && review.images.length > 0) {
+      await this.uploadService.deleteByUrls(review.images);
+    }
     return { deleted: true };
   }
 

@@ -19,6 +19,25 @@ export interface UploadResult {
 
   /** Storage adapter that handled the upload */
   storage: string;
+
+  /**
+   * Per-preset derivative URLs produced natively by the adapter
+   * (e.g. Cloudinary eager transformations). When populated, the
+   * upload service skips its local sharp + per-variant upload path.
+   */
+  variantUrls?: Partial<Record<'thumb' | 'medium' | 'large', string>>;
+
+  /** Original image width in pixels, when the adapter has it. */
+  originalWidth?: number;
+
+  /** Original image height in pixels, when the adapter has it. */
+  originalHeight?: number;
+
+  /**
+   * Base64 `data:image/webp;base64,…` blur placeholder, when the
+   * adapter can generate one cheaply (e.g. Cloudinary LQIP).
+   */
+  blurDataUrl?: string | null;
 }
 
 /**

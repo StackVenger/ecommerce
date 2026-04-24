@@ -36,6 +36,6 @@
       "@/decorators/*": ["./src/decorators/*"]
     }
   },
-  "include": ["src/**/*.ts"],
+  "include": ["src/**/*.ts", "scripts/**/*.ts"],
   "exclude": ["node_modules", "dist", "test", "coverage", "**/*.spec.ts", "**/*.e2e-spec.ts"]
 }

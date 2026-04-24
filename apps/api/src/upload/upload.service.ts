@@ -1,31 +1,18 @@
-import {
-  Injectable,
-  Inject,
-  Logger,
-  BadRequestException,
-} from '@nestjs/common';
+import { Injectable, Inject, Logger, BadRequestException } from '@nestjs/common';
 
+import { extractCloudinaryPublicId } from './adapters/cloudinary-storage.adapter';
+import { ImageProcessingService, ImageProcessingResult } from './image-processing.service';
 import {
   StorageAdapter,
   UploadResult,
   UploadOptions,
   STORAGE_ADAPTER,
 } from './interfaces/storage-adapter.interface';
-import {
-  ImageProcessingService,
-  ImageProcessingResult,
-} from './image-processing.service';
 
 /**
  * Allowed MIME types for file uploads.
  */
-const ALLOWED_IMAGE_TYPES = [
-  'image/jpeg',
-  'image/png',
-  'image/gif',
-  'image/webp',
-  'image/svg+xml',
-];
+const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml'];
 
 const ALLOWED_DOCUMENT_TYPES = [
   'application/pdf',
@@ -88,21 +75,19 @@ export class UploadService {
     }
 
     // Validate file size
-    const maxSize = ALLOWED_IMAGE_TYPES.includes(mimeType)
-      ? MAX_IMAGE_SIZE
-      : MAX_DOCUMENT_SIZE;
+    const maxSize = ALLOWED_IMAGE_TYPES.includes(mimeType) ? MAX_IMAGE_SIZE : MAX_DOCUMENT_SIZE;
 
     if (file.length > maxSize) {
       const maxMB = maxSize / (1024 * 1024);
-      throw new BadRequestException(
-        `File size exceeds the maximum allowed size of ${maxMB} MB`,
-      );
+      throw new BadRequestException(`File size exceeds the maximum allowed size of ${maxMB} MB`);
     }
 
     // Sanitize original filename
     const sanitizedName = this.sanitizeFilename(originalName);
 
-    this.logger.log(`Uploading file: ${sanitizedName} (${mimeType}, ${this.formatFileSize(file.length)})`);
+    this.logger.log(
+      `Uploading file: ${sanitizedName} (${mimeType}, ${this.formatFileSize(file.length)})`,
+    );
 
     const result = await this.storageAdapter.upload(file, sanitizedName, mimeType, options);
 
@@ -141,11 +126,41 @@ export class UploadService {
       directory,
     });
 
-    // Process image variants (thumb, medium, large) and generate blur placeholder
-    const processed: ImageProcessingResult =
-      await this.imageProcessingService.processImage(file);
+    // Fast path: if the active storage adapter natively produced WebP
+    // variants (Cloudinary), skip the sharp pipeline and its second-round
+    // uploads. Variants live on the same remote asset lifecycle and are
+    // served via URL transformations.
+    const adapterVariantUrls = original.variantUrls;
+    if (adapterVariantUrls?.thumb && adapterVariantUrls.medium && adapterVariantUrls.large) {
+      const makeVariant = (name: 'thumb' | 'medium' | 'large', url: string): UploadResult => ({
+        key: `${original.key}/${name}`,
+        url,
+        originalName,
+        mimeType: 'image/webp',
+        size: 0,
+        storage: original.storage,
+      });
 
-    // Upload each variant
+      this.logger.log(
+        `Image uploaded via ${original.storage} with native variant URLs: ${original.key}`,
+      );
+
+      return {
+        ...original,
+        variants: {
+          thumb: makeVariant('thumb', adapterVariantUrls.thumb),
+          medium: makeVariant('medium', adapterVariantUrls.medium),
+          large: makeVariant('large', adapterVariantUrls.large),
+        },
+        blurDataUrl: original.blurDataUrl ?? null,
+        originalWidth: original.originalWidth ?? 0,
+        originalHeight: original.originalHeight ?? 0,
+      };
+    }
+
+    // Fallback path (local / S3): resize with sharp and upload each variant.
+    const processed: ImageProcessingResult = await this.imageProcessingService.processImage(file);
+
     const variantResults: Record<string, UploadResult> = {};
 
     for (const variant of processed.variants) {
@@ -159,9 +174,7 @@ export class UploadService {
       variantResults[variant.name] = variantResult;
     }
 
-    this.logger.log(
-      `Image uploaded with ${processed.variants.length} variants: ${original.key}`,
-    );
+    this.logger.log(`Image uploaded with ${processed.variants.length} variants: ${original.key}`);
 
     return {
       ...original,
@@ -211,7 +224,9 @@ export class UploadService {
       }
     }
 
-    this.logger.log(`Bulk delete: ${deleted} deleted, ${failed} failed out of ${keys.length} files`);
+    this.logger.log(
+      `Bulk delete: ${deleted} deleted, ${failed} failed out of ${keys.length} files`,
+    );
 
     return { deleted, failed };
   }
@@ -221,6 +236,38 @@ export class UploadService {
    */
   getFileUrl(key: string): string {
     return this.storageAdapter.getUrl(key);
+  }
+
+  /**
+   * Best-effort delete by URL — used by services that only know the DB-stored
+   * URL (not the storage key). Currently maps Cloudinary URLs → public_id and
+   * delegates to the adapter; returns false silently for unrecognised URLs.
+   *
+   * Never throws — image cleanup is a secondary concern that must not roll
+   * back the primary DB mutation if Cloudinary is flaky.
+   */
+  async deleteByUrl(url: string | null | undefined): Promise<boolean> {
+    if (!url) {
+      return false;
+    }
+    const publicId = extractCloudinaryPublicId(url);
+    if (!publicId) {
+      return false;
+    }
+    try {
+      return await this.storageAdapter.delete(publicId);
+    } catch (err) {
+      this.logger.warn(`Failed to delete Cloudinary asset for ${url}: ${(err as Error).message}`);
+      return false;
+    }
+  }
+
+  /**
+   * Bulk variant of `deleteByUrl`. Runs in parallel; individual failures are
+   * logged but never propagate.
+   */
+  async deleteByUrls(urls: Array<string | null | undefined>): Promise<void> {
+    await Promise.all(urls.map((u) => this.deleteByUrl(u)));
   }
 
   // ─── Private Helpers ────────────────────────────────────────────────────────
@@ -239,8 +286,12 @@ export class UploadService {
    * Format file size for human-readable logging.
    */
   private formatFileSize(bytes: number): string {
-    if (bytes < 1024) return `${bytes} B`;
-    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    if (bytes < 1024) {
+      return `${bytes} B`;
+    }
+    if (bytes < 1024 * 1024) {
+      return `${(bytes / 1024).toFixed(1)} KB`;
+    }
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
   }
 

@@ -7,6 +7,7 @@ import {
 } from '@nestjs/common';
 
 import { PrismaService } from '../prisma/prisma.service';
+import { UploadService } from '../upload/upload.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
 
@@ -46,7 +47,10 @@ export interface CategoryFlat {
 export class CategoriesService {
   private readonly logger = new Logger(CategoriesService.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly uploadService: UploadService,
+  ) {}
 
   // ─── Tree Operations ────────────────────────────────────────────────────────
 
@@ -98,7 +102,9 @@ export class CategoriesService {
       }
     }
 
-    this.logger.debug(`Built category tree with ${roots.length} root nodes from ${categories.length} total categories`);
+    this.logger.debug(
+      `Built category tree with ${roots.length} root nodes from ${categories.length} total categories`,
+    );
 
     return roots;
   }
@@ -137,7 +143,9 @@ export class CategoriesService {
       // Walk up the tree to build path and calculate depth
       while (currentId) {
         const parent = categoryMap.get(currentId);
-        if (!parent) break;
+        if (!parent) {
+          break;
+        }
         path.unshift(parent.name);
         currentId = parent.parentId;
         depth++;
@@ -347,6 +355,10 @@ export class CategoriesService {
       },
     });
 
+    if (dto.image !== undefined && existing.image && dto.image !== existing.image) {
+      await this.uploadService.deleteByUrl(existing.image);
+    }
+
     this.logger.log(`Updated category "${category.name}" (${category.id})`);
 
     return category;
@@ -375,7 +387,7 @@ export class CategoriesService {
     if (category._count.products > 0) {
       throw new BadRequestException(
         `Cannot delete category "${category.name}" - it has ${category._count.products} associated products. ` +
-        'Please reassign or remove the products first.',
+          'Please reassign or remove the products first.',
       );
     }
 
@@ -394,6 +406,7 @@ export class CategoriesService {
     await this.prisma.category.delete({
       where: { id },
     });
+    await this.uploadService.deleteByUrl(category.image);
 
     this.logger.log(`Deleted category "${category.name}" (${id})`);
 

@@ -1,7 +1,107 @@
 import { PrismaClient, UserRole, UserStatus } from '@prisma/client';
-import { randomBytes, scryptSync } from 'crypto';
+import { createHash, randomBytes, scryptSync } from 'crypto';
+import * as path from 'path';
+
+import { config as loadEnv } from 'dotenv';
+import { v2 as cloudinary } from 'cloudinary';
+
+// Seed runs with cwd=packages/database. Load the API's env files explicitly
+// so CLOUDINARY_* + DATABASE_URL are available without a root .env.
+loadEnv({ path: path.resolve(__dirname, '../../../apps/api/.env.local') });
+loadEnv({ path: path.resolve(__dirname, '../../../apps/api/.env') });
 
 const prisma = new PrismaClient();
+
+// ---------------------------------------------------------------------------
+// Cloudinary upload helper — idempotent, deterministic public_ids.
+//
+// Given a source URL (Unsplash or any reachable http(s) URL), uploads it to
+// Cloudinary under `ecommerce/<folder>/<sha1-12>` with WebP conversion,
+// quality-auto compression, and a 2000px size cap. Returns the Cloudinary
+// secure_url, or — on failure — the original source URL so seeding still
+// completes. Uses `api.resource` first to avoid re-uploading on re-seed.
+// ---------------------------------------------------------------------------
+
+const CLOUDINARY_READY =
+  !!process.env.CLOUDINARY_CLOUD_NAME &&
+  !!process.env.CLOUDINARY_API_KEY &&
+  !!process.env.CLOUDINARY_API_SECRET;
+
+if (CLOUDINARY_READY) {
+  cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET,
+    secure: true,
+  });
+}
+
+const CLOUDINARY_FOLDER = process.env.CLOUDINARY_UPLOAD_FOLDER || 'ecommerce';
+const uploadCache = new Map<string, string>();
+
+function publicIdFor(sourceUrl: string, folder: string): string {
+  const hash = createHash('sha1').update(sourceUrl).digest('hex').slice(0, 12);
+  return `${CLOUDINARY_FOLDER}/${folder}/${hash}`;
+}
+
+export async function seedImage(sourceUrl: string, folder: string): Promise<string> {
+  if (!CLOUDINARY_READY) return sourceUrl;
+
+  const cached = uploadCache.get(sourceUrl);
+  if (cached) return cached;
+
+  const publicId = publicIdFor(sourceUrl, folder);
+  try {
+    // Fast path: the asset already exists from a previous seed run.
+    const existing = (await cloudinary.api
+      .resource(publicId, { resource_type: 'image' })
+      .catch(() => null)) as { secure_url?: string } | null;
+    if (existing?.secure_url) {
+      uploadCache.set(sourceUrl, existing.secure_url);
+      return existing.secure_url;
+    }
+
+    const result = await cloudinary.uploader.upload(sourceUrl, {
+      public_id: publicId,
+      overwrite: false,
+      resource_type: 'image',
+      format: 'webp',
+      transformation: [
+        { width: 2000, height: 2000, crop: 'limit' },
+        { quality: 'auto:good', fetch_format: 'auto' },
+      ],
+      eager: [
+        { width: 150, crop: 'limit', format: 'webp', quality: 80 },
+        { width: 600, crop: 'limit', format: 'webp', quality: 85 },
+        { width: 1200, crop: 'limit', format: 'webp', quality: 90 },
+      ],
+    });
+    uploadCache.set(sourceUrl, result.secure_url);
+    return result.secure_url;
+  } catch (err) {
+    console.warn(
+      `  ✗ Cloudinary upload failed for ${sourceUrl}: ${(err as Error).message}. Using source URL.`,
+    );
+    uploadCache.set(sourceUrl, sourceUrl);
+    return sourceUrl;
+  }
+}
+
+/** Bulk variant — uploads a list in parallel, preserving order. */
+export async function seedImages(sourceUrls: string[], folder: string): Promise<string[]> {
+  return Promise.all(sourceUrls.map((u) => seedImage(u, folder)));
+}
+
+/**
+ * For a Cloudinary `secure_url`, inject a width-limited transformation so the
+ * returned URL delivers a ~400px thumbnail. Non-Cloudinary URLs are passed
+ * through unchanged (happens when CLOUDINARY_READY is false or upload fails
+ * and we fell back to the source URL).
+ */
+export function toThumbnailUrl(url: string): string {
+  if (!url.includes('res.cloudinary.com/') || !url.includes('/upload/')) return url;
+  return url.replace('/upload/', '/upload/w_400,c_limit,f_auto,q_auto/');
+}
 
 // ---------------------------------------------------------------------------
 // Utility: Password hashing compatible with bcrypt.
@@ -279,19 +379,26 @@ const BRANDS: BrandSeed[] = [
   { name: 'Canon', slug: 'canon', website: 'https://canon.com' },
 ];
 
+// Generic brand-logo placeholder (abstract mark). Admin can replace per-brand
+// logos through /admin/brands after seed.
+const BRAND_LOGO_PLACEHOLDER =
+  'https://images.unsplash.com/photo-1599305445671-ac291c95aaa9?w=400&h=400&fit=crop&q=80';
+
 async function seedBrands() {
   console.log('Seeding brands...');
   const brandMap: Record<string, string> = {};
 
+  const logoUrl = await seedImage(BRAND_LOGO_PLACEHOLDER, 'brands');
+
   for (const b of BRANDS) {
     const brand = await prisma.brand.upsert({
       where: { slug: b.slug },
-      update: {},
+      update: { logo: b.logo ?? logoUrl },
       create: {
         name: b.name,
         nameBn: b.nameBn,
         slug: b.slug,
-        logo: b.logo ?? `https://cdn.shopbd.com/brands/${b.slug}.png`,
+        logo: b.logo ?? logoUrl,
         website: b.website,
         isActive: true,
       },
@@ -2150,15 +2257,31 @@ async function seedProducts(brandMap: Record<string, string>) {
       create: productData,
     });
 
-    // Delete old images for this product, then re-create with current URLs
-    await prisma.productImage.deleteMany({ where: { productId: product.id } });
-    for (let i = 0; i < p.images.length; i++) {
-      await prisma.productImage.create({
-        data: {
+    // Replace images for this product — delete any that aren't in the
+    // current seed list, then upsert the current ones so re-seeding is
+    // idempotent even if image metadata was changed by hand.
+    const seededImages = await seedImages(p.images, 'products');
+    const keepIds = seededImages.map((_, i) => `seed-img-${p.slug}-${i}`);
+    await prisma.productImage.deleteMany({
+      where: { productId: product.id, id: { notIn: keepIds } },
+    });
+    for (let i = 0; i < seededImages.length; i++) {
+      const fullUrl = seededImages[i]!;
+      await prisma.productImage.upsert({
+        where: { id: `seed-img-${p.slug}-${i}` },
+        update: {
+          productId: product.id,
+          url: fullUrl,
+          thumbnailUrl: toThumbnailUrl(fullUrl),
+          alt: p.name,
+          isPrimary: i === 0,
+          sortOrder: i,
+        },
+        create: {
           id: `seed-img-${p.slug}-${i}`,
           productId: product.id,
-          url: p.images[i],
-          thumbnailUrl: p.images[i].replace('w=800&h=800', 'w=400&h=400'),
+          url: fullUrl,
+          thumbnailUrl: toThumbnailUrl(fullUrl),
           alt: p.name,
           isPrimary: i === 0,
           sortOrder: i,
@@ -2358,15 +2481,56 @@ Tejgaon, Dhaka 1208, Bangladesh</p>
 // ---------------------------------------------------------------------------
 // Seed: Banners
 // ---------------------------------------------------------------------------
+// Banner source URLs — Unsplash photos chosen to match each banner's theme.
+const BANNER_SOURCES = {
+  eid: 'https://images.unsplash.com/photo-1588436706487-9d55d73a39e3?w=1600&h=800&fit=crop&q=80',
+  eidMobile:
+    'https://images.unsplash.com/photo-1588436706487-9d55d73a39e3?w=800&h=600&fit=crop&q=80',
+  electronics:
+    'https://images.unsplash.com/photo-1518770660439-4636190af475?w=1600&h=800&fit=crop&q=80',
+  electronicsMobile:
+    'https://images.unsplash.com/photo-1518770660439-4636190af475?w=800&h=600&fit=crop&q=80',
+  delivery:
+    'https://images.unsplash.com/photo-1580674285054-bed31e145f59?w=1600&h=800&fit=crop&q=80',
+  deliveryMobile:
+    'https://images.unsplash.com/photo-1580674285054-bed31e145f59?w=800&h=600&fit=crop&q=80',
+  smartphone:
+    'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=800&h=1000&fit=crop&q=80',
+  app: 'https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?w=1200&h=600&fit=crop&q=80',
+};
+
 async function seedBanners() {
   console.log('Seeding banners...');
+
+  const [
+    eid,
+    eidMobile,
+    electronics,
+    electronicsMobile,
+    delivery,
+    deliveryMobile,
+    smartphone,
+    app,
+  ] = await seedImages(
+    [
+      BANNER_SOURCES.eid,
+      BANNER_SOURCES.eidMobile,
+      BANNER_SOURCES.electronics,
+      BANNER_SOURCES.electronicsMobile,
+      BANNER_SOURCES.delivery,
+      BANNER_SOURCES.deliveryMobile,
+      BANNER_SOURCES.smartphone,
+      BANNER_SOURCES.app,
+    ],
+    'banners',
+  );
 
   const banners = [
     {
       title: 'Eid Collection 2025',
       titleBn: 'ঈদ কালেকশন ২০২৫',
-      image: 'https://cdn.shopbd.com/banners/eid-collection-2025.jpg',
-      mobileImage: 'https://cdn.shopbd.com/banners/eid-collection-2025-mobile.jpg',
+      image: eid!,
+      mobileImage: eidMobile!,
       link: '/collections/eid-2025',
       position: 'HERO' as const,
       isActive: true,
@@ -2375,8 +2539,8 @@ async function seedBanners() {
     {
       title: 'Electronics Mega Sale',
       titleBn: 'ইলেকট্রনিক্স মেগা সেল',
-      image: 'https://cdn.shopbd.com/banners/electronics-mega-sale.jpg',
-      mobileImage: 'https://cdn.shopbd.com/banners/electronics-mega-sale-mobile.jpg',
+      image: electronics!,
+      mobileImage: electronicsMobile!,
       link: '/category/electronics?sale=true',
       position: 'HERO' as const,
       isActive: true,
@@ -2385,8 +2549,8 @@ async function seedBanners() {
     {
       title: 'Free Delivery Inside Dhaka',
       titleBn: 'ঢাকায় ফ্রি ডেলিভারি',
-      image: 'https://cdn.shopbd.com/banners/free-delivery-dhaka.jpg',
-      mobileImage: 'https://cdn.shopbd.com/banners/free-delivery-dhaka-mobile.jpg',
+      image: delivery!,
+      mobileImage: deliveryMobile!,
       link: '/offers/free-delivery',
       position: 'HERO' as const,
       isActive: true,
@@ -2395,7 +2559,7 @@ async function seedBanners() {
     {
       title: 'Smartphone Deals',
       titleBn: 'স্মার্টফোন অফার',
-      image: 'https://cdn.shopbd.com/banners/smartphone-deals-sidebar.jpg',
+      image: smartphone!,
       link: '/category/smartphones',
       position: 'SIDEBAR' as const,
       isActive: true,
@@ -2404,7 +2568,7 @@ async function seedBanners() {
     {
       title: 'Download Our App',
       titleBn: 'আমাদের অ্যাপ ডাউনলোড করুন',
-      image: 'https://cdn.shopbd.com/banners/app-download-footer.jpg',
+      image: app!,
       link: '/app',
       position: 'FOOTER' as const,
       isActive: true,
@@ -2417,7 +2581,10 @@ async function seedBanners() {
     const id = `seed-banner-${banner.position.toLowerCase()}-${banner.sortOrder}`;
     await prisma.banner.upsert({
       where: { id },
-      update: {},
+      update: {
+        image: banner.image,
+        ...(banner.mobileImage !== undefined ? { mobileImage: banner.mobileImage } : {}),
+      },
       create: { id, ...banner },
     });
   }
@@ -2590,8 +2757,14 @@ async function seedShippingMethods() {
 // ---------------------------------------------------------------------------
 // Seed: Default Settings
 // ---------------------------------------------------------------------------
+// OG image source — a clean commerce-themed photo used for link previews.
+const OG_IMAGE_SOURCE =
+  'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?w=1200&h=630&fit=crop&q=80';
+
 async function seedSettings() {
   console.log('Seeding default settings...');
+
+  const ogImageUrl = await seedImage(OG_IMAGE_SOURCE, 'seo');
 
   const settings: Array<{
     group: 'GENERAL' | 'EMAIL' | 'SHIPPING' | 'TAX' | 'PAYMENT' | 'SEO' | 'SOCIAL';
@@ -2724,7 +2897,7 @@ async function seedSettings() {
     },
     { group: 'SEO', key: 'google_analytics_id', value: '' },
     { group: 'SEO', key: 'facebook_pixel_id', value: '' },
-    { group: 'SEO', key: 'og_image', value: 'https://cdn.shopbd.com/og-image.jpg' },
+    { group: 'SEO', key: 'og_image', value: ogImageUrl },
 
     // Social
     { group: 'SOCIAL', key: 'facebook_url', value: 'https://facebook.com/shopbd' },
@@ -2740,7 +2913,7 @@ async function seedSettings() {
       where: {
         group_key: { group: s.group, key: s.key },
       },
-      update: {},
+      update: { value: s.value, type: s.type ?? 'string' },
       create: {
         group: s.group,
         key: s.key,
@@ -2992,13 +3165,24 @@ async function seedEmailTemplates() {
 // ---------------------------------------------------------------------------
 // Seed: Theme Settings
 // ---------------------------------------------------------------------------
+// Theme logo + favicon source placeholders (abstract square marks).
+const THEME_LOGO_SOURCE =
+  'https://images.unsplash.com/photo-1599305445671-ac291c95aaa9?w=400&h=400&fit=crop&q=80';
+const THEME_FAVICON_SOURCE =
+  'https://images.unsplash.com/photo-1599305445671-ac291c95aaa9?w=64&h=64&fit=crop&q=80';
+
 async function seedThemeSettings() {
   console.log('Seeding theme settings...');
+
+  const [logoUrl, faviconUrl] = await seedImages(
+    [THEME_LOGO_SOURCE, THEME_FAVICON_SOURCE],
+    'theme',
+  );
 
   const themeId = 'seed-theme-default';
   await prisma.themeSettings.upsert({
     where: { id: themeId },
-    update: {},
+    update: { logoUrl: logoUrl!, faviconUrl: faviconUrl! },
     create: {
       id: themeId,
       primaryColor: '#0f766e',
@@ -3014,8 +3198,8 @@ async function seedThemeSettings() {
       headerStyle: 'sticky-transparent',
       footerStyle: 'multi-column',
       customCss: null,
-      logoUrl: 'https://cdn.shopbd.com/logo.svg',
-      faviconUrl: 'https://cdn.shopbd.com/favicon.ico',
+      logoUrl: logoUrl!,
+      faviconUrl: faviconUrl!,
     },
   });
 

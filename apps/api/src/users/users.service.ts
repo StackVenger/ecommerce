@@ -5,6 +5,7 @@ import { Injectable, Logger, NotFoundException, BadRequestException } from '@nes
 import * as sharp from 'sharp';
 
 import { PrismaService } from '../prisma/prisma.service';
+import { UploadService } from '../upload/upload.service';
 import { CreateAddressDto } from './dto/create-address.dto';
 import { UpdateAddressDto } from './dto/update-address.dto';
 
@@ -13,7 +14,10 @@ export class UsersService {
   private readonly logger = new Logger(UsersService.name);
   private readonly uploadDir = path.join(process.cwd(), 'uploads', 'avatars');
 
-  constructor(private readonly prisma: PrismaService) {
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly uploadService: UploadService,
+  ) {
     void this.ensureUploadDir();
   }
 
@@ -79,6 +83,10 @@ export class UsersService {
     });
 
     if (user?.avatar) {
+      // Destroy any Cloudinary-hosted old avatar first; local files get
+      // deleted below as a best-effort fallback.
+      await this.uploadService.deleteByUrl(user.avatar);
+
       const oldFilename = path.basename(user.avatar);
       const oldThumbFilename = oldFilename.replace('.webp', '_thumb.webp');
 

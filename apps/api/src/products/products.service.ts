@@ -18,12 +18,16 @@ import { CreateVariantDto, UpdateVariantDto } from './dto/create-variant.dto';
 import { ProductFilterDto, ProductSortBy, SortOrder } from './dto/product-filter.dto';
 import { ReplaceVariantsDto } from './dto/replace-variants.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
+import { UploadService } from '../upload/upload.service';
 
 @Injectable()
 export class ProductsService {
   private readonly logger = new Logger(ProductsService.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly uploadService: UploadService,
+  ) {}
 
   // ─── Utility Methods ────────────────────────────────────────────────────────
 
@@ -716,9 +720,20 @@ export class ProductsService {
       );
     }
 
+    // Snapshot the image URLs before cascade-deleting the product so we can
+    // destroy the remote Cloudinary assets afterwards.
+    const productImages = await this.prisma.productImage.findMany({
+      where: { productId: id },
+      select: { url: true },
+    });
+
     await this.prisma.product.delete({
       where: { id },
     });
+
+    if (productImages.length > 0) {
+      await this.uploadService.deleteByUrls(productImages.map((i) => i.url));
+    }
 
     this.logger.log(`Product permanently deleted: ${id} (${product.slug})`);
     return { deleted: true, id, name: product.name };
@@ -957,7 +972,12 @@ export class ProductsService {
       }),
     );
 
-    return this.prisma.$transaction(async (tx) => {
+    // URLs orphaned by the transaction (variant images deleted or swapped).
+    // Destroyed on Cloudinary after commit, filtered against current DB state
+    // so we never nuke an asset still referenced by another row.
+    const orphanedUrls: string[] = [];
+
+    const result = await this.prisma.$transaction(async (tx) => {
       // 1. Upsert ProductAttribute rows and capture their IDs.
       const attrsByName = new Map<string, { id: string }>();
       for (const [name, values] of attrValuesMap) {
@@ -1020,6 +1040,13 @@ export class ProductsService {
         } else {
           // Drop variant-scoped images first so they don't land back in the
           // product gallery as orphans via onDelete: SetNull.
+          const variantImgs = await tx.productImage.findMany({
+            where: { productId, variantId: variant.id },
+            select: { url: true },
+          });
+          for (const img of variantImgs) {
+            orphanedUrls.push(img.url);
+          }
           await tx.productImage.deleteMany({
             where: { productId, variantId: variant.id },
           });
@@ -1111,10 +1138,12 @@ export class ProductsService {
 
         if (!wantUrl) {
           if (currentVariantImage) {
+            orphanedUrls.push(currentVariantImage.url);
             await tx.productImage.delete({ where: { id: currentVariantImage.id } });
           }
         } else if (!currentVariantImage || currentVariantImage.url !== wantUrl) {
           if (currentVariantImage) {
+            orphanedUrls.push(currentVariantImage.url);
             await tx.productImage.delete({ where: { id: currentVariantImage.id } });
           }
           const source = await tx.productImage.findFirst({
@@ -1163,6 +1192,24 @@ export class ProductsService {
         },
       });
     });
+
+    // Destroy remote assets for orphaned URLs, filtered against the current
+    // DB so we don't nuke one that's still referenced by another ProductImage
+    // row (e.g. the product gallery cloned the same URL).
+    if (orphanedUrls.length > 0) {
+      const unique = Array.from(new Set(orphanedUrls));
+      const stillLive = await this.prisma.productImage.findMany({
+        where: { url: { in: unique } },
+        select: { url: true },
+      });
+      const liveSet = new Set(stillLive.map((r) => r.url));
+      const toDestroy = unique.filter((u) => !liveSet.has(u));
+      if (toDestroy.length > 0) {
+        await this.uploadService.deleteByUrls(toDestroy);
+      }
+    }
+
+    return result;
   }
 
   // ─── Image Management ──────────────────────────────────────────────────────
@@ -1260,6 +1307,15 @@ export class ProductsService {
           data: { isPrimary: true },
         });
       }
+    }
+
+    // Only destroy the remote asset if no other row still references it
+    // (e.g. a variant may share the same URL cloned as a variant image).
+    const stillReferenced = await this.prisma.productImage.count({
+      where: { url: image.url },
+    });
+    if (stillReferenced === 0) {
+      await this.uploadService.deleteByUrl(image.url);
     }
 
     this.logger.log(`Image removed: ${imageId} from product ${productId}`);

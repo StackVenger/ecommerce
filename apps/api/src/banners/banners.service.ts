@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 
 import { RevalidateService } from '../common/revalidate/revalidate.service';
 import { PrismaService } from '../prisma/prisma.service';
+import { UploadService } from '../upload/upload.service';
 import { CreateBannerDto } from './dto/create-banner.dto';
 import { UpdateBannerDto } from './dto/update-banner.dto';
 
@@ -10,6 +11,7 @@ export class BannersService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly revalidate: RevalidateService,
+    private readonly uploadService: UploadService,
   ) {}
 
   async create(dto: CreateBannerDto) {
@@ -139,6 +141,23 @@ export class BannersService {
     }
 
     const updated = await this.prisma.banner.update({ where: { id }, data });
+
+    // Destroy any Cloudinary assets orphaned by this update.
+    const oldUrls: string[] = [];
+    if (data.image !== undefined && banner.image && data.image !== banner.image) {
+      oldUrls.push(banner.image);
+    }
+    if (
+      data.mobileImage !== undefined &&
+      banner.mobileImage &&
+      data.mobileImage !== banner.mobileImage
+    ) {
+      oldUrls.push(banner.mobileImage);
+    }
+    if (oldUrls.length > 0) {
+      await this.uploadService.deleteByUrls(oldUrls);
+    }
+
     void this.revalidate.revalidate({ tags: ['site-config', 'banners'] });
     return updated;
   }
@@ -149,6 +168,7 @@ export class BannersService {
       throw new NotFoundException(`Banner with ID ${id} not found`);
     }
     const deleted = await this.prisma.banner.delete({ where: { id } });
+    await this.uploadService.deleteByUrls([banner.image, banner.mobileImage]);
     void this.revalidate.revalidate({ tags: ['site-config', 'banners'] });
     return deleted;
   }

@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 
 import { RevalidateService } from '../common/revalidate/revalidate.service';
 import { PrismaService } from '../prisma/prisma.service';
+import { UploadService } from '../upload/upload.service';
 import { UpdateThemeDto } from './dto/update-theme.dto';
 
 const DEFAULT_THEME = {
@@ -60,6 +61,7 @@ export class ThemeService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly revalidate: RevalidateService,
+    private readonly uploadService: UploadService,
   ) {}
 
   private readonly THEME_WHERE = { group_key: { group: 'THEME' as const, key: 'config' } };
@@ -105,6 +107,25 @@ export class ThemeService {
         value: JSON.stringify(updatedTheme),
       },
     });
+
+    const orphans: string[] = [];
+    if (
+      dto.logoUrl !== undefined &&
+      currentTheme.logoUrl &&
+      currentTheme.logoUrl !== updatedTheme.logoUrl
+    ) {
+      orphans.push(currentTheme.logoUrl);
+    }
+    if (
+      dto.faviconUrl !== undefined &&
+      currentTheme.faviconUrl &&
+      currentTheme.faviconUrl !== updatedTheme.faviconUrl
+    ) {
+      orphans.push(currentTheme.faviconUrl);
+    }
+    if (orphans.length > 0) {
+      await this.uploadService.deleteByUrls(orphans);
+    }
 
     void this.revalidate.revalidate({ tags: ['site-config', 'theme'] });
     return updatedTheme;

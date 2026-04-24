@@ -8,6 +8,7 @@ import {
 import { Prisma } from '@prisma/client';
 
 import { PrismaService } from '../prisma/prisma.service';
+import { UploadService } from '../upload/upload.service';
 import { CreateBrandDto } from './dto/create-brand.dto';
 import { UpdateBrandDto } from './dto/update-brand.dto';
 
@@ -30,7 +31,10 @@ export interface PaginatedBrands {
 export class BrandsService {
   private readonly logger = new Logger(BrandsService.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly uploadService: UploadService,
+  ) {}
 
   // ─── Query Operations ───────────────────────────────────────────────────────
 
@@ -200,6 +204,22 @@ export class BrandsService {
       },
     });
 
+    // Destroy Cloudinary assets for replaced logo / cover image.
+    const orphans: string[] = [];
+    if (dto.logo !== undefined && existing.logo && dto.logo !== existing.logo) {
+      orphans.push(existing.logo);
+    }
+    if (
+      dto.coverImage !== undefined &&
+      existing.coverImage &&
+      dto.coverImage !== existing.coverImage
+    ) {
+      orphans.push(existing.coverImage);
+    }
+    if (orphans.length > 0) {
+      await this.uploadService.deleteByUrls(orphans);
+    }
+
     this.logger.log(`Updated brand "${brand.name}" (${brand.id})`);
 
     return {
@@ -230,13 +250,14 @@ export class BrandsService {
     if (brand._count.products > 0) {
       throw new BadRequestException(
         `Cannot delete brand "${brand.name}" - it has ${brand._count.products} associated products. ` +
-        'Please reassign or remove the products first.',
+          'Please reassign or remove the products first.',
       );
     }
 
     await this.prisma.brand.delete({
       where: { id },
     });
+    await this.uploadService.deleteByUrls([brand.logo, brand.coverImage]);
 
     this.logger.log(`Deleted brand "${brand.name}" (${id})`);
 
