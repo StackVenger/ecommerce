@@ -8,6 +8,7 @@ import { useAuth } from '@/hooks/use-auth';
 import { useCart } from '@/hooks/use-cart';
 import { getAddresses, type Address } from '@/lib/api/addresses';
 import { getSessionId } from '@/lib/api/cart';
+import { getApiErrorMessage } from '@/lib/api/errors';
 import {
   placeOrder,
   calculateShipping,
@@ -885,8 +886,8 @@ export default function CheckoutPage() {
       } else {
         router.push(`/account/orders`);
       }
-    } catch (error: any) {
-      toast.error(error?.message || 'Failed to place order. Please try again.');
+    } catch (error) {
+      toast.error(getApiErrorMessage(error, 'Failed to place order. Please try again.'));
     } finally {
       setIsSubmitting(false);
     }

@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 
 import { apiClient } from '@/lib/api/client';
+import { getApiErrorMessage } from '@/lib/api/errors';
 
 interface Props {
   productId: string;
@@ -45,8 +46,8 @@ export function ReviewForm({ productId, onSubmitted }: Props) {
       setTitle('');
       setComment('');
       onSubmitted?.();
-    } catch (err: any) {
-      const errorMsg = err?.message ?? 'Failed to submit review. Please try again.';
+    } catch (err) {
+      const errorMsg = getApiErrorMessage(err, 'Failed to submit review. Please try again.');
       setMessage(errorMsg);
       toast.error(errorMsg);
     } finally {

@@ -6,6 +6,7 @@ import { useParams } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 
+import { getApiErrorMessage } from '@/lib/api/errors';
 import { getOrderByNumber, cancelOrder, type OrderDetail } from '@/lib/api/orders';
 
 // ──────────────────────────────────────────────────────────
@@ -317,8 +318,8 @@ export default function OrderDetailPage() {
       setOrder(updated);
       setShowCancelDialog(false);
       toast.success('Order cancelled successfully');
-    } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Failed to cancel order');
+    } catch (err) {
+      toast.error(getApiErrorMessage(err, 'Failed to cancel order'));
     } finally {
       setIsCancelling(false);
     }

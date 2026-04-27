@@ -4,11 +4,8 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { toast } from 'sonner';
 
 import { useAuth } from '@/hooks/use-auth';
-import {
-  getWishlist,
-  addToWishlist,
-  removeFromWishlist,
-} from '@/lib/api/wishlist';
+import { getApiErrorMessage } from '@/lib/api/errors';
+import { getWishlist, addToWishlist, removeFromWishlist } from '@/lib/api/wishlist';
 
 interface UseWishlistReturn {
   /** Set of product IDs currently in the wishlist */
@@ -27,7 +24,9 @@ export function useWishlist(): UseWishlistReturn {
 
   // Load wishlist from API on mount (authenticated users only)
   useEffect(() => {
-    if (!isAuthenticated || loadedRef.current) {return;}
+    if (!isAuthenticated || loadedRef.current) {
+      return;
+    }
 
     let cancelled = false;
 
@@ -42,12 +41,16 @@ export function useWishlist(): UseWishlistReturn {
       } catch {
         // Silently fail — wishlist is non-critical
       } finally {
-        if (!cancelled) {setIsLoading(false);}
+        if (!cancelled) {
+          setIsLoading(false);
+        }
       }
     }
 
     void load();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [isAuthenticated]);
 
   // Reset when user logs out
@@ -70,8 +73,11 @@ export function useWishlist(): UseWishlistReturn {
       // Optimistic update
       setWishlist((prev) => {
         const next = new Set(prev);
-        if (isCurrentlyInWishlist) {next.delete(productId);}
-        else {next.add(productId);}
+        if (isCurrentlyInWishlist) {
+          next.delete(productId);
+        } else {
+          next.add(productId);
+        }
         return next;
       });
 
@@ -80,15 +86,18 @@ export function useWishlist(): UseWishlistReturn {
         ? removeFromWishlist(productId)
         : addToWishlist(productId);
 
-      apiCall.catch(() => {
+      apiCall.catch((err) => {
         // Revert on failure
         setWishlist((prev) => {
           const next = new Set(prev);
-          if (isCurrentlyInWishlist) {next.add(productId);}
-          else {next.delete(productId);}
+          if (isCurrentlyInWishlist) {
+            next.add(productId);
+          } else {
+            next.delete(productId);
+          }
           return next;
         });
-        toast.error('Failed to update wishlist');
+        toast.error(getApiErrorMessage(err, 'Failed to update wishlist'));
       });
     },
     [isAuthenticated, wishlist],

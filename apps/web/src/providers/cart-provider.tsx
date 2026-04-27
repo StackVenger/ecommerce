@@ -9,11 +9,12 @@ import {
   useState,
   type ReactNode,
 } from 'react';
-
 import { toast } from 'sonner';
 
-import * as cartApi from '@/lib/api/cart';
 import type { Cart, CartItem, AddCartItemPayload } from '@/lib/api/cart';
+
+import * as cartApi from '@/lib/api/cart';
+import { getApiErrorMessage } from '@/lib/api/errors';
 
 // ──────────────────────────────────────────────────────────
 // Context value shape
@@ -58,9 +59,7 @@ export interface CartContextValue {
 // Context
 // ──────────────────────────────────────────────────────────
 
-export const CartContext = createContext<CartContextValue | undefined>(
-  undefined,
-);
+export const CartContext = createContext<CartContextValue | undefined>(undefined);
 
 // ──────────────────────────────────────────────────────────
 // Helper: create an empty cart for optimistic updates
@@ -158,11 +157,12 @@ export function CartProvider({ children }: CartProviderProps) {
 
       // Optimistic update: add or increment item
       setCart((prev) => {
-        if (!prev) return prev;
+        if (!prev) {
+          return prev;
+        }
         const existingIndex = prev.items.findIndex(
           (item) =>
-            item.productId === payload.productId &&
-            item.variantId === (payload.variantId || null),
+            item.productId === payload.productId && item.variantId === (payload.variantId || null),
         );
 
         let updatedItems: CartItem[];
@@ -198,7 +198,7 @@ export function CartProvider({ children }: CartProviderProps) {
         toast.success('Added to cart');
       } catch (error) {
         rollback();
-        toast.error('Failed to add item to cart');
+        toast.error(getApiErrorMessage(error, 'Failed to add item to cart'));
         throw error;
       } finally {
         setIsUpdating(false);
@@ -214,11 +214,11 @@ export function CartProvider({ children }: CartProviderProps) {
 
       // Optimistic update
       setCart((prev) => {
-        if (!prev) return prev;
+        if (!prev) {
+          return prev;
+        }
         const updatedItems = prev.items.map((item) =>
-          item.id === itemId
-            ? { ...item, quantity, lineTotal: item.price * quantity }
-            : item,
+          item.id === itemId ? { ...item, quantity, lineTotal: item.price * quantity } : item,
         );
         return recalculateCart({ ...prev, items: updatedItems });
       });
@@ -228,7 +228,7 @@ export function CartProvider({ children }: CartProviderProps) {
         setCart(updatedCart);
       } catch (error) {
         rollback();
-        toast.error('Failed to update quantity');
+        toast.error(getApiErrorMessage(error, 'Failed to update quantity'));
         throw error;
       } finally {
         setIsUpdating(false);
@@ -244,7 +244,9 @@ export function CartProvider({ children }: CartProviderProps) {
 
       // Optimistic update: remove item
       setCart((prev) => {
-        if (!prev) return prev;
+        if (!prev) {
+          return prev;
+        }
         const updatedItems = prev.items.filter((item) => item.id !== itemId);
         return recalculateCart({ ...prev, items: updatedItems });
       });
@@ -255,7 +257,7 @@ export function CartProvider({ children }: CartProviderProps) {
         toast.success('Item removed from cart');
       } catch (error) {
         rollback();
-        toast.error('Failed to remove item');
+        toast.error(getApiErrorMessage(error, 'Failed to remove item'));
         throw error;
       } finally {
         setIsUpdating(false);
@@ -289,40 +291,33 @@ export function CartProvider({ children }: CartProviderProps) {
       toast.success('Cart cleared');
     } catch (error) {
       rollback();
-      toast.error('Failed to clear cart');
+      toast.error(getApiErrorMessage(error, 'Failed to clear cart'));
       throw error;
     } finally {
       setIsUpdating(false);
     }
   }, [savePreviousCart, rollback]);
 
-  const applyCouponAction = useCallback(
-    async (code: string) => {
-      setIsUpdating(true);
-      try {
-        const updatedCart = await cartApi.applyCoupon({ code });
-        setCart(updatedCart);
-        toast.success(`Coupon "${code}" applied`);
-      } catch (error) {
-        toast.error('Invalid or expired coupon code');
-        throw error;
-      } finally {
-        setIsUpdating(false);
-      }
-    },
-    [],
-  );
+  const applyCouponAction = useCallback(async (code: string) => {
+    setIsUpdating(true);
+    try {
+      const updatedCart = await cartApi.applyCoupon({ code });
+      setCart(updatedCart);
+      toast.success(`Coupon "${code}" applied`);
+    } catch (error) {
+      toast.error(getApiErrorMessage(error, 'Invalid or expired coupon code'));
+      throw error;
+    } finally {
+      setIsUpdating(false);
+    }
+  }, []);
 
   const removeCouponAction = useCallback(async () => {
     setIsUpdating(true);
     savePreviousCart();
 
     // Optimistic update
-    setCart((prev) =>
-      prev
-        ? recalculateCart({ ...prev, couponCode: null, discount: 0 })
-        : prev,
-    );
+    setCart((prev) => (prev ? recalculateCart({ ...prev, couponCode: null, discount: 0 }) : prev));
 
     try {
       const updatedCart = await cartApi.removeCoupon();
@@ -330,7 +325,7 @@ export function CartProvider({ children }: CartProviderProps) {
       toast.success('Coupon removed');
     } catch (error) {
       rollback();
-      toast.error('Failed to remove coupon');
+      toast.error(getApiErrorMessage(error, 'Failed to remove coupon'));
       throw error;
     } finally {
       setIsUpdating(false);
@@ -396,7 +391,5 @@ export function CartProvider({ children }: CartProviderProps) {
     ],
   );
 
-  return (
-    <CartContext.Provider value={value}>{children}</CartContext.Provider>
-  );
+  return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
 }
