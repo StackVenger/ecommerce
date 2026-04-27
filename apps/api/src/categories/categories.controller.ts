@@ -14,10 +14,10 @@ import {
 import { CategoriesService } from './categories.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
+import { Public } from '../auth/decorators/public.decorator';
+import { Roles } from '../auth/decorators/roles.decorator';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
-import { Roles } from '../auth/decorators/roles.decorator';
-import { Public } from '../auth/decorators/public.decorator';
 
 @Controller('categories')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -76,11 +76,19 @@ export class CategoriesController {
    */
   @Patch(':id')
   @Roles('ADMIN', 'SUPER_ADMIN')
-  async update(
-    @Param('id') id: string,
-    @Body() updateCategoryDto: UpdateCategoryDto,
-  ) {
+  async update(@Param('id') id: string, @Body() updateCategoryDto: UpdateCategoryDto) {
     return this.categoriesService.update(id, updateCategoryDto);
+  }
+
+  /**
+   * Drag-drop reorder. Body `{ targetId }` — moves the path
+   * category to sit immediately before `targetId` in the tree.
+   * Restricted to ADMIN and SUPER_ADMIN roles.
+   */
+  @Patch(':id/reorder')
+  @Roles('ADMIN', 'SUPER_ADMIN')
+  async reorder(@Param('id') id: string, @Body() body: { targetId: string }) {
+    return this.categoriesService.reorder(id, body.targetId);
   }
 
   /**

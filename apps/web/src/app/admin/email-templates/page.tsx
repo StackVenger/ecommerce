@@ -2,6 +2,8 @@
 
 import { useState } from 'react';
 
+import { apiClient } from '@/lib/api/client';
+
 const EMAIL_TEMPLATES = [
   { id: 'welcome', name: 'Welcome', category: 'Authentication' },
   { id: 'verify-email', name: 'Email Verification', category: 'Authentication' },
@@ -19,18 +21,25 @@ const SAMPLE_DATA: Record<string, Record<string, any>> = {
   'verify-email': { name: 'Rahim Ahmed', verifyUrl: '#', expiresIn: '24 hours' },
   'password-reset': { name: 'Rahim Ahmed', resetUrl: '#', expiresIn: '1 hour' },
   'order-confirmation': {
-    customerName: 'Rahim Ahmed', orderNumber: 'BD-20260213-001',
+    customerName: 'Rahim Ahmed',
+    orderNumber: 'BD-20260213-001',
     items: [
       { name: 'Premium Cotton Panjabi', quantity: 1, price: 2500 },
       { name: 'Leather Sandals', quantity: 2, price: 1200 },
     ],
-    subtotal: 4900, shipping: 60, discount: 200, total: 4760,
+    subtotal: 4900,
+    shipping: 60,
+    discount: 200,
+    total: 4760,
     trackingUrl: '#',
   },
   'order-shipped': {
-    customerName: 'Rahim Ahmed', orderNumber: 'BD-20260213-001',
-    carrier: 'Pathao Courier', trackingNumber: 'PTH123456789',
-    estimatedDelivery: '2026-02-16', trackingUrl: '#',
+    customerName: 'Rahim Ahmed',
+    orderNumber: 'BD-20260213-001',
+    carrier: 'Pathao Courier',
+    trackingNumber: 'PTH123456789',
+    estimatedDelivery: '2026-02-16',
+    trackingUrl: '#',
   },
 };
 
@@ -43,17 +52,12 @@ export default function EmailTemplatesPage() {
   const loadPreview = async (templateId: string, lang: 'en' | 'bn') => {
     setLoading(true);
     try {
-      const res = await fetch(`/api/admin/email-templates/preview`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          template: templateId,
-          locale: lang,
-          context: SAMPLE_DATA[templateId] || {},
-        }),
+      const { data } = await apiClient.post(`/admin/email-templates/${templateId}/preview`, {
+        locale: lang,
+        context: SAMPLE_DATA[templateId] || {},
       });
-      const data = await res.json();
-      setPreviewHtml(data.html);
+      const result = data?.data ?? data;
+      setPreviewHtml(result?.html ?? '');
     } catch {
       setPreviewHtml('<p>Failed to load preview</p>');
     } finally {
@@ -132,7 +136,9 @@ export default function EmailTemplatesPage() {
               <span className="font-medium">
                 {EMAIL_TEMPLATES.find((t) => t.id === selectedTemplate)?.name}
               </span>
-              <span className="ml-2 text-xs text-gray-400">({locale === 'bn' ? 'বাংলা' : 'English'})</span>
+              <span className="ml-2 text-xs text-gray-400">
+                ({locale === 'bn' ? 'বাংলা' : 'English'})
+              </span>
             </div>
             <div className="p-4">
               {loading ? (

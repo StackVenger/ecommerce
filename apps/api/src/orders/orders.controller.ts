@@ -178,6 +178,35 @@ export class OrdersController {
   }
 
   /**
+   * Export filtered orders as CSV. Declared before `admin/orders/:id`
+   * so Nest's path matcher resolves the literal `export` segment first
+   * instead of treating it as an :id.
+   *
+   * GET /admin/orders/export?status=PENDING&paymentStatus=PAID&dateFrom=…&dateTo=…
+   */
+  @Get('admin/orders/export')
+  @UseGuards(RolesGuard)
+  @Roles('ADMIN', 'SUPER_ADMIN')
+  async exportOrders(
+    @Query('status') status: string | undefined,
+    @Query('paymentStatus') paymentStatus: string | undefined,
+    @Query('dateFrom') dateFrom: string | undefined,
+    @Query('dateTo') dateTo: string | undefined,
+    @Res() res: Response,
+  ) {
+    const csv = await this.ordersService.exportOrdersCsv({
+      status,
+      paymentStatus,
+      dateFrom,
+      dateTo,
+    });
+    const today = new Date().toISOString().slice(0, 10);
+    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+    res.setHeader('Content-Disposition', `attachment; filename="orders-${today}.csv"`);
+    res.send(csv);
+  }
+
+  /**
    * Download invoice as PDF for a given order.
    *
    * GET /admin/orders/:id/invoice

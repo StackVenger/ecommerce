@@ -215,9 +215,9 @@ export function CategoryFormDialog({
       };
 
       if (isEditing) {
-        await apiClient.patch(`/admin/categories/${editCategory.id}`, payload);
+        await apiClient.patch(`/categories/${editCategory.id}`, payload);
       } else {
-        await apiClient.post('/admin/categories', payload);
+        await apiClient.post('/categories', payload);
       }
 
       onSuccess();

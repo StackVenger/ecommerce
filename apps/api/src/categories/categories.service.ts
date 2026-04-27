@@ -416,6 +416,78 @@ export class CategoriesService {
     };
   }
 
+  /**
+   * Drag-drop reorder: move `draggedId` to sit immediately before
+   * `targetId` in the tree. The dragged category adopts the target's
+   * `parentId` and takes its `sortOrder`; siblings at or after the
+   * insertion point shift by +1. Cycles (dropping a category onto its
+   * own descendant) are rejected.
+   */
+  async reorder(draggedId: string, targetId: string) {
+    if (!targetId || draggedId === targetId) {
+      return { message: 'No-op' };
+    }
+
+    const [dragged, target] = await Promise.all([
+      this.prisma.category.findUnique({
+        where: { id: draggedId },
+        select: { id: true, name: true, parentId: true, sortOrder: true },
+      }),
+      this.prisma.category.findUnique({
+        where: { id: targetId },
+        select: { id: true, name: true, parentId: true, sortOrder: true },
+      }),
+    ]);
+
+    if (!dragged) {
+      throw new NotFoundException(`Category "${draggedId}" not found`);
+    }
+    if (!target) {
+      throw new NotFoundException(`Category "${targetId}" not found`);
+    }
+
+    // Reject moving a category into its own descendant.
+    let cursor: { id: string; parentId: string | null } | null = {
+      id: target.id,
+      parentId: target.parentId,
+    };
+    while (cursor?.parentId) {
+      if (cursor.parentId === draggedId) {
+        throw new BadRequestException('Cannot move a category into its own descendant');
+      }
+      cursor = await this.prisma.category.findUnique({
+        where: { id: cursor.parentId },
+        select: { id: true, parentId: true },
+      });
+    }
+
+    const newParentId = target.parentId;
+    const newSortOrder = target.sortOrder;
+
+    await this.prisma.$transaction(async (tx) => {
+      // Make room at the target slot among the new sibling group.
+      await tx.category.updateMany({
+        where: {
+          parentId: newParentId,
+          sortOrder: { gte: newSortOrder },
+          id: { not: draggedId },
+        },
+        data: { sortOrder: { increment: 1 } },
+      });
+
+      await tx.category.update({
+        where: { id: draggedId },
+        data: { parentId: newParentId, sortOrder: newSortOrder },
+      });
+    });
+
+    this.logger.log(
+      `Reordered "${dragged.name}" before "${target.name}" under parent ${newParentId ?? 'root'}`,
+    );
+
+    return { message: 'Reordered' };
+  }
+
   // ─── Helper Methods ─────────────────────────────────────────────────────────
 
   /**

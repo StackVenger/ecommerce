@@ -521,6 +521,115 @@ export class OrdersService {
     };
   }
 
+  /**
+   * Build a CSV export of admin orders matching the supplied filters.
+   * Filters mirror the list view (`status`, `paymentStatus`,
+   * `dateFrom`/`dateTo`) but no pagination — capped at 50 000 rows so
+   * a runaway query can't OOM the API.
+   */
+  async exportOrdersCsv(filters: {
+    status?: string;
+    paymentStatus?: string;
+    dateFrom?: string;
+    dateTo?: string;
+  }): Promise<string> {
+    const where: Record<string, unknown> = {};
+
+    if (filters.status) {
+      where.status = filters.status;
+    }
+
+    const createdAt: { gte?: Date; lte?: Date } = {};
+    if (filters.dateFrom) {
+      createdAt.gte = new Date(filters.dateFrom);
+    }
+    if (filters.dateTo) {
+      // Treat dateTo as inclusive end-of-day.
+      const end = new Date(filters.dateTo);
+      end.setHours(23, 59, 59, 999);
+      createdAt.lte = end;
+    }
+    if (createdAt.gte || createdAt.lte) {
+      where.createdAt = createdAt;
+    }
+
+    const orders = await this.prisma.order.findMany({
+      where,
+      include: {
+        user: { select: { email: true, firstName: true, lastName: true, phone: true } },
+        payments: {
+          select: { method: true, status: true },
+          orderBy: { createdAt: 'desc' },
+          take: 1,
+        },
+        _count: { select: { items: true } },
+      },
+      orderBy: { createdAt: 'desc' },
+      take: 50000,
+    });
+
+    // paymentStatus lives on the latest payment row, not the order — filter
+    // here in JS since it's not on the order itself.
+    const filtered = filters.paymentStatus
+      ? orders.filter((o) => (o.payments[0]?.status ?? 'PENDING') === filters.paymentStatus)
+      : orders;
+
+    const escape = (v: unknown): string => {
+      const s = v === null || v === undefined ? '' : String(v);
+      if (/[",\r\n]/.test(s)) {
+        return `"${s.replace(/"/g, '""')}"`;
+      }
+      return s;
+    };
+
+    const header = [
+      'Order Number',
+      'Created At',
+      'Status',
+      'Payment Status',
+      'Payment Method',
+      'Subtotal',
+      'Shipping Cost',
+      'Discount',
+      'Total',
+      'Customer Name',
+      'Customer Email',
+      'Customer Phone',
+      'Item Count',
+    ];
+
+    const rows = filtered.map((o) => {
+      const guestName = (o as { guestFullName?: string | null }).guestFullName;
+      const guestEmail = (o as { guestEmail?: string | null }).guestEmail;
+      const guestPhone = (o as { guestPhone?: string | null }).guestPhone;
+      const customerName = o.user
+        ? `${o.user.firstName ?? ''} ${o.user.lastName ?? ''}`.trim() || 'Unknown'
+        : guestName || 'Guest';
+      const customerEmail = o.user?.email ?? guestEmail ?? '';
+      const customerPhone = o.user?.phone ?? guestPhone ?? '';
+
+      return [
+        o.orderNumber,
+        o.createdAt.toISOString(),
+        o.status,
+        o.payments[0]?.status ?? 'PENDING',
+        o.payments[0]?.method ?? '',
+        Number(o.subtotal).toFixed(2),
+        Number(o.shippingCost).toFixed(2),
+        Number(o.discountAmount).toFixed(2),
+        Number(o.totalAmount).toFixed(2),
+        customerName,
+        customerEmail,
+        customerPhone,
+        o._count.items,
+      ]
+        .map(escape)
+        .join(',');
+    });
+
+    return [header.map(escape).join(','), ...rows].join('\r\n') + '\r\n';
+  }
+
   async findOrderById(orderId: string) {
     const order = await this.prisma.order.findUnique({
       where: { id: orderId },
