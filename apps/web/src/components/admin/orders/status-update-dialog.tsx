@@ -2,6 +2,8 @@
 
 import React, { useState, useCallback } from 'react';
 
+import { apiClient, ApiClientError } from '@/lib/api/client';
+
 type OrderStatus =
   | 'pending'
   | 'confirmed'
@@ -168,27 +170,29 @@ export default function StatusUpdateDialog({
     setError('');
 
     try {
-      const response = await fetch(`/api/admin/orders/${orderId}/status`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          status: selectedStatus,
-          trackingNumber: trackingNumber.trim() || undefined,
-          trackingProvider: trackingProvider.trim() || undefined,
-          notes: notes.trim() || undefined,
-          notifyCustomer,
-        }),
-      });
+      // Backend expects ORDER_STATUS uppercase enum (PENDING, CONFIRMED, ...);
+      // local UI uses lowercase. Normalize on the wire. Tracking info is
+      // folded into the optional note (no separate columns yet).
+      const noteParts = [
+        notes.trim(),
+        trackingProvider.trim() && `Carrier: ${trackingProvider.trim()}`,
+        trackingNumber.trim() && `Tracking #: ${trackingNumber.trim()}`,
+      ].filter(Boolean);
 
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.message || 'Failed to update status');
-      }
+      await apiClient.patch(`/admin/orders/${orderId}/status`, {
+        status: selectedStatus.toUpperCase(),
+        notifyCustomer,
+        ...(noteParts.length ? { note: noteParts.join(' — ') } : {}),
+      });
 
       onStatusUpdated(selectedStatus);
       handleClose();
-    } catch (err: any) {
-      setError(err.message || 'An unexpected error occurred');
+    } catch (err) {
+      if (err instanceof ApiClientError) {
+        setError(err.message || 'Failed to update status');
+      } else {
+        setError('An unexpected error occurred');
+      }
     } finally {
       setSubmitting(false);
     }

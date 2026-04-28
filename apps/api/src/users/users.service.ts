@@ -323,11 +323,17 @@ export class UsersService {
   }
 
   async getOrderStats(userId: string) {
-    const [totalOrders, totalSpent, statusCounts] = await Promise.all([
+    const [totalOrders, totalSpentResult, statusCounts] = await Promise.all([
       this.prisma.order.count({ where: { userId } }),
+      // Sum totalAmount across orders that aren't CANCELLED/REFUNDED.
+      // The schema column is `totalAmount` (Decimal), and there's no
+      // paymentStatus on Order — payment state lives on the Payment row.
       this.prisma.order.aggregate({
-        _sum: { total: true },
-        where: { userId, paymentStatus: 'PAID' },
+        _sum: { totalAmount: true },
+        where: {
+          userId,
+          status: { notIn: ['CANCELLED', 'REFUNDED'] },
+        },
       }),
       this.prisma.order.groupBy({
         by: ['status'],
@@ -341,10 +347,12 @@ export class UsersService {
       statusMap[item.status] = item._count.id;
     });
 
+    const totalSpent = Number(totalSpentResult._sum.totalAmount ?? 0);
+
     return {
       totalOrders,
-      totalSpent: totalSpent._sum.total || 0,
-      totalSpentFormatted: `৳${(totalSpent._sum.total || 0).toLocaleString('en-BD')}`,
+      totalSpent,
+      totalSpentFormatted: `৳${totalSpent.toLocaleString('en-BD')}`,
       pending: statusMap['PENDING'] || 0,
       confirmed: statusMap['CONFIRMED'] || 0,
       processing: statusMap['PROCESSING'] || 0,

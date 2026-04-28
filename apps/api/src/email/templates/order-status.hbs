@@ -1,0 +1,17 @@
+{{#if (eq locale 'bn')}}
+<h2>আপনার অর্ডার আপডেট হয়েছে</h2>
+<p>প্রিয় {{customerName}},</p>
+<p>আপনার অর্ডার <strong>#{{orderNumber}}</strong> এর স্ট্যাটাস এখন:</p>
+<p style="display: inline-block; padding: 10px 20px; background: #ecfeff; color: #0f766e; font-weight: 700; letter-spacing: 1px; border-radius: 6px; margin: 12px 0;">{{status}}</p>
+{{#if note}}<p><em>মন্তব্য:</em> {{note}}</p>{{/if}}
+<p>সম্পূর্ণ বিবরণ দেখতে নিচের বাটনে ক্লিক করুন:</p>
+<a href="{{orderUrl}}" class="btn">অর্ডার দেখুন</a>
+{{else}}
+<h2>Your order has been updated</h2>
+<p>Hi {{customerName}},</p>
+<p>The status of your order <strong>#{{orderNumber}}</strong> is now:</p>
+<p style="display: inline-block; padding: 10px 20px; background: #ecfeff; color: #0f766e; font-weight: 700; letter-spacing: 1px; border-radius: 6px; margin: 12px 0;">{{status}}</p>
+{{#if note}}<p><em>Note:</em> {{note}}</p>{{/if}}
+<p>You can view the full details here:</p>
+<a href="{{orderUrl}}" class="btn">View order</a>
+{{/if}}

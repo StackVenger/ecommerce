@@ -16,6 +16,7 @@ import { useState, useRef } from 'react';
 import { toast } from 'sonner';
 
 import { useAuth } from '@/hooks/use-auth';
+import { updateProfile as updateProfileApi } from '@/lib/api/auth';
 import { apiClient, ApiClientError } from '@/lib/api/client';
 
 export default function ProfilePage() {
@@ -120,16 +121,36 @@ export default function ProfilePage() {
     setError('');
 
     try {
-      await apiClient.patch('/auth/profile', {
-        name: formData.name,
-        phone: formData.phone,
-      });
+      // Backend DTO takes firstName/lastName separately and `forbidNonWhitelisted`
+      // rejects unknowns, so split the single "Full name" field on the first
+      // space. Empty trailing token => empty lastName, which the DTO accepts.
+      const trimmed = formData.name.trim().replace(/\s+/g, ' ');
+      const spaceIdx = trimmed.indexOf(' ');
+      const firstName = spaceIdx === -1 ? trimmed : trimmed.slice(0, spaceIdx);
+      const lastName = spaceIdx === -1 ? '' : trimmed.slice(spaceIdx + 1);
+
+      const payload: { firstName?: string; lastName?: string; phone?: string } = {};
+      if (firstName) {
+        payload.firstName = firstName;
+      }
+      if (lastName) {
+        payload.lastName = lastName;
+      }
+      if (formData.phone.trim()) {
+        payload.phone = formData.phone.trim();
+      }
+
+      await updateProfileApi(payload);
 
       setSuccessMessage('Profile updated successfully');
       refreshUser?.();
       setTimeout(() => setSuccessMessage(''), 3000);
-    } catch (err: any) {
-      setError(err.message || 'Failed to update profile');
+    } catch (err) {
+      if (err instanceof ApiClientError) {
+        setError(err.message || 'Failed to update profile');
+      } else {
+        setError('Failed to update profile');
+      }
     } finally {
       setIsSaving(false);
     }

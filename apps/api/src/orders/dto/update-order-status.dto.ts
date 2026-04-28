@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsString, IsEnum, IsOptional } from 'class-validator';
+import { IsNotEmpty, IsString, IsEnum, IsOptional, IsBoolean } from 'class-validator';
 
 /**
  * Valid order statuses and their allowed transitions.
@@ -53,4 +53,9 @@ export class UpdateOrderStatusDto {
   @IsString()
   @IsOptional()
   note?: string;
+
+  /** When true, send the customer an email notifying them of the new status. */
+  @IsBoolean()
+  @IsOptional()
+  notifyCustomer?: boolean;
 }

@@ -48,7 +48,7 @@ export class ReviewsService {
         status: 'PENDING',
       },
       include: {
-        user: { select: { id: true, name: true } },
+        user: { select: { id: true, firstName: true, lastName: true } },
       },
     });
   }
@@ -58,7 +58,7 @@ export class ReviewsService {
     const review = await this.prisma.review.findUnique({
       where: { id },
       include: {
-        user: { select: { id: true, name: true } },
+        user: { select: { id: true, firstName: true, lastName: true } },
         product: { select: { id: true, name: true, slug: true } },
       },
     });
@@ -132,7 +132,7 @@ export class ReviewsService {
         skip,
         take: limit,
         include: {
-          user: { select: { id: true, name: true } },
+          user: { select: { id: true, firstName: true, lastName: true } },
         },
       }),
       this.prisma.review.count({ where }),

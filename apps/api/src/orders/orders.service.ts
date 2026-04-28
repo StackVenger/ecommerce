@@ -1,5 +1,7 @@
 import { Injectable, Logger, NotFoundException, BadRequestException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 
+import { EmailService } from '../email/email.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { CheckoutDto, PaymentMethod } from './dto/checkout.dto';
 import {
@@ -7,6 +9,7 @@ import {
   OrderStatus,
   ORDER_STATUS_TRANSITIONS,
 } from './dto/update-order-status.dto';
+import { ShippingService } from './shipping.service';
 
 /**
  * Validation result for a single cart item during checkout.
@@ -60,7 +63,12 @@ const ADMIN_CANCELLABLE_STATUSES = [
 export class OrdersService {
   private readonly logger = new Logger(OrdersService.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly shippingService: ShippingService,
+    private readonly emailService: EmailService,
+    private readonly configService: ConfigService,
+  ) {}
 
   // ─── Order Number Generator ─────────────────────────────────────────────────
 
@@ -218,18 +226,28 @@ export class OrdersService {
       }
     }
 
-    // Resolve shipping cost from the chosen method so the persisted
-    // order matches what the customer saw at the shipping step.
+    // Resolve shipping cost via the same calculation the frontend used at
+    // the shipping step. The IDs ('standard', 'express') and per-zone rates
+    // come from ShippingService — not the shipping_methods admin table,
+    // which is currently a separate, unused config surface.
     let shippingCost = 0;
     if (dto.shippingMethodId) {
-      const method = await this.prisma.shippingMethod.findUnique({
-        where: { id: dto.shippingMethodId },
-        select: { id: true, price: true, isActive: true },
-      });
-      if (!method || !method.isActive) {
-        errors.push('Selected shipping method is not available');
-      } else {
-        shippingCost = Number(method.price);
+      try {
+        const calc =
+          !isGuest && dto.addressId
+            ? await this.shippingService.calculateShipping(dto.addressId, userId)
+            : this.shippingService.calculateShippingByDivision(
+                dto.shippingDivision || dto.shippingDistrict || 'Dhaka',
+              );
+
+        const chosen = calc.methods.find((m) => m.id === dto.shippingMethodId);
+        if (!chosen) {
+          errors.push('Selected shipping method is not available');
+        } else {
+          shippingCost = chosen.cost;
+        }
+      } catch {
+        errors.push('Could not calculate shipping for the selected address');
       }
     }
 
@@ -916,7 +934,75 @@ export class OrdersService {
 
     this.logger.log(`Order ${order.orderNumber} status updated: ${order.status} → ${dto.status}`);
 
+    if (dto.notifyCustomer) {
+      await this.deliverStatusChangeEmail(orderId, dto.status, dto.note);
+    }
+
     return updatedOrder;
+  }
+
+  // Send a customer-facing email announcing the new order status. Errors are
+  // logged but never thrown — a transient SMTP issue must not roll back the
+  // status update that already committed to the database.
+  private async deliverStatusChangeEmail(
+    orderId: string,
+    status: OrderStatus,
+    note: string | undefined,
+  ): Promise<void> {
+    try {
+      const order = await this.prisma.order.findUnique({
+        where: { id: orderId },
+        select: {
+          orderNumber: true,
+          guestEmail: true,
+          guestFullName: true,
+          user: { select: { email: true, firstName: true, lastName: true } },
+        },
+      });
+
+      if (!order) {
+        this.logger.warn(`Status email skipped: order ${orderId} not found`);
+        return;
+      }
+
+      const recipient = order.user?.email ?? order.guestEmail;
+      if (!recipient) {
+        this.logger.warn(
+          `Status email skipped for order ${order.orderNumber}: no email on user or guest`,
+        );
+        return;
+      }
+
+      const fullName = order.user
+        ? `${order.user.firstName} ${order.user.lastName}`.trim()
+        : (order.guestFullName ?? 'Customer');
+
+      const webUrl = this.configService.get<string>('WEB_URL', 'http://localhost:3000');
+      const orderUrl = `${webUrl}/account/orders/${orderId}`;
+
+      await this.emailService.sendEmail({
+        to: recipient,
+        subject: `Order ${order.orderNumber} — ${status}`,
+        template: 'order-status',
+        context: {
+          customerName: fullName || 'Customer',
+          orderNumber: order.orderNumber,
+          status,
+          note: note ?? '',
+          orderUrl,
+        },
+      });
+
+      this.logger.log(
+        `Status email sent for order ${order.orderNumber} → ${status} → ${recipient}`,
+      );
+    } catch (error) {
+      const err = error as Error & { code?: string };
+      this.logger.error(
+        `Failed to send status email for order ${orderId}: ${err.message} (code=${err.code ?? 'n/a'})`,
+        err.stack,
+      );
+    }
   }
 
   /**

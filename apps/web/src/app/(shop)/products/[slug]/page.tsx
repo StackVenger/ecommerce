@@ -15,6 +15,9 @@ import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 
+import { ReviewForm } from '@/components/reviews/review-form';
+import { ReviewList } from '@/components/reviews/review-list';
+import { useAuth } from '@/hooks/use-auth';
 import { useCart } from '@/hooks/use-cart';
 import { apiClient } from '@/lib/api/client';
 
@@ -95,6 +98,7 @@ function formatBDT(amount: number): string {
 export default function ProductPage() {
   const { slug } = useParams<{ slug: string }>();
   const { addItem, isUpdating } = useCart();
+  const { isAuthenticated } = useAuth();
 
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
@@ -104,6 +108,8 @@ export default function ProductPage() {
   const [activeTab, setActiveTab] = useState<'description' | 'specifications' | 'reviews'>(
     'description',
   );
+  // Bumped to force ReviewList to re-fetch after a successful submission.
+  const [reviewsRefresh, setReviewsRefresh] = useState(0);
   const [addingToCart, setAddingToCart] = useState(false);
   const [cartError, setCartError] = useState<string | null>(null);
   const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>({});
@@ -764,12 +770,43 @@ export default function ProductPage() {
                       </div>
                     </div>
                   </div>
-                ) : (
-                  <div className="py-10 text-center">
-                    <Star className="mx-auto h-12 w-12 text-gray-300 mb-3" />
-                    <p className="text-gray-500">No reviews yet.</p>
-                    <p className="mt-1 text-sm text-gray-400">
-                      Be the first to review this product!
+                ) : null}
+
+                {/* Write-a-review section: form for logged-in users, sign-in
+                    prompt for guests. Always visible regardless of whether
+                    other reviews exist. */}
+                <div className="mt-6">
+                  {isAuthenticated ? (
+                    <ReviewForm
+                      productId={product.id}
+                      onSubmitted={() => setReviewsRefresh((n) => n + 1)}
+                    />
+                  ) : (
+                    <div className="rounded-lg border border-dashed bg-gray-50 p-6 text-center">
+                      <p className="text-sm text-gray-600">
+                        <Link
+                          href={`/login?redirect=/products/${product.slug}`}
+                          className="font-medium text-primary hover:underline"
+                        >
+                          Sign in
+                        </Link>{' '}
+                        to write a review for this product.
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Approved review list. Re-mounts when reviewsRefresh changes
+                    so a freshly-submitted review (once approved) shows up. */}
+                <div className="mt-6">
+                  <ReviewList key={reviewsRefresh} productId={product.id} />
+                </div>
+
+                {totalReviews === 0 && (
+                  <div className="mt-6 py-6 text-center">
+                    <Star className="mx-auto h-10 w-10 text-gray-300 mb-2" />
+                    <p className="text-sm text-gray-500">
+                      No reviews yet — be the first to review this product!
                     </p>
                   </div>
                 )}
