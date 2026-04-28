@@ -3,6 +3,7 @@ import {
   Get,
   Post,
   Patch,
+  Delete,
   Body,
   HttpCode,
   HttpStatus,
@@ -15,7 +16,9 @@ import { Request } from 'express';
 import { AuthService } from './auth.service';
 import { CurrentUser } from './decorators/current-user.decorator';
 import { ChangePasswordDto } from './dto/change-password.dto';
+import { DeleteAccountDto } from './dto/delete-account.dto';
 import { FacebookAuthDto } from './dto/facebook-auth.dto';
+import { FirebaseAuthDto } from './dto/firebase-auth.dto';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { GoogleAuthDto } from './dto/google-auth.dto';
 import { LoginDto } from './dto/login.dto';
@@ -69,6 +72,27 @@ export class AuthController {
     return {
       statusCode: HttpStatus.OK,
       message: 'Facebook login successful',
+      data: {
+        user: result.user,
+        accessToken: result.accessToken,
+        refreshToken: result.refreshToken,
+      },
+    };
+  }
+
+  /**
+   * POST /auth/firebase
+   * Authenticate with a Firebase ID token (Google / Facebook via Firebase Auth).
+   * The provider is read from the token's sign_in_provider claim.
+   */
+  @Post('firebase')
+  @HttpCode(HttpStatus.OK)
+  async firebaseLogin(@Body() dto: FirebaseAuthDto) {
+    const result = await this.socialAuthService.firebaseLogin(dto.idToken);
+
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Firebase login successful',
       data: {
         user: result.user,
         accessToken: result.accessToken,
@@ -317,6 +341,23 @@ export class AuthController {
       statusCode: HttpStatus.OK,
       message: 'Profile updated successfully',
       data: user,
+    };
+  }
+
+  /**
+   * DELETE /auth/me
+   * Permanently delete the authenticated user's account.
+   * Requires the current password for password-backed accounts.
+   */
+  @Delete('me')
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.OK)
+  async deleteAccount(@CurrentUser('id') userId: string, @Body() dto: DeleteAccountDto) {
+    await this.authService.deleteAccount(userId, dto);
+
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Account deleted successfully',
     };
   }
 }

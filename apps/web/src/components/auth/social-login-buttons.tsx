@@ -1,70 +1,14 @@
 'use client';
 
 import { Button } from '@ecommerce/ui';
-import { useGoogleLogin } from '@react-oauth/google';
+import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
-import { PhoneLoginDialog } from './phone-login-dialog';
-
 import { useAuth } from '@/hooks/use-auth';
 import { ApiClientError } from '@/lib/api/client';
-
-// ──────────────────────────────────────────────────────────
-// Facebook SDK helper
-// ──────────────────────────────────────────────────────────
-
-declare global {
-  interface Window {
-    FB: any;
-    fbAsyncInit: () => void;
-  }
-}
-
-function loadFacebookSDK(): Promise<void> {
-  return new Promise((resolve) => {
-    if (window.FB) {
-      resolve();
-      return;
-    }
-
-    window.fbAsyncInit = () => {
-      window.FB.init({
-        appId: process.env.NEXT_PUBLIC_FACEBOOK_APP_ID,
-        cookie: true,
-        xfbml: false,
-        version: 'v19.0',
-      });
-      resolve();
-    };
-
-    const script = document.createElement('script');
-    script.src = 'https://connect.facebook.net/en_US/sdk.js';
-    script.async = true;
-    script.defer = true;
-    document.body.appendChild(script);
-  });
-}
-
-function facebookLogin(): Promise<string> {
-  return new Promise((resolve, reject) => {
-    window.FB.login(
-      (response: any) => {
-        if (response.authResponse?.accessToken) {
-          resolve(response.authResponse.accessToken);
-        } else {
-          reject(new Error('Facebook login was cancelled'));
-        }
-      },
-      { scope: 'email,public_profile' },
-    );
-  });
-}
-
-// ──────────────────────────────────────────────────────────
-// SVG icons
-// ──────────────────────────────────────────────────────────
+import { firebaseAuth } from '@/lib/firebase';
 
 function GoogleIcon({ className }: { className?: string }) {
   return (
@@ -89,35 +33,6 @@ function GoogleIcon({ className }: { className?: string }) {
   );
 }
 
-function FacebookIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="#1877F2">
-      <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
-    </svg>
-  );
-}
-
-function PhoneIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      className={className}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <rect width="14" height="20" x="5" y="2" rx="2" ry="2" />
-      <path d="M12 18h.01" />
-    </svg>
-  );
-}
-
-// ──────────────────────────────────────────────────────────
-// Component
-// ──────────────────────────────────────────────────────────
-
 interface SocialLoginButtonsProps {
   mode?: 'login' | 'register';
 }
@@ -126,112 +41,55 @@ export function SocialLoginButtons({ mode = 'login' }: SocialLoginButtonsProps) 
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirectTo = searchParams.get('redirect') ?? '/';
-  const { loginWithGoogle, loginWithFacebook, isSubmitting } = useAuth();
-  const [socialLoading, setSocialLoading] = useState<string | null>(null);
-  const [phoneDialogOpen, setPhoneDialogOpen] = useState(false);
+  const { loginWithFirebase, isSubmitting } = useAuth();
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
-  const handleSuccess = () => {
-    toast.success(mode === 'login' ? 'Welcome back!' : 'Account created!');
-    router.push(redirectTo);
-    router.refresh();
-  };
-
-  const handleError = (error: unknown, provider: string) => {
-    if (error instanceof ApiClientError) {
-      toast.error(error.message || `${provider} login failed`);
-    } else if (error instanceof Error && error.message.includes('cancelled')) {
-      // User cancelled — do nothing
-    } else {
-      toast.error(`${provider} login failed. Please try again.`);
-    }
-  };
-
-  // ── Google ──────────────────────────────────────────────
-
-  const googleLogin = useGoogleLogin({
-    onSuccess: async (tokenResponse) => {
-      setSocialLoading('google');
-      try {
-        await loginWithGoogle(tokenResponse.access_token);
-        handleSuccess();
-      } catch (error) {
-        handleError(error, 'Google');
-      } finally {
-        setSocialLoading(null);
-      }
-    },
-    onError: () => {
-      toast.error('Google login failed');
-    },
-  });
-
-  // ── Facebook ────────────────────────────────────────────
-
-  const handleFacebookLogin = async () => {
-    setSocialLoading('facebook');
+  const handleGoogleSignIn = async () => {
+    setIsGoogleLoading(true);
     try {
-      await loadFacebookSDK();
-      const accessToken = await facebookLogin();
-      await loginWithFacebook(accessToken);
-      handleSuccess();
+      const result = await signInWithPopup(firebaseAuth, new GoogleAuthProvider());
+      const idToken = await result.user.getIdToken();
+      await loginWithFirebase(idToken);
+      toast.success(mode === 'login' ? 'Welcome back!' : 'Account created!');
+      router.push(redirectTo);
+      router.refresh();
     } catch (error) {
-      handleError(error, 'Facebook');
+      if (error instanceof ApiClientError) {
+        toast.error(error.message || 'Google login failed');
+        return;
+      }
+      const code = (error as { code?: string }).code;
+      if (
+        code === 'auth/popup-closed-by-user' ||
+        code === 'auth/cancelled-popup-request' ||
+        code === 'auth/user-cancelled'
+      ) {
+        return;
+      }
+      toast.error('Google login failed. Please try again.');
     } finally {
-      setSocialLoading(null);
+      setIsGoogleLoading(false);
     }
   };
 
-  // ── Phone ───────────────────────────────────────────────
-
-  const handlePhoneSuccess = () => {
-    setPhoneDialogOpen(false);
-    handleSuccess();
-  };
-
-  const isLoading = isSubmitting || socialLoading !== null;
+  const isLoading = isSubmitting || isGoogleLoading;
   const label = mode === 'login' ? 'Sign in' : 'Sign up';
 
   return (
     <>
       <div className="space-y-3">
-        {/* Google */}
         <Button
           type="button"
           variant="outline"
           className="w-full"
           disabled={isLoading}
-          onClick={() => googleLogin()}
+          onClick={handleGoogleSignIn}
         >
           <GoogleIcon className="mr-2 h-5 w-5" />
-          {socialLoading === 'google' ? 'Connecting...' : `${label} with Google`}
-        </Button>
-
-        {/* Facebook */}
-        <Button
-          type="button"
-          variant="outline"
-          className="w-full"
-          disabled={isLoading}
-          onClick={handleFacebookLogin}
-        >
-          <FacebookIcon className="mr-2 h-5 w-5" />
-          {socialLoading === 'facebook' ? 'Connecting...' : `${label} with Facebook`}
-        </Button>
-
-        {/* Phone */}
-        <Button
-          type="button"
-          variant="outline"
-          className="w-full"
-          disabled={isLoading}
-          onClick={() => setPhoneDialogOpen(true)}
-        >
-          <PhoneIcon className="mr-2 h-5 w-5 text-primary" />
-          {`${label} with Phone`}
+          {isGoogleLoading ? 'Connecting...' : `${label} with Google`}
         </Button>
       </div>
 
-      {/* Divider */}
       <div className="relative my-6">
         <div className="absolute inset-0 flex items-center">
           <span className="w-full border-t" />
@@ -240,13 +98,6 @@ export function SocialLoginButtons({ mode = 'login' }: SocialLoginButtonsProps) 
           <span className="bg-background px-2 text-muted-foreground">or continue with email</span>
         </div>
       </div>
-
-      {/* Phone OTP Dialog */}
-      <PhoneLoginDialog
-        open={phoneDialogOpen}
-        onOpenChange={setPhoneDialogOpen}
-        onSuccess={handlePhoneSuccess}
-      />
     </>
   );
 }

@@ -1,14 +1,13 @@
+import { Transform } from 'class-transformer';
 import {
   IsEmail,
   IsNotEmpty,
-  IsOptional,
   IsString,
   MinLength,
   MaxLength,
   Matches,
   IsBoolean,
 } from 'class-validator';
-import { Transform } from 'class-transformer';
 
 export class RegisterDto {
   @IsEmail({}, { message: 'Please provide a valid email address' })
@@ -39,13 +38,6 @@ export class RegisterDto {
   @MaxLength(50, { message: 'Last name must not exceed 50 characters' })
   @Transform(({ value }) => value?.trim())
   lastName: string;
-
-  @IsOptional()
-  @IsString()
-  @Matches(/^\+?[1-9]\d{1,14}$/, {
-    message: 'Please provide a valid phone number in E.164 format',
-  })
-  phone?: string;
 
   @IsBoolean({ message: 'You must accept the terms and conditions' })
   @IsNotEmpty({ message: 'Accepting terms is required' })

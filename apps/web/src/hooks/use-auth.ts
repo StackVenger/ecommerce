@@ -34,10 +34,9 @@ const defaultAuthValue: AuthContextValue = {
   isAuthenticated: false,
   login: async () => {},
   register: async () => {},
-  loginWithGoogle: async () => {},
-  loginWithFacebook: async () => {},
-  loginWithPhone: async () => {},
+  loginWithFirebase: async () => {},
   logout: async () => {},
+  deleteAccount: async () => {},
   refreshUser: async () => {},
 };
 

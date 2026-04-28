@@ -18,10 +18,8 @@ export interface LoginRequest {
 export interface RegisterRequest {
   email: string;
   password: string;
-  confirmPassword: string;
   firstName: string;
   lastName: string;
-  phone?: string;
   acceptTerms: boolean;
 }
 
@@ -51,8 +49,7 @@ export interface ForgotPasswordRequest {
 
 export interface ResetPasswordRequest {
   token: string;
-  password: string;
-  confirmPassword: string;
+  newPassword: string;
 }
 
 export interface ChangePasswordRequest {

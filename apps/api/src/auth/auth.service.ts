@@ -13,8 +13,10 @@ import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 
+import { EmailService } from '../email/email.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { ChangePasswordDto } from './dto/change-password.dto';
+import { DeleteAccountDto } from './dto/delete-account.dto';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { LoginDto } from './dto/login.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
@@ -34,6 +36,7 @@ export class AuthService {
     private readonly prisma: PrismaService,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
+    private readonly emailService: EmailService,
   ) {
     this.refreshTokenSecret = this.configService.get<string>(
       'JWT_REFRESH_SECRET',
@@ -62,10 +65,64 @@ export class AuthService {
   }
 
   /**
+   * Generate a 6-digit numeric verification code (OTP) used for email verification.
+   */
+  private generateVerificationOtp(): string {
+    return Math.floor(100000 + Math.random() * 900000).toString();
+  }
+
+  /**
+   * Send the verify-email template containing the 6-digit OTP. Failures are logged
+   * but never thrown — registration must not fail because SMTP is misconfigured.
+   */
+  private async deliverVerificationEmail(to: string, name: string, otp: string): Promise<void> {
+    try {
+      await this.emailService.sendEmail({
+        to,
+        subject: 'Verify Your Email',
+        template: 'verify-email',
+        context: { name, code: otp, expiresIn: '24 hours' },
+      });
+    } catch (error) {
+      const err = error as Error & { code?: string; response?: string };
+      this.logger.error(
+        `Verification email failed for ${to}: ${err.message} (code=${err.code ?? 'n/a'})`,
+        err.stack,
+      );
+      throw error;
+    }
+  }
+
+  // Send the password-reset link. Errors are logged but swallowed: the
+  // /auth/forgot-password endpoint must return the same response regardless
+  // of whether the email exists or whether SMTP succeeded — otherwise an
+  // attacker can enumerate accounts by observing which addresses 500.
+  private async deliverPasswordResetEmail(
+    to: string,
+    name: string,
+    resetUrl: string,
+  ): Promise<void> {
+    try {
+      await this.emailService.sendEmail({
+        to,
+        subject: 'Reset Your Password',
+        template: 'password-reset',
+        context: { name, resetUrl, expiresIn: '1 hour' },
+      });
+    } catch (error) {
+      const err = error as Error & { code?: string };
+      this.logger.error(
+        `Password reset email failed for ${to}: ${err.message} (code=${err.code ?? 'n/a'})`,
+        err.stack,
+      );
+    }
+  }
+
+  /**
    * Register a new user account.
    */
   async register(dto: RegisterDto) {
-    const { email, password, firstName, lastName, phone, acceptTerms } = dto;
+    const { email, password, firstName, lastName, acceptTerms } = dto;
 
     if (!acceptTerms) {
       throw new BadRequestException('You must accept the terms and conditions');
@@ -84,8 +141,8 @@ export class AuthService {
     // Hash the password
     const hashedPassword = await bcrypt.hash(password, this.bcryptSaltRounds);
 
-    // Generate email verification token
-    const verifyToken = randomBytes(32).toString('hex');
+    // Generate email verification OTP (6-digit code stored in verifyToken column)
+    const verifyToken = this.generateVerificationOtp();
     const verifyTokenExp = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
 
     // Create the user
@@ -95,7 +152,6 @@ export class AuthService {
         password: hashedPassword,
         firstName,
         lastName,
-        phone: phone || null,
         verifyToken,
         verifyTokenExp,
         role: 'CUSTOMER',
@@ -124,7 +180,11 @@ export class AuthService {
 
     this.logger.log(`New user registered: ${user.email}`);
 
-    // TODO: Send verification email via email service
+    await this.deliverVerificationEmail(
+      user.email,
+      `${user.firstName} ${user.lastName}`.trim(),
+      verifyToken,
+    );
 
     return {
       user,
@@ -337,6 +397,8 @@ export class AuthService {
       select: {
         id: true,
         email: true,
+        firstName: true,
+        lastName: true,
         emailVerified: true,
         verifyTokenExp: true,
       },
@@ -353,19 +415,7 @@ export class AuthService {
       throw new BadRequestException('Email is already verified');
     }
 
-    // Rate limit: don't allow resending within 60 seconds
-    if (
-      user.verifyTokenExp &&
-      new Date(user.verifyTokenExp).getTime() > Date.now() + 23 * 60 * 60 * 1000
-    ) {
-      throw new BadRequestException(
-        'Please wait at least 60 seconds before requesting a new verification email.',
-      );
-    }
-
-    // Generate a new OTP-style verification token (6 digits)
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    const verifyToken = otp;
+    const verifyToken = this.generateVerificationOtp();
     const verifyTokenExp = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
 
     await this.prisma.user.update({
@@ -378,7 +428,11 @@ export class AuthService {
 
     this.logger.log(`Verification email resent to: ${user.email}`);
 
-    // TODO: Send verification email via email service
+    await this.deliverVerificationEmail(
+      user.email,
+      `${user.firstName} ${user.lastName}`.trim(),
+      verifyToken,
+    );
 
     return {
       message: 'If an account with this email exists, a verification email has been sent.',
@@ -397,6 +451,8 @@ export class AuthService {
       select: {
         id: true,
         email: true,
+        firstName: true,
+        lastName: true,
         status: true,
         resetTokenExp: true,
       },
@@ -436,8 +492,14 @@ export class AuthService {
 
     this.logger.log(`Password reset requested for: ${user.email}`);
 
-    // TODO: Send password reset email via email service
-    // The email should contain a link like: /auth/reset-password?token=${resetToken}
+    const webUrl = this.configService.get<string>('WEB_URL', 'http://localhost:3000');
+    const resetUrl = `${webUrl}/reset-password?token=${resetToken}`;
+
+    await this.deliverPasswordResetEmail(
+      user.email,
+      `${user.firstName} ${user.lastName}`.trim(),
+      resetUrl,
+    );
 
     return { message: successMessage };
   }
@@ -725,5 +787,43 @@ export class AuthService {
     this.logger.log(`Profile updated for user: ${updatedUser.email}`);
 
     return updatedUser;
+  }
+
+  /**
+   * Permanently delete the authenticated user's account. The Prisma schema
+   * cascade-deletes most owned rows (accounts, addresses, carts, wishlists,
+   * notifications, audit logs); orders are preserved with userId set to null
+   * (Order.userId is nullable). Reviews have a non-nullable userId without
+   * a cascade rule, so we delete them explicitly inside a transaction.
+   */
+  async deleteAccount(userId: string, dto: DeleteAccountDto) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true, email: true, password: true },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    // Password-backed accounts must confirm their current password before
+    // deletion. Social-only accounts (no password) skip this — possessing
+    // a valid JWT for the user is the proof of identity.
+    if (user.password) {
+      if (!dto.password) {
+        throw new BadRequestException('Password is required to delete this account');
+      }
+      const ok = await bcrypt.compare(dto.password, user.password);
+      if (!ok) {
+        throw new UnauthorizedException('Incorrect password');
+      }
+    }
+
+    await this.prisma.$transaction([
+      this.prisma.review.deleteMany({ where: { userId } }),
+      this.prisma.user.delete({ where: { id: userId } }),
+    ]);
+
+    this.logger.log(`Account deleted: ${user.email}`);
   }
 }

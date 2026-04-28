@@ -5,9 +5,9 @@ import axios, {
   type InternalAxiosRequestConfig,
 } from 'axios';
 
-import type { ApiError, ApiResponse } from '@ecommerce/types';
-
 import { clearTokens, getAccessToken, getRefreshToken, setTokens } from '../auth/tokens';
+
+import type { ApiError, ApiResponse } from '@ecommerce/types';
 
 // ──────────────────────────────────────────────────────────
 // Constants
@@ -149,16 +149,38 @@ apiClient.interceptors.response.use(
 /**
  * Normalize an Axios error into a consistent shape that callers can
  * inspect without coupling to Axios internals.
+ *
+ * Tolerates three response shapes:
+ *   - { error: { code, message, details } }  (typed ApiError envelope)
+ *   - { message, error, statusCode, errorCode?, details? }  (NestJS / global filter)
+ *   - { message: string[], error, statusCode }  (NestJS class-validator)
  */
 function normalizeError(error: AxiosError<ApiError>): ApiClientError {
   if (error.response) {
-    const body = error.response.data;
-    return new ApiClientError(
-      body?.error?.message ?? error.message,
-      error.response.status,
-      body?.error?.code ?? 'UNKNOWN_ERROR',
-      body?.error?.details,
-    );
+    const body = error.response.data as
+      | (ApiError & {
+          message?: string | string[];
+          errorCode?: string;
+          details?: Record<string, string[]>;
+        })
+      | undefined;
+
+    const nestedMessage = typeof body?.error === 'object' ? body.error?.message : undefined;
+    const flatMessage = (body as { message?: string | string[] } | undefined)?.message;
+    const message =
+      nestedMessage ??
+      (Array.isArray(flatMessage) ? flatMessage.join(', ') : flatMessage) ??
+      error.message;
+
+    const code =
+      (typeof body?.error === 'object' ? body.error?.code : undefined) ??
+      body?.errorCode ??
+      'UNKNOWN_ERROR';
+
+    const details =
+      (typeof body?.error === 'object' ? body.error?.details : undefined) ?? body?.details;
+
+    return new ApiClientError(message, error.response.status, code, details);
   }
 
   if (error.request) {

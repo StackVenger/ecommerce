@@ -39,10 +39,6 @@ const registerSchema = z
       .min(1, 'Last name is required')
       .max(50, 'Last name must be 50 characters or fewer'),
     email: z.string().min(1, 'Email is required').email('Please enter a valid email address'),
-    phone: z
-      .string()
-      .optional()
-      .refine((val) => !val || /^\+?[1-9]\d{7,14}$/.test(val), 'Please enter a valid phone number'),
     password: z
       .string()
       .min(8, 'Password must be at least 8 characters')
@@ -118,7 +114,6 @@ function RegisterContent() {
       firstName: '',
       lastName: '',
       email: '',
-      phone: '',
       password: '',
       confirmPassword: '',
       acceptTerms: false as unknown as true,
@@ -137,8 +132,6 @@ function RegisterContent() {
         lastName: values.lastName,
         email: values.email,
         password: values.password,
-        confirmPassword: values.confirmPassword,
-        phone: values.phone || undefined,
         acceptTerms: values.acceptTerms,
       });
 
@@ -231,23 +224,6 @@ function RegisterContent() {
                     autoComplete="email"
                     {...field}
                   />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          {/* Phone (optional) */}
-          <FormField
-            control={form.control}
-            name="phone"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>
-                  Phone number <span className="text-muted-foreground">(optional)</span>
-                </FormLabel>
-                <FormControl>
-                  <Input type="tel" placeholder="+1234567890" autoComplete="tel" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>

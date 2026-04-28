@@ -126,11 +126,12 @@ export async function verifyEmail(token: string): Promise<{ message: string }> {
 }
 
 /**
- * Resend the email verification link/OTP.
+ * Resend the email verification OTP for the given email address.
  */
-export async function resendVerificationEmail(): Promise<{ message: string }> {
+export async function resendVerificationEmail(email: string): Promise<{ message: string }> {
   const { data } = await apiClient.post<ApiResponse<{ message: string }>>(
     '/auth/resend-verification',
+    { email },
   );
   return data.data;
 }
@@ -212,33 +213,11 @@ export async function updateProfile(payload: UpdateProfileInput): Promise<AuthUs
 }
 
 /**
- * Authenticate with a Google token (ID token or access token from @react-oauth/google).
+ * Authenticate with any Firebase ID token — Google, Facebook, etc. The backend
+ * reads the provider from the token's sign_in_provider claim.
  */
-export async function googleLogin(
-  token: string,
-  tokenType: 'idToken' | 'accessToken' = 'accessToken',
-): Promise<AuthResponse> {
-  const { data } = await apiClient.post<ApiResponse<any>>('/auth/google', {
-    [tokenType]: token,
-  });
-  return normalizeAuthResponse(data.data);
-}
-
-/**
- * Authenticate with a Facebook access token.
- */
-export async function facebookLogin(accessToken: string): Promise<AuthResponse> {
-  const { data } = await apiClient.post<ApiResponse<any>>('/auth/facebook', {
-    accessToken,
-  });
-  return normalizeAuthResponse(data.data);
-}
-
-/**
- * Authenticate with a Firebase phone ID token.
- */
-export async function phoneLogin(idToken: string): Promise<AuthResponse> {
-  const { data } = await apiClient.post<ApiResponse<any>>('/auth/phone', {
+export async function firebaseLogin(idToken: string): Promise<AuthResponse> {
+  const { data } = await apiClient.post<ApiResponse<any>>('/auth/firebase', {
     idToken,
   });
   return normalizeAuthResponse(data.data);
@@ -249,4 +228,15 @@ export async function phoneLogin(idToken: string): Promise<AuthResponse> {
  */
 export async function logout(): Promise<void> {
   await apiClient.post('/auth/logout');
+}
+
+/**
+ * Permanently delete the authenticated user's account. The `password` field
+ * is required for password-backed accounts and ignored for social-only ones.
+ */
+export async function deleteAccount(password?: string): Promise<{ message: string }> {
+  const { data } = await apiClient.delete<ApiResponse<{ message: string }>>('/auth/me', {
+    data: password ? { password } : {},
+  });
+  return data.data;
 }

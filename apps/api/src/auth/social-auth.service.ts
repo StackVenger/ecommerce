@@ -1,16 +1,15 @@
-import {
-  Injectable,
-  Logger,
-  UnauthorizedException,
-  BadRequestException,
-} from '@nestjs/common';
+// eslint-disable import/namespace -- the firebase-admin CJS namespace import
+// confuses eslint-plugin-import; runtime members (apps, initializeApp, auth,
+// credential) are present and used correctly.
+/* eslint-disable import/namespace */
+import { Injectable, Logger, UnauthorizedException, BadRequestException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { OAuth2Client } from 'google-auth-library';
-import * as admin from 'firebase-admin';
 import * as bcrypt from 'bcrypt';
+import * as admin from 'firebase-admin';
+import { OAuth2Client } from 'google-auth-library';
 
-import { PrismaService } from '../prisma/prisma.service';
 import { AuthService } from './auth.service';
+import { PrismaService } from '../prisma/prisma.service';
 
 interface SocialProfile {
   provider: string;
@@ -48,7 +47,9 @@ export class SocialAuthService {
   private initFirebase() {
     const projectId = this.configService.get<string>('FIREBASE_PROJECT_ID', '');
     const clientEmail = this.configService.get<string>('FIREBASE_CLIENT_EMAIL', '');
-    const privateKey = this.configService.get<string>('FIREBASE_PRIVATE_KEY', '')?.replace(/\\n/g, '\n');
+    const privateKey = this.configService
+      .get<string>('FIREBASE_PRIVATE_KEY', '')
+      ?.replace(/\\n/g, '\n');
 
     if (projectId && clientEmail && privateKey && !admin.apps.length) {
       try {
@@ -85,11 +86,12 @@ export class SocialAuthService {
     } else if (accessToken) {
       // Verify Google access token (from useGoogleLogin / implicit flow)
       try {
-        const res = await fetch(
-          `https://www.googleapis.com/oauth2/v3/userinfo`,
-          { headers: { Authorization: `Bearer ${accessToken}` } },
-        );
-        if (!res.ok) throw new Error('Failed to verify');
+        const res = await fetch(`https://www.googleapis.com/oauth2/v3/userinfo`, {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        });
+        if (!res.ok) {
+          throw new Error('Failed to verify');
+        }
         payload = await res.json();
       } catch {
         throw new UnauthorizedException('Invalid Google access token');
@@ -158,6 +160,54 @@ export class SocialAuthService {
       firstName: fbProfile.first_name || 'User',
       lastName: fbProfile.last_name || '',
       avatar: fbProfile.picture?.data?.url,
+    };
+
+    return this.findOrCreateSocialUser(profile);
+  }
+
+  // ──────────────────────────────────────────────────────────
+  // Firebase Login (Google / Facebook via Firebase Auth)
+  //
+  // The Firebase ID token tells us which provider was used via
+  // `decoded.firebase.sign_in_provider` ("google.com", "facebook.com", etc.),
+  // so a single endpoint handles every Firebase-backed social login.
+  // ──────────────────────────────────────────────────────────
+
+  async firebaseLogin(idToken: string) {
+    if (!this.firebaseInitialized) {
+      throw new BadRequestException('Firebase authentication is not configured');
+    }
+
+    let decoded: admin.auth.DecodedIdToken;
+    try {
+      decoded = await admin.auth().verifyIdToken(idToken);
+    } catch {
+      throw new UnauthorizedException('Invalid Firebase token');
+    }
+
+    const signInProvider: string = decoded.firebase?.sign_in_provider ?? 'firebase';
+    const provider =
+      signInProvider === 'google.com'
+        ? 'GOOGLE'
+        : signInProvider === 'facebook.com'
+          ? 'FACEBOOK'
+          : signInProvider.toUpperCase();
+
+    if (!decoded.email) {
+      throw new BadRequestException('Firebase token does not contain an email address');
+    }
+
+    const fullName = decoded.name ?? '';
+    const [firstName = 'User', ...rest] = fullName.split(' ').filter(Boolean);
+    const lastName = rest.join(' ');
+
+    const profile: SocialProfile = {
+      provider,
+      providerAccountId: decoded.uid,
+      email: decoded.email,
+      firstName,
+      lastName,
+      avatar: decoded.picture,
     };
 
     return this.findOrCreateSocialUser(profile);
@@ -316,9 +366,7 @@ export class SocialAuthService {
           data: { phoneVerified: true },
         });
 
-        this.logger.log(
-          `Linked phone account to existing user: ${existingUser.email}`,
-        );
+        this.logger.log(`Linked phone account to existing user: ${existingUser.email}`);
 
         return this.loginSocialUser(existingUser);
       }
@@ -357,16 +405,10 @@ export class SocialAuthService {
 
   private async loginSocialUser(user: any) {
     if (user.status !== 'ACTIVE') {
-      throw new UnauthorizedException(
-        'Your account has been deactivated. Please contact support.',
-      );
+      throw new UnauthorizedException('Your account has been deactivated. Please contact support.');
     }
 
-    const tokens = await this.authService.generateTokens(
-      user.id,
-      user.email,
-      user.role,
-    );
+    const tokens = await this.authService.generateTokens(user.id, user.email, user.role);
 
     // Store hashed refresh token
     const hashedRefreshToken = await bcrypt.hash(tokens.refreshToken, 10);

@@ -13,8 +13,8 @@ import {
   LogOut,
 } from 'lucide-react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { useState } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 
 import { Footer } from '@/components/layout/footer';
 import { Header } from '@/components/layout/header';
@@ -56,10 +56,23 @@ const sidebarLinks = [
 
 export default function AccountLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const { user, logout } = useAuth();
+  const router = useRouter();
+  const { user, isLoading, logout } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const isActive = (href: string) => pathname === href;
+
+  // Block unverified users from the account area. Middleware handles "not logged
+  // in"; here we add the "logged in but email not verified" case.
+  useEffect(() => {
+    if (!isLoading && user && !user.emailVerified) {
+      router.replace('/verify-email');
+    }
+  }, [isLoading, user, router]);
+
+  if (user && !user.emailVerified) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">

@@ -138,11 +138,16 @@ function VerifyEmailContent() {
   // ── Resend handler ──────────────────────────────────────
 
   async function handleResend() {
+    if (!user?.email) {
+      setErrorMessage('We could not determine which email to resend to. Please sign in again.');
+      return;
+    }
+
     setIsResending(true);
     setErrorMessage(null);
 
     try {
-      await resendVerificationEmail();
+      await resendVerificationEmail(user.email);
       setResendCountdown(RESEND_COOLDOWN_SECONDS);
     } catch (error) {
       if (error instanceof ApiClientError) {

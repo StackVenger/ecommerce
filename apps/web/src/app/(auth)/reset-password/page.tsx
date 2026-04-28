@@ -100,8 +100,7 @@ function ResetPasswordContent() {
     try {
       await resetPassword({
         token: token!,
-        password: values.password,
-        confirmPassword: values.confirmPassword,
+        newPassword: values.password,
       });
       setIsSuccess(true);
     } catch (error) {

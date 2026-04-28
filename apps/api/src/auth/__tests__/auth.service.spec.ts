@@ -1,11 +1,13 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { JwtService } from '@nestjs/jwt';
-import { ConfigService } from '@nestjs/config';
 import { ConflictException, UnauthorizedException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { JwtService } from '@nestjs/jwt';
+import { Test, type TestingModule } from '@nestjs/testing';
 import * as bcrypt from 'bcrypt';
-import { AuthService } from '../auth.service';
-import { PrismaService } from '../../prisma/prisma.service';
+
 import { createMockPrismaService } from '../../../test/utils/prisma-mock';
+import { EmailService } from '../../email/email.service';
+import { PrismaService } from '../../prisma/prisma.service';
+import { AuthService } from '../auth.service';
 
 jest.mock('bcrypt');
 
@@ -41,6 +43,10 @@ describe('AuthService', () => {
               return config[key];
             }),
           },
+        },
+        {
+          provide: EmailService,
+          useValue: { sendEmail: jest.fn().mockResolvedValue(undefined) },
         },
       ],
     }).compile();
@@ -95,9 +101,7 @@ describe('AuthService', () => {
         email: registerDto.email,
       });
 
-      await expect(service.register(registerDto)).rejects.toThrow(
-        ConflictException,
-      );
+      await expect(service.register(registerDto)).rejects.toThrow(ConflictException);
       expect(prisma.user.create).not.toHaveBeenCalled();
     });
   });
@@ -123,32 +127,23 @@ describe('AuthService', () => {
       expect(prisma.user.findUnique).toHaveBeenCalledWith({
         where: { email: loginDto.email },
       });
-      expect(bcrypt.compare).toHaveBeenCalledWith(
-        loginDto.password,
-        mockUser.password,
-      );
+      expect(bcrypt.compare).toHaveBeenCalledWith(loginDto.password, mockUser.password);
       expect(result).toHaveProperty('accessToken');
       expect(result).toHaveProperty('refreshToken');
-      expect(result.user).toEqual(
-        expect.objectContaining({ email: loginDto.email }),
-      );
+      expect(result.user).toEqual(expect.objectContaining({ email: loginDto.email }));
     });
 
     it('should throw UnauthorizedException for wrong password', async () => {
       prisma.user.findUnique.mockResolvedValue(mockUser);
       (bcrypt.compare as jest.Mock).mockResolvedValue(false);
 
-      await expect(service.login(loginDto)).rejects.toThrow(
-        UnauthorizedException,
-      );
+      await expect(service.login(loginDto)).rejects.toThrow(UnauthorizedException);
     });
 
     it('should throw UnauthorizedException for non-existent user', async () => {
       prisma.user.findUnique.mockResolvedValue(null);
 
-      await expect(service.login(loginDto)).rejects.toThrow(
-        UnauthorizedException,
-      );
+      await expect(service.login(loginDto)).rejects.toThrow(UnauthorizedException);
       expect(bcrypt.compare).not.toHaveBeenCalled();
     });
   });
@@ -177,9 +172,9 @@ describe('AuthService', () => {
         throw new Error('jwt expired');
       });
 
-      await expect(
-        service.refreshTokens('expired-refresh-token'),
-      ).rejects.toThrow(UnauthorizedException);
+      await expect(service.refreshTokens('expired-refresh-token')).rejects.toThrow(
+        UnauthorizedException,
+      );
     });
   });
 

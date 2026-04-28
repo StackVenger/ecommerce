@@ -4,7 +4,6 @@ import Link from 'next/link';
 import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
 
-import { GoogleAuthWrapper } from '@/components/auth/google-auth-wrapper';
 import { getSiteConfig } from '@/lib/config/site-config';
 
 // ──────────────────────────────────────────────────────────
@@ -127,7 +126,7 @@ export default async function AuthLayout({ children }: AuthLayoutProps) {
 
         {/* Centered form area */}
         <div className="flex flex-1 items-center justify-center px-6 py-12 sm:px-8 lg:px-12">
-          <GoogleAuthWrapper>{children}</GoogleAuthWrapper>
+          {children}
         </div>
 
         {/* Mobile footer */}
