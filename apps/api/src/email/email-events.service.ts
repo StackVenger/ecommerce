@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
+
 import { EmailQueueService } from './email-queue.service';
 
 interface UserRegisteredEvent {
@@ -40,6 +41,7 @@ interface OrderEvent {
   shipping: number;
   discount?: number;
   total: number;
+  trackingUrl?: string;
   locale: 'en' | 'bn';
 }
 
@@ -128,9 +130,10 @@ export class EmailEventsService {
     this.logger.log(`Sending order confirmation for #${event.orderNumber}`);
     await this.emailQueue.addToQueue({
       to: event.customerEmail,
-      subject: event.locale === 'bn'
-        ? `অর্ডার নিশ্চিত - #${event.orderNumber}`
-        : `Order Confirmed - #${event.orderNumber}`,
+      subject:
+        event.locale === 'bn'
+          ? `অর্ডার নিশ্চিত - #${event.orderNumber}`
+          : `Order Confirmed - #${event.orderNumber}`,
       template: 'order-confirmation',
       context: {
         customerName: event.customerName,
@@ -140,7 +143,8 @@ export class EmailEventsService {
         shipping: event.shipping,
         discount: event.discount,
         total: event.total,
-        trackingUrl: `${this.baseUrl}/orders/${event.orderId}`,
+        trackingUrl:
+          event.trackingUrl ?? `${this.baseUrl}/orders/track?orderNumber=${event.orderNumber}`,
       },
       locale: event.locale,
       priority: 'high',
@@ -151,9 +155,10 @@ export class EmailEventsService {
   async handleOrderShipped(event: OrderShippedEvent): Promise<void> {
     await this.emailQueue.addToQueue({
       to: event.customerEmail,
-      subject: event.locale === 'bn'
-        ? `অর্ডার শিপ হয়েছে - #${event.orderNumber}`
-        : `Order Shipped - #${event.orderNumber}`,
+      subject:
+        event.locale === 'bn'
+          ? `অর্ডার শিপ হয়েছে - #${event.orderNumber}`
+          : `Order Shipped - #${event.orderNumber}`,
       template: 'order-shipped',
       context: {
         customerName: event.customerName,
@@ -171,9 +176,10 @@ export class EmailEventsService {
   async handleOrderCancelled(event: OrderEvent & { reason: string }): Promise<void> {
     await this.emailQueue.addToQueue({
       to: event.customerEmail,
-      subject: event.locale === 'bn'
-        ? `অর্ডার বাতিল - #${event.orderNumber}`
-        : `Order Cancelled - #${event.orderNumber}`,
+      subject:
+        event.locale === 'bn'
+          ? `অর্ডার বাতিল - #${event.orderNumber}`
+          : `Order Cancelled - #${event.orderNumber}`,
       template: 'order-cancelled',
       context: {
         customerName: event.customerName,
@@ -190,9 +196,10 @@ export class EmailEventsService {
   async handleRefundProcessed(event: RefundEvent): Promise<void> {
     await this.emailQueue.addToQueue({
       to: event.customerEmail,
-      subject: event.locale === 'bn'
-        ? `রিফান্ড প্রক্রিয়া সম্পন্ন - #${event.orderNumber}`
-        : `Refund Processed - #${event.orderNumber}`,
+      subject:
+        event.locale === 'bn'
+          ? `রিফান্ড প্রক্রিয়া সম্পন্ন - #${event.orderNumber}`
+          : `Refund Processed - #${event.orderNumber}`,
       template: 'refund-processed',
       context: {
         customerName: event.customerName,

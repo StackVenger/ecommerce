@@ -1,5 +1,6 @@
 import { Injectable, Logger, NotFoundException, BadRequestException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 
 import { EmailService } from '../email/email.service';
 import { PrismaService } from '../prisma/prisma.service';
@@ -68,6 +69,7 @@ export class OrdersService {
     private readonly shippingService: ShippingService,
     private readonly emailService: EmailService,
     private readonly configService: ConfigService,
+    private readonly eventEmitter: EventEmitter2,
   ) {}
 
   // ─── Order Number Generator ─────────────────────────────────────────────────
@@ -413,6 +415,47 @@ export class OrdersService {
     this.logger.log(
       `Order ${orderNumber} created for ${isGuest ? `guest (${dto.guestEmail})` : `user ${userId}`} — ${cart.items.length} items, total ৳${validation.total}`,
     );
+
+    // Send order confirmation email
+    let customerEmail: string;
+    let customerName: string;
+
+    if (!isGuest && userId) {
+      const user = await this.prisma.user.findUnique({
+        where: { id: userId },
+        select: { email: true, firstName: true, lastName: true },
+      });
+      customerEmail = user?.email ?? '';
+      customerName = user ? `${user.firstName} ${user.lastName}` : 'Customer';
+    } else {
+      customerEmail = dto.guestEmail ?? '';
+      customerName = dto.guestFullName ?? 'Guest';
+    }
+
+    if (customerEmail) {
+      const webUrl = this.configService.get<string>('WEB_URL', 'http://localhost:3000');
+      const trackingUrl = isGuest
+        ? `${webUrl}/orders/track?orderNumber=${orderNumber}&email=${encodeURIComponent(customerEmail)}`
+        : `${webUrl}/account/orders/${orderNumber}`;
+
+      this.eventEmitter.emit('order.confirmed', {
+        orderId: order.id,
+        orderNumber: order.orderNumber,
+        customerEmail,
+        customerName,
+        items: order.items.map((item) => ({
+          name: item.productName,
+          quantity: item.quantity,
+          price: Number(item.unitPrice),
+        })),
+        subtotal: validation.subtotal,
+        shipping: validation.shippingCost,
+        discount: validation.discount > 0 ? validation.discount : undefined,
+        total: validation.total,
+        trackingUrl,
+        locale: 'en' as const,
+      });
+    }
 
     return order;
   }
