@@ -579,25 +579,23 @@ export class AuthService {
       throw new NotFoundException('User not found');
     }
 
-    // Social/phone users without a password cannot use this flow
-    if (!user.password) {
-      throw new BadRequestException(
-        'Your account uses social login and does not have a password set. Use the "Forgot Password" flow to create one.',
-      );
-    }
+    if (user.password) {
+      // Password-backed account: current password is required
+      if (!currentPassword) {
+        throw new BadRequestException('Current password is required');
+      }
 
-    // Verify the current password
-    const isCurrentPasswordValid = await bcrypt.compare(currentPassword, user.password);
+      const isCurrentPasswordValid = await bcrypt.compare(currentPassword, user.password);
+      if (!isCurrentPasswordValid) {
+        throw new UnauthorizedException('Current password is incorrect');
+      }
 
-    if (!isCurrentPasswordValid) {
-      throw new UnauthorizedException('Current password is incorrect');
+      const isSamePassword = await bcrypt.compare(newPassword, user.password);
+      if (isSamePassword) {
+        throw new BadRequestException('New password must be different from the current password.');
+      }
     }
-
-    // Ensure the new password is different from the current one
-    const isSamePassword = await bcrypt.compare(newPassword, user.password);
-    if (isSamePassword) {
-      throw new BadRequestException('New password must be different from the current password.');
-    }
+    // Social/phone users with no password can set one directly — no current password needed
 
     // Hash the new password
     const hashedPassword = await bcrypt.hash(newPassword, this.bcryptSaltRounds);
@@ -712,6 +710,7 @@ export class AuthService {
         lastLoginAt: true,
         createdAt: true,
         updatedAt: true,
+        password: true,
       },
     });
 
@@ -719,7 +718,8 @@ export class AuthService {
       throw new NotFoundException('User not found');
     }
 
-    return user;
+    const { password, ...rest } = user;
+    return { ...rest, hasPassword: !!password };
   }
 
   /**

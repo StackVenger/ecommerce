@@ -58,6 +58,7 @@ function normalizeAuthResponse(raw: any): AuthResponse & { refreshMaxAge?: numbe
     avatar: raw.user.avatar ?? undefined,
     emailVerified: raw.user.emailVerified ?? false,
     phone: raw.user.phone ?? undefined,
+    hasPassword: raw.user.hasPassword ?? undefined,
     createdAt: raw.user.createdAt,
   };
 
@@ -187,6 +188,7 @@ export async function getProfile(): Promise<AuthUser> {
     avatar: raw.avatar ?? undefined,
     emailVerified: raw.emailVerified ?? false,
     phone: raw.phone ?? undefined,
+    hasPassword: raw.hasPassword ?? undefined,
     createdAt: raw.createdAt,
   };
 }

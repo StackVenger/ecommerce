@@ -191,6 +191,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       stopAutoRefresh();
       setIsSubmitting(false);
       toast.success('Logged out successfully');
+      window.location.href = '/';
     }
   }, []);
 

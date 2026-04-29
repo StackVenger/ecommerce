@@ -40,6 +40,7 @@ export interface AuthUser {
   avatar?: string;
   emailVerified: boolean;
   phone?: string;
+  hasPassword?: boolean;
   createdAt: string;
 }
 
