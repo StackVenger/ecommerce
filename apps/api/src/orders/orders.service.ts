@@ -826,6 +826,7 @@ export class OrdersService {
       include: {
         items: true,
         shippingAddress: true,
+        payments: { orderBy: { createdAt: 'desc' }, take: 1 },
       },
     });
 
@@ -838,10 +839,14 @@ export class OrdersService {
       throw new NotFoundException(`Order ${orderNumber} not found`);
     }
 
+    const payment = order.payments[0];
+
     return {
       id: order.id,
       orderNumber: order.orderNumber,
       status: order.status,
+      paymentMethod: payment?.method ?? null,
+      paymentStatus: payment?.status ?? null,
       guestFullName: order.guestFullName,
       guestEmail: order.guestEmail,
       guestPhone: order.guestPhone,
@@ -849,9 +854,17 @@ export class OrdersService {
       shippingCost: Number(order.shippingCost),
       taxAmount: Number(order.taxAmount),
       discountAmount: Number(order.discountAmount),
-      totalAmount: Number(order.totalAmount),
+      total: Number(order.totalAmount),
       couponCode: order.couponCode,
-      items: order.items,
+      items: order.items.map((item) => ({
+        id: item.id,
+        productName: item.productName,
+        productSlug: item.productSlug,
+        sku: item.sku,
+        quantity: item.quantity,
+        price: Number(item.unitPrice),
+        image: item.productImage ?? null,
+      })),
       shippingAddress: order.shippingAddress,
       createdAt: order.createdAt,
       updatedAt: order.updatedAt,

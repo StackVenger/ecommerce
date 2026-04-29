@@ -89,7 +89,8 @@ export class OrdersController {
    */
   @Get('orders/guest')
   async findGuestOrder(@Query('orderNumber') orderNumber: string, @Query('email') email: string) {
-    return this.ordersService.findGuestOrder(orderNumber, email);
+    const result = await this.ordersService.findGuestOrder(orderNumber, email);
+    return { success: true, data: result };
   }
 
   // ─── Order Listing ────────────────────────────────────────────────────────────
