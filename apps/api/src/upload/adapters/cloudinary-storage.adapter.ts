@@ -1,6 +1,6 @@
 import { Readable } from 'stream';
 
-import { Injectable, Logger, OnModuleInit, InternalServerErrorException } from '@nestjs/common';
+import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import {
   v2 as cloudinary,
@@ -117,9 +117,10 @@ export class CloudinaryStorageAdapter implements StorageAdapter, OnModuleInit {
 
   onModuleInit(): void {
     if (!this.cloudName || !this.apiKey || !this.apiSecret) {
-      throw new InternalServerErrorException(
-        'Cloudinary is not configured. Set CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY and CLOUDINARY_API_SECRET in your environment.',
+      this.logger.warn(
+        'Cloudinary is not configured — image uploads will be unavailable. Set CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY and CLOUDINARY_API_SECRET to enable.',
       );
+      return;
     }
 
     const config: ConfigOptions = {

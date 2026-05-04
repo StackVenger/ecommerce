@@ -1,6 +1,8 @@
+import { BullModule } from '@nestjs/bull';
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
+import { EventEmitterModule } from '@nestjs/event-emitter';
 import { ScheduleModule } from '@nestjs/schedule';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 
@@ -45,6 +47,13 @@ import { WishlistModule } from './wishlist/wishlist.module';
       expandVariables: true,
     }),
     ScheduleModule.forRoot(),
+    EventEmitterModule.forRoot(),
+    BullModule.forRootAsync({
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => ({
+        redis: config.get<string>('REDIS_URL', 'redis://localhost:6379'),
+      }),
+    }),
     // Global rate limits. Admin mutations don't need protection — the
     // JwtAuthGuard already stops unauthenticated abuse — but the public
     // catalog + settings + theme endpoints are hot paths that benefit
