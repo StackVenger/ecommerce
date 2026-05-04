@@ -1,25 +1,15 @@
 import { apiClient } from './client';
 
-export type SettingsGroup =
-  | 'general'
-  | 'email'
-  | 'shipping'
-  | 'tax'
-  | 'payment'
-  | 'seo';
+export type SettingsGroup = 'general' | 'shipping' | 'payment' | 'seo';
 
 /** Fetch all settings across every group. */
-export async function getAllSettings(): Promise<
-  Record<SettingsGroup, Record<string, string>>
-> {
+export async function getAllSettings(): Promise<Record<SettingsGroup, Record<string, string>>> {
   const { data } = await apiClient.get('/admin/settings');
   return data.data ?? data;
 }
 
 /** Fetch settings for a specific group. */
-export async function getSettingsByGroup(
-  group: SettingsGroup,
-): Promise<Record<string, string>> {
+export async function getSettingsByGroup(group: SettingsGroup): Promise<Record<string, string>> {
   const { data } = await apiClient.get(`/admin/settings/${group}`);
   return data.data ?? data;
 }
@@ -34,14 +24,6 @@ export async function updateSettings(
 }
 
 /** Delete a single setting key. */
-export async function deleteSetting(
-  group: SettingsGroup,
-  key: string,
-): Promise<void> {
+export async function deleteSetting(group: SettingsGroup, key: string): Promise<void> {
   await apiClient.delete(`/admin/settings/${group}/${key}`);
-}
-
-/** Send a test email using current email settings. */
-export async function sendTestEmail(toEmail: string): Promise<void> {
-  await apiClient.post('/admin/settings/email/test', { to: toEmail });
 }

@@ -1,16 +1,37 @@
 import { Controller, Get, Query, UseGuards } from '@nestjs/common';
+import { IsOptional, IsString } from 'class-validator';
 
+import { AuditService } from './audit.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
-import { AuditService } from './audit.service';
 
 class AuditLogQueryDto {
+  @IsOptional()
+  @IsString()
   userId?: string;
+
+  @IsOptional()
+  @IsString()
   action?: string;
+
+  @IsOptional()
+  @IsString()
   entity?: string;
+
+  @IsOptional()
+  @IsString()
   from?: string;
+
+  @IsOptional()
+  @IsString()
   to?: string;
+
+  @IsOptional()
+  @IsString()
   page?: string;
+
+  @IsOptional()
+  @IsString()
   limit?: string;
 }
 

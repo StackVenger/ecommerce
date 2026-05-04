@@ -28,7 +28,7 @@ interface UserDetail {
   orders: Array<{
     id: string;
     orderNumber: string;
-    total: number;
+    totalAmount: number | string;
     status: string;
     createdAt: string;
   }>;
@@ -257,7 +257,9 @@ export default function AdminUserDetailPage() {
                     <td className="px-4 py-2 text-sm font-medium text-teal-600">
                       {order.orderNumber}
                     </td>
-                    <td className="px-4 py-2 text-sm">৳{order.total.toLocaleString()}</td>
+                    <td className="px-4 py-2 text-sm">
+                      ৳{Number(order.totalAmount ?? 0).toLocaleString('en-BD')}
+                    </td>
                     <td className="px-4 py-2 text-sm">{order.status}</td>
                     <td className="px-4 py-2 text-sm text-gray-500">
                       {new Date(order.createdAt).toLocaleDateString()}

@@ -116,7 +116,9 @@ export class AnalyticsService {
       take: limit,
     });
 
-    if (grouped.length === 0) return [];
+    if (grouped.length === 0) {
+      return [];
+    }
 
     const productIds = grouped.map((g) => g.productId);
     const products = await this.prisma.product.findMany({
@@ -191,7 +193,9 @@ export class AnalyticsService {
       take: limit,
     });
 
-    if (grouped.length === 0) return [];
+    if (grouped.length === 0) {
+      return [];
+    }
 
     const productIds = grouped.map((g) => g.productId);
     const products = await this.prisma.product.findMany({
@@ -239,7 +243,9 @@ export class AnalyticsService {
       take: limit,
     });
 
-    if (grouped.length === 0) return [];
+    if (grouped.length === 0) {
+      return [];
+    }
 
     const productIds = grouped.map((g) => g.productId);
     const products = await this.prisma.product.findMany({
@@ -286,7 +292,9 @@ export class AnalyticsService {
       take: limit,
     });
 
-    if (grouped.length === 0) return [];
+    if (grouped.length === 0) {
+      return [];
+    }
 
     const productIds = grouped.map((g) => g.productId);
     const products = await this.prisma.product.findMany({
@@ -316,10 +324,7 @@ export class AnalyticsService {
 
   // ─── Conversion Funnel ────────────────────────────────────────────────────
 
-  async getConversionFunnel(
-    startDate?: string,
-    endDate?: string,
-  ): Promise<ConversionFunnel> {
+  async getConversionFunnel(startDate?: string, endDate?: string): Promise<ConversionFunnel> {
     const { start, end } = this.getDateRange(startDate, endDate);
 
     const [totalViews, totalCartAdds, totalOrders] = await Promise.all([
@@ -329,25 +334,20 @@ export class AnalyticsService {
       this.prisma.cartItem.count({
         where: { createdAt: { gte: start, lte: end } },
       }),
-      this.prisma.orderItem.count({
+      this.prisma.order.count({
         where: {
-          order: {
-            createdAt: { gte: start, lte: end },
-            status: { notIn: ['CANCELLED', 'REFUNDED'] },
-          },
+          createdAt: { gte: start, lte: end },
+          status: { notIn: ['CANCELLED', 'REFUNDED'] },
         },
       }),
     ]);
 
-    const viewToCartRate = totalViews > 0
-      ? Math.round((totalCartAdds / totalViews) * 100 * 10) / 10
-      : 0;
-    const cartToOrderRate = totalCartAdds > 0
-      ? Math.round((totalOrders / totalCartAdds) * 100 * 10) / 10
-      : 0;
-    const overallConversionRate = totalViews > 0
-      ? Math.round((totalOrders / totalViews) * 100 * 10) / 10
-      : 0;
+    const viewToCartRate =
+      totalViews > 0 ? Math.round((totalCartAdds / totalViews) * 100 * 10) / 10 : 0;
+    const cartToOrderRate =
+      totalCartAdds > 0 ? Math.round((totalOrders / totalCartAdds) * 100 * 10) / 10 : 0;
+    const overallConversionRate =
+      totalViews > 0 ? Math.round((totalOrders / totalViews) * 100 * 10) / 10 : 0;
 
     return {
       totalViews,

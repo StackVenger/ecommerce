@@ -336,9 +336,13 @@ export class CartService {
     if (coupon.type === 'PERCENTAGE') {
       discount = (cartSummary.subtotal * Number(coupon.value)) / 100;
 
-      // Apply max discount cap if set
-      if (coupon.maxDiscount && discount > Number(coupon.maxDiscount)) {
-        discount = Number(coupon.maxDiscount);
+      // Apply max discount cap only when the admin actually set a positive
+      // value. `coupon.maxDiscount` is a Prisma Decimal (always truthy as an
+      // object), and the column defaults to 0 — so a plain truthiness check
+      // would clamp every PERCENTAGE coupon's discount to 0.
+      const maxCap = Number(coupon.maxDiscount ?? 0);
+      if (maxCap > 0 && discount > maxCap) {
+        discount = maxCap;
       }
     } else {
       // FIXED amount discount

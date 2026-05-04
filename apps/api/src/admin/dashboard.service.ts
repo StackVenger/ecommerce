@@ -141,10 +141,16 @@ export class DashboardService {
         },
       }),
       this.prisma.order.count({
-        where: { createdAt: { gte: start, lte: end } },
+        where: {
+          createdAt: { gte: start, lte: end },
+          status: { notIn: ['CANCELLED', 'REFUNDED'] },
+        },
       }),
       this.prisma.order.count({
-        where: { createdAt: { gte: prevStart, lt: prevEnd } },
+        where: {
+          createdAt: { gte: prevStart, lt: prevEnd },
+          status: { notIn: ['CANCELLED', 'REFUNDED'] },
+        },
       }),
       this.prisma.user.count({
         where: { createdAt: { gte: start, lte: end }, role: 'CUSTOMER' },

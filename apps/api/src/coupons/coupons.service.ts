@@ -26,6 +26,52 @@ export class CouponsService {
 
   constructor(private readonly prisma: PrismaService) {}
 
+  /**
+   * Map a Prisma `Coupon` row (DB column names + Decimal types) to the
+   * shape the API contract / admin frontend expects (camelCase aliases,
+   * plain numbers). Keeps the controller-level response stable even
+   * though the underlying schema uses different column names.
+   */
+  private toResponse<T extends Record<string, unknown> | null>(
+    coupon: T,
+  ): T extends null ? null : Record<string, unknown> {
+    if (!coupon) {
+      return null as T extends null ? null : never;
+    }
+    const c = coupon as Record<string, any>;
+    const dec = (v: unknown): number | null => {
+      if (v === null || v === undefined) {
+        return null;
+      }
+      if (typeof v === 'number') {
+        return v;
+      }
+      // Prisma Decimal has .toNumber(); strings come from JSON serialization
+      if (typeof (v as any).toNumber === 'function') {
+        return (v as any).toNumber();
+      }
+      const n = Number(v);
+      return Number.isFinite(n) ? n : null;
+    };
+    return {
+      id: c.id,
+      code: c.code,
+      description: c.description,
+      discountType: c.type,
+      discountValue: dec(c.value) ?? 0,
+      minimumOrderAmount: dec(c.minOrderAmount),
+      maximumDiscount: dec(c.maxDiscount),
+      usageLimit: c.usageLimit ?? null,
+      usageLimitPerUser: c.perUserLimit ?? 1,
+      usageCount: c.usageCount ?? 0,
+      isActive: c.isActive,
+      startDate: c.startsAt,
+      endDate: c.expiresAt,
+      createdAt: c.createdAt,
+      updatedAt: c.updatedAt,
+    } as T extends null ? null : Record<string, unknown>;
+  }
+
   // ─── Create ─────────────────────────────────────────────────────────
 
   /**
@@ -41,7 +87,7 @@ export class CouponsService {
       throw new ConflictException(`Coupon code "${dto.code}" already exists`);
     }
 
-    return this.prisma.coupon.create({
+    const created = await this.prisma.coupon.create({
       data: {
         code: dto.code.toUpperCase(),
         description: dto.description,
@@ -56,6 +102,7 @@ export class CouponsService {
         isActive: dto.isActive ?? true,
       },
     });
+    return this.toResponse(created);
   }
 
   // ─── Find All ───────────────────────────────────────────────────────
@@ -63,12 +110,7 @@ export class CouponsService {
   /**
    * Get all coupons with pagination and optional filtering.
    */
-  async findAll(params: {
-    page: number;
-    limit: number;
-    search?: string;
-    status?: string;
-  }) {
+  async findAll(params: { page: number; limit: number; search?: string; status?: string }) {
     const { page, limit, search, status } = params;
     const skip = (page - 1) * limit;
 
@@ -83,10 +125,7 @@ export class CouponsService {
 
     if (status === 'active') {
       where.isActive = true;
-      where.OR = [
-        { expiresAt: null },
-        { expiresAt: { gte: new Date() } },
-      ];
+      where.OR = [{ expiresAt: null }, { expiresAt: { gte: new Date() } }];
     } else if (status === 'expired') {
       where.expiresAt = { lt: new Date() };
     } else if (status === 'inactive') {
@@ -104,7 +143,7 @@ export class CouponsService {
     ]);
 
     return {
-      data: coupons,
+      data: coupons.map((c) => this.toResponse(c)),
       meta: {
         total,
         page,
@@ -128,7 +167,7 @@ export class CouponsService {
       throw new NotFoundException('Coupon not found');
     }
 
-    return coupon;
+    return this.toResponse(coupon);
   }
 
   // ─── Update ─────────────────────────────────────────────────────────
@@ -153,21 +192,42 @@ export class CouponsService {
       }
     }
 
-    if (dto.description !== undefined) data.description = dto.description;
-    if (dto.discountType !== undefined) data.type = dto.discountType;
-    if (dto.discountValue !== undefined) data.value = dto.discountValue;
-    if (dto.minimumOrderAmount !== undefined) data.minOrderAmount = dto.minimumOrderAmount;
-    if (dto.maximumDiscount !== undefined) data.maxDiscount = dto.maximumDiscount;
-    if (dto.usageLimit !== undefined) data.usageLimit = dto.usageLimit;
-    if (dto.usageLimitPerUser !== undefined) data.perUserLimit = dto.usageLimitPerUser;
-    if (dto.isActive !== undefined) data.isActive = dto.isActive;
-    if (dto.startDate) data.startsAt = new Date(dto.startDate);
-    if (dto.endDate) data.expiresAt = new Date(dto.endDate);
+    if (dto.description !== undefined) {
+      data.description = dto.description;
+    }
+    if (dto.discountType !== undefined) {
+      data.type = dto.discountType;
+    }
+    if (dto.discountValue !== undefined) {
+      data.value = dto.discountValue;
+    }
+    if (dto.minimumOrderAmount !== undefined) {
+      data.minOrderAmount = dto.minimumOrderAmount;
+    }
+    if (dto.maximumDiscount !== undefined) {
+      data.maxDiscount = dto.maximumDiscount;
+    }
+    if (dto.usageLimit !== undefined) {
+      data.usageLimit = dto.usageLimit;
+    }
+    if (dto.usageLimitPerUser !== undefined) {
+      data.perUserLimit = dto.usageLimitPerUser;
+    }
+    if (dto.isActive !== undefined) {
+      data.isActive = dto.isActive;
+    }
+    if (dto.startDate) {
+      data.startsAt = new Date(dto.startDate);
+    }
+    if (dto.endDate) {
+      data.expiresAt = new Date(dto.endDate);
+    }
 
-    return this.prisma.coupon.update({
+    const updated = await this.prisma.coupon.update({
       where: { id },
       data,
     });
+    return this.toResponse(updated);
   }
 
   // ─── Delete ─────────────────────────────────────────────────────────
@@ -239,7 +299,7 @@ export class CouponsService {
     // Check minimum order amount (BDT ৳)
     if (coupon.minOrderAmount && orderAmount < coupon.minOrderAmount.toNumber()) {
       throw new BadRequestException(
-        `Minimum order amount is ৳${coupon.minOrderAmount} for this coupon`,
+        `Minimum order amount is ৳${coupon.minOrderAmount.toNumber()} for this coupon`,
       );
     }
 
@@ -247,9 +307,12 @@ export class CouponsService {
     let discount: number;
     if (coupon.type === 'PERCENTAGE') {
       discount = (orderAmount * coupon.value.toNumber()) / 100;
-      // Apply maximum discount cap
-      if (coupon.maxDiscount) {
-        discount = Math.min(discount, coupon.maxDiscount.toNumber());
+      // Apply maximum discount cap only when admin set a positive value.
+      // `coupon.maxDiscount` is a Prisma Decimal (object → always truthy)
+      // and defaults to 0 in the schema, so a plain `if` would clamp to 0.
+      const maxCap = coupon.maxDiscount?.toNumber() ?? 0;
+      if (maxCap > 0) {
+        discount = Math.min(discount, maxCap);
       }
     } else {
       discount = coupon.value.toNumber();

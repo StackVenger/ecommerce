@@ -163,6 +163,12 @@ export default function ProductPage() {
 
   const hasVariants = (product?.variants?.length ?? 0) > 0;
 
+  // True only when variants are the source of stock truth — i.e. at least
+  // one variant carries inventory. Otherwise the parent product's quantity
+  // is the source of truth (covers products created with vestigial 0-stock
+  // variants where the admin set stock at the parent level).
+  const variantsActive = hasVariants && (product?.variants ?? []).some((v) => v.quantity > 0);
+
   /** Flatten a variant's attributeValues into { attrName: value }. */
   const variantOptions = (v: ProductVariant): Record<string, string> => {
     const out: Record<string, string> = {};
@@ -176,14 +182,14 @@ export default function ProductPage() {
     if (!product) {
       return false;
     }
-    if (!hasVariants) {
+    if (!variantsActive) {
       return true;
     }
     return product.attributes.every((a) => Boolean(selectedOptions[a.name]));
-  }, [product, hasVariants, selectedOptions]);
+  }, [product, variantsActive, selectedOptions]);
 
   const selectedVariant = useMemo<ProductVariant | null>(() => {
-    if (!product || !hasVariants || !allOptionsSelected) {
+    if (!product || !variantsActive || !allOptionsSelected) {
       return null;
     }
     return (
@@ -192,7 +198,7 @@ export default function ProductPage() {
         return product.attributes.every((a) => selectedOptions[a.name] === opts[a.name]);
       }) ?? null
     );
-  }, [product, hasVariants, allOptionsSelected, selectedOptions]);
+  }, [product, variantsActive, allOptionsSelected, selectedOptions]);
 
   /**
    * Is `value` for `attrName` reachable — i.e. does at least one variant
@@ -231,7 +237,7 @@ export default function ProductPage() {
     if (!product) {
       return;
     }
-    if (hasVariants) {
+    if (variantsActive) {
       if (!selectedVariant) {
         setCartError('Please select all options before adding to cart.');
         return;
@@ -312,10 +318,10 @@ export default function ProductPage() {
       ? Math.round((1 - displayPrice / Number(product.compareAtPrice)) * 100)
       : 0;
 
-  const inStock = hasVariants
+  const inStock = variantsActive
     ? selectedVariant
       ? selectedVariant.quantity > 0
-      : false
+      : product.variants.some((v) => v.quantity > 0)
     : product.quantity > 0;
   const lowStock = inStock && displayStock <= 10;
 
@@ -488,7 +494,7 @@ export default function ProductPage() {
             )}
 
             {/* Variant attribute picker */}
-            {hasVariants && product.attributes.length > 0 && (
+            {variantsActive && product.attributes.length > 0 && (
               <div className="mb-6 space-y-4">
                 {product.attributes.map((attr) => {
                   const current = selectedOptions[attr.name];

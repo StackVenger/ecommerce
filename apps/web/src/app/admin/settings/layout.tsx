@@ -2,13 +2,11 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { ReactNode } from 'react';
+import { type ReactNode } from 'react';
 
 const SETTINGS_TABS = [
   { label: 'General', href: '/admin/settings/general' },
-  { label: 'Email', href: '/admin/settings/email' },
   { label: 'Shipping', href: '/admin/settings/shipping' },
-  { label: 'Tax', href: '/admin/settings/tax' },
   { label: 'Payment', href: '/admin/settings/payment' },
   { label: 'SEO', href: '/admin/settings/seo' },
 ];
@@ -30,8 +28,7 @@ export default function SettingsLayout({ children }: { children: ReactNode }) {
           {SETTINGS_TABS.map((tab) => {
             const isActive =
               pathname === tab.href ||
-              (tab.href === '/admin/settings/general' &&
-                pathname === '/admin/settings');
+              (tab.href === '/admin/settings/general' && pathname === '/admin/settings');
 
             return (
               <Link
@@ -50,9 +47,7 @@ export default function SettingsLayout({ children }: { children: ReactNode }) {
         </nav>
       </div>
 
-      <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-        {children}
-      </div>
+      <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">{children}</div>
     </div>
   );
 }

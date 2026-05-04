@@ -268,7 +268,11 @@ function OrderSummary({ subtotal, discount, shippingCost, total, itemCount }: Or
         </div>
       </div>
 
-      <div className="my-6 border-t border-gray-200" />
+      <div className="my-5 border-t border-gray-200" />
+
+      <CheckoutCouponInput />
+
+      <div className="my-5 border-t border-gray-200" />
 
       <div className="flex justify-between items-baseline">
         <span className="text-base font-semibold text-gray-900">Total</span>
@@ -276,6 +280,98 @@ function OrderSummary({ subtotal, discount, shippingCost, total, itemCount }: Or
       </div>
 
       <p className="mt-1 text-xs text-gray-400 text-right">BDT ৳ (Bangladeshi Taka)</p>
+    </div>
+  );
+}
+
+// ──────────────────────────────────────────────────────────
+// Checkout Coupon Input
+// ──────────────────────────────────────────────────────────
+
+function CheckoutCouponInput() {
+  const { cart, applyCoupon, removeCoupon, isUpdating } = useCart();
+  const [code, setCode] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  const handleApply = async () => {
+    const trimmed = code.trim();
+    if (!trimmed) {
+      return;
+    }
+    setError(null);
+    setBusy(true);
+    try {
+      await applyCoupon(trimmed);
+      setCode('');
+    } catch (err: unknown) {
+      const msg =
+        err && typeof err === 'object' && 'message' in err
+          ? String((err as { message?: unknown }).message)
+          : 'Failed to apply coupon';
+      setError(msg);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  if (cart?.couponCode) {
+    return (
+      <div className="rounded-lg bg-green-50 border border-green-200 px-3 py-2.5">
+        <div className="flex items-center justify-between gap-2">
+          <div className="min-w-0">
+            <p className="truncate text-sm font-medium text-green-800">
+              Coupon &quot;{cart.couponCode}&quot; applied
+            </p>
+            {cart.discount > 0 && (
+              <p className="text-xs text-green-600 mt-0.5">You save {formatPrice(cart.discount)}</p>
+            )}
+          </div>
+          <button
+            type="button"
+            onClick={removeCoupon}
+            disabled={isUpdating}
+            className="text-xs font-medium text-green-700 hover:text-red-600 transition-colors disabled:opacity-40"
+          >
+            Remove
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <p className="mb-2 text-sm font-medium text-gray-900">Have a coupon?</p>
+      <div className="flex gap-2">
+        <input
+          type="text"
+          value={code}
+          onChange={(e) => {
+            setCode(e.target.value.toUpperCase());
+            if (error) {
+              setError(null);
+            }
+          }}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              handleApply();
+            }
+          }}
+          placeholder="Enter code"
+          className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm uppercase focus:border-primary focus:ring-1 focus:ring-primary outline-none"
+        />
+        <button
+          type="button"
+          onClick={handleApply}
+          disabled={!code.trim() || busy || isUpdating}
+          className="rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+        >
+          {busy ? 'Applying…' : 'Apply'}
+        </button>
+      </div>
+      {error && <p className="mt-1.5 text-xs text-red-600">{error}</p>}
     </div>
   );
 }
@@ -853,8 +949,9 @@ export default function CheckoutPage() {
         paymentMethod: checkoutData.paymentMethod,
       };
 
-      if (checkoutData.couponCode) {
-        payload.couponCode = checkoutData.couponCode;
+      const appliedCoupon = cart?.couponCode ?? checkoutData.couponCode;
+      if (appliedCoupon) {
+        payload.couponCode = appliedCoupon;
       }
 
       if (isGuest) {

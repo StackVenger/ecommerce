@@ -95,7 +95,6 @@ const navigation: NavItem[] = [
       { label: 'General', href: '/admin/settings' },
       { label: 'Payment', href: '/admin/settings/payment' },
       { label: 'Shipping', href: '/admin/settings/shipping' },
-      { label: 'Tax', href: '/admin/settings/tax' },
     ],
   },
   {
