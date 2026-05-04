@@ -102,6 +102,21 @@ export class CategoriesService {
       }
     }
 
+    // Third pass: roll descendant product counts up into each parent so that
+    // `productCount` reflects every product available under the category,
+    // not just those directly assigned to that node. Without this, parents
+    // like "Baby & Kids" report 0 even when their subcategories hold the
+    // entire inventory.
+    const rollUp = (node: CategoryTreeNode): number => {
+      const own = node.productCount ?? 0;
+      const fromChildren = node.children.reduce((sum, c) => sum + rollUp(c), 0);
+      node.productCount = own + fromChildren;
+      return node.productCount;
+    };
+    for (const root of roots) {
+      rollUp(root);
+    }
+
     this.logger.debug(
       `Built category tree with ${roots.length} root nodes from ${categories.length} total categories`,
     );
