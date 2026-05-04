@@ -80,20 +80,26 @@ export interface ActivityData {
 // Dashboard API
 // ──────────────────────────────────────────────────────────
 
+export interface DashboardQueryParams {
+  startDate?: string;
+  endDate?: string;
+}
+
 /**
- * Fetch admin dashboard statistics.
+ * Fetch admin dashboard statistics for the given date range.
+ * Defaults to the last 30 days when no range is supplied.
  * All monetary values are in BDT (৳).
  */
-export async function fetchDashboardStats(): Promise<DashboardStats> {
-  const { data } = await apiClient.get('/admin/dashboard/stats');
+export async function fetchDashboardStats(params?: DashboardQueryParams): Promise<DashboardStats> {
+  const { data } = await apiClient.get('/admin/dashboard/stats', { params });
   return data.data ?? data;
 }
 
 /**
- * Fetch chart data for the admin dashboard.
+ * Fetch chart data for the admin dashboard for the given date range.
  */
-export async function fetchDashboardCharts(): Promise<ChartsData> {
-  const { data } = await apiClient.get('/admin/dashboard/charts');
+export async function fetchDashboardCharts(params?: DashboardQueryParams): Promise<ChartsData> {
+  const { data } = await apiClient.get('/admin/dashboard/charts', { params });
   return data.data ?? data;
 }
 
@@ -183,12 +189,16 @@ export async function fetchMostViewed(params?: AnalyticsQueryParams): Promise<Mo
   return data.data ?? data;
 }
 
-export async function fetchMostSearched(params?: AnalyticsQueryParams): Promise<MostSearchedTerm[]> {
+export async function fetchMostSearched(
+  params?: AnalyticsQueryParams,
+): Promise<MostSearchedTerm[]> {
   const { data } = await apiClient.get('/admin/analytics/most-searched', { params });
   return data.data ?? data;
 }
 
-export async function fetchMostOrdered(params?: AnalyticsQueryParams): Promise<MostOrderedProduct[]> {
+export async function fetchMostOrdered(
+  params?: AnalyticsQueryParams,
+): Promise<MostOrderedProduct[]> {
   const { data } = await apiClient.get('/admin/analytics/most-ordered', { params });
   return data.data ?? data;
 }
@@ -198,12 +208,16 @@ export async function fetchMostCarted(params?: AnalyticsQueryParams): Promise<Mo
   return data.data ?? data;
 }
 
-export async function fetchMostWishlisted(params?: AnalyticsQueryParams): Promise<MostWishlistedProduct[]> {
+export async function fetchMostWishlisted(
+  params?: AnalyticsQueryParams,
+): Promise<MostWishlistedProduct[]> {
   const { data } = await apiClient.get('/admin/analytics/most-wishlisted', { params });
   return data.data ?? data;
 }
 
-export async function fetchConversionFunnel(params?: AnalyticsQueryParams): Promise<ConversionFunnel> {
+export async function fetchConversionFunnel(
+  params?: AnalyticsQueryParams,
+): Promise<ConversionFunnel> {
   const { data } = await apiClient.get('/admin/analytics/funnel', { params });
   return data.data ?? data;
 }

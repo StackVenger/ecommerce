@@ -1,6 +1,5 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import {
   DollarSign,
   ShoppingCart,
@@ -11,12 +10,15 @@ import {
   Clock,
   AlertTriangle,
 } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 import {
-  fetchDashboardStats,
-  formatBDT,
-  type DashboardStats,
-} from '@/lib/api/admin';
+  DateRangePicker,
+  getPresetRange,
+  type DateRange,
+} from '@/components/admin/analytics/date-range-picker';
+import { DashboardCharts } from '@/components/admin/dashboard/dashboard-charts';
+import { fetchDashboardStats, formatBDT, type DashboardStats } from '@/lib/api/admin';
 import { cn } from '@/lib/utils';
 
 // ──────────────────────────────────────────────────────────
@@ -41,12 +43,7 @@ function KpiCard({ title, value, growth, icon, iconBg }: KpiCardProps) {
           <p className="text-sm font-medium text-gray-500">{title}</p>
           <p className="mt-2 text-2xl font-bold text-gray-900">{value}</p>
         </div>
-        <div
-          className={cn(
-            'flex h-12 w-12 items-center justify-center rounded-xl',
-            iconBg,
-          )}
-        >
+        <div className={cn('flex h-12 w-12 items-center justify-center rounded-xl', iconBg)}>
           {icon}
         </div>
       </div>
@@ -56,16 +53,11 @@ function KpiCard({ title, value, growth, icon, iconBg }: KpiCardProps) {
         ) : (
           <TrendingDown className="h-4 w-4 text-red-600" />
         )}
-        <span
-          className={cn(
-            'text-sm font-medium',
-            isPositive ? 'text-green-600' : 'text-red-600',
-          )}
-        >
+        <span className={cn('text-sm font-medium', isPositive ? 'text-green-600' : 'text-red-600')}>
           {isPositive ? '+' : ''}
           {growth}%
         </span>
-        <span className="text-sm text-gray-500">vs last 30 days</span>
+        <span className="text-sm text-gray-500">vs previous period</span>
       </div>
     </div>
   );
@@ -86,12 +78,7 @@ interface StatusCardProps {
 function StatusCard({ title, value, icon, color }: StatusCardProps) {
   return (
     <div className="flex items-center gap-4 rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
-      <div
-        className={cn(
-          'flex h-10 w-10 items-center justify-center rounded-lg',
-          color,
-        )}
-      >
+      <div className={cn('flex h-10 w-10 items-center justify-center rounded-lg', color)}>
         {icon}
       </div>
       <div>
@@ -110,30 +97,49 @@ export default function AdminDashboardPage() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [dateRange, setDateRange] = useState<DateRange>(() => getPresetRange('1m'));
 
   useEffect(() => {
+    let cancelled = false;
     async function loadStats() {
       try {
         setIsLoading(true);
-        const data = await fetchDashboardStats();
-        setStats(data);
+        setError(null);
+        const data = await fetchDashboardStats(dateRange);
+        if (!cancelled) {
+          setStats(data);
+        }
       } catch (err) {
-        setError('Failed to load dashboard statistics');
+        if (!cancelled) {
+          setError('Failed to load dashboard statistics');
+        }
         console.error('Dashboard stats error:', err);
       } finally {
-        setIsLoading(false);
+        if (!cancelled) {
+          setIsLoading(false);
+        }
       }
     }
     loadStats();
-  }, []);
+    return () => {
+      cancelled = true;
+    };
+  }, [dateRange]);
 
-  if (isLoading) {
-    return (
-      <div className="space-y-6">
+  return (
+    <div className="space-y-6">
+      {/* Page Header */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-          <p className="text-sm text-gray-500">Welcome to your admin dashboard</p>
+          <p className="text-sm text-gray-500">
+            Overview of your store performance — all values in BDT (৳)
+          </p>
         </div>
+        <DateRangePicker value={dateRange} onChange={setDateRange} />
+      </div>
+
+      {isLoading ? (
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-4">
           {Array.from({ length: 4 }).map((_, i) => (
             <div
@@ -142,28 +148,23 @@ export default function AdminDashboardPage() {
             />
           ))}
         </div>
-      </div>
-    );
-  }
+      ) : error || !stats ? (
+        <div className="rounded-xl border border-red-200 bg-red-50 p-6 text-center">
+          <p className="text-red-700">{error ?? 'Something went wrong'}</p>
+        </div>
+      ) : (
+        <>
+          <DashboardContent stats={stats} />
+          <DashboardCharts dateRange={dateRange} />
+        </>
+      )}
+    </div>
+  );
+}
 
-  if (error || !stats) {
-    return (
-      <div className="rounded-xl border border-red-200 bg-red-50 p-6 text-center">
-        <p className="text-red-700">{error ?? 'Something went wrong'}</p>
-      </div>
-    );
-  }
-
+function DashboardContent({ stats }: { stats: DashboardStats }) {
   return (
-    <div className="space-y-6">
-      {/* Page Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-        <p className="text-sm text-gray-500">
-          Overview of your store performance — all values in BDT (৳)
-        </p>
-      </div>
-
+    <>
       {/* KPI Cards */}
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-4">
         <KpiCard
@@ -220,6 +221,6 @@ export default function AdminDashboardPage() {
           href="/admin/products?filter=low-stock"
         />
       </div>
-    </div>
+    </>
   );
 }

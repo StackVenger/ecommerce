@@ -1,13 +1,10 @@
-import {
-  Controller,
-  Get,
-  UseGuards,
-} from '@nestjs/common';
+import { Controller, Get, Query, UseGuards } from '@nestjs/common';
 
 import { DashboardService } from './dashboard.service';
+import { DashboardQueryDto } from './dto/dashboard-query.dto';
+import { Roles } from '../auth/decorators/roles.decorator';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
-import { Roles } from '../auth/decorators/roles.decorator';
 
 /**
  * Admin Dashboard controller.
@@ -26,16 +23,17 @@ export class DashboardController {
   // ─── Dashboard Stats ──────────────────────────────────────────────────────
 
   /**
-   * Get overall dashboard statistics.
+   * Get overall dashboard statistics for the requested date range.
    *
    * Returns revenue, orders, customers, and products metrics with
-   * growth percentages compared to the previous 30-day period.
+   * growth percentages compared to the immediately preceding window.
+   * Defaults to the last 30 days when startDate/endDate are omitted.
    *
-   * GET /admin/dashboard/stats
+   * GET /admin/dashboard/stats?startDate=YYYY-MM-DD&endDate=YYYY-MM-DD
    */
   @Get('stats')
-  async getStats() {
-    const stats = await this.dashboardService.getStats();
+  async getStats(@Query() query: DashboardQueryDto) {
+    const stats = await this.dashboardService.getStats(query);
 
     return {
       success: true,
@@ -49,13 +47,14 @@ export class DashboardController {
    * Get chart data for the admin dashboard.
    *
    * Returns revenue/orders over time, top-selling products, and
-   * revenue breakdown by category. All values in BDT (৳).
+   * revenue breakdown by category for the requested date range.
+   * Defaults to the last 30 days. All values in BDT (৳).
    *
-   * GET /admin/dashboard/charts
+   * GET /admin/dashboard/charts?startDate=YYYY-MM-DD&endDate=YYYY-MM-DD
    */
   @Get('charts')
-  async getChartsData() {
-    const charts = await this.dashboardService.getChartsData();
+  async getChartsData(@Query() query: DashboardQueryDto) {
+    const charts = await this.dashboardService.getChartsData(query);
 
     return {
       success: true,

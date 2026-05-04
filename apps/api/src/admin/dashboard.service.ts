@@ -1,6 +1,14 @@
 import { Injectable, Logger } from '@nestjs/common';
 
+import { DashboardQueryDto } from './dto/dashboard-query.dto';
 import { PrismaService } from '../prisma/prisma.service';
+
+interface ResolvedRange {
+  start: Date;
+  end: Date;
+  prevStart: Date;
+  prevEnd: Date;
+}
 
 // ──────────────────────────────────────────────────────────
 // Types
@@ -94,14 +102,15 @@ export class DashboardService {
    * Get overall dashboard statistics.
    *
    * Returns aggregate metrics: total revenue, orders, customers, products,
-   * along with growth percentages compared to the previous 30-day period.
+   * along with growth percentages compared to the immediately preceding
+   * window of equal length.
+   *
+   * If no date range is provided, defaults to the last 30 days.
    *
    * All monetary values are in BDT (৳).
    */
-  async getStats(): Promise<DashboardStats> {
-    const now = new Date();
-    const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-    const sixtyDaysAgo = new Date(now.getTime() - 60 * 24 * 60 * 60 * 1000);
+  async getStats(query?: DashboardQueryDto): Promise<DashboardStats> {
+    const { start, end, prevStart, prevEnd } = this.resolveRange(query);
 
     const [
       totalRevenue,
@@ -111,6 +120,7 @@ export class DashboardService {
       totalCustomers,
       previousCustomers,
       totalProducts,
+      currentProducts,
       previousProducts,
       pendingOrders,
       processingOrders,
@@ -119,29 +129,29 @@ export class DashboardService {
       this.prisma.order.aggregate({
         _sum: { totalAmount: true },
         where: {
-          createdAt: { gte: thirtyDaysAgo },
+          createdAt: { gte: start, lte: end },
           status: { notIn: ['CANCELLED', 'REFUNDED'] },
         },
       }),
       this.prisma.order.aggregate({
         _sum: { totalAmount: true },
         where: {
-          createdAt: { gte: sixtyDaysAgo, lt: thirtyDaysAgo },
+          createdAt: { gte: prevStart, lt: prevEnd },
           status: { notIn: ['CANCELLED', 'REFUNDED'] },
         },
       }),
       this.prisma.order.count({
-        where: { createdAt: { gte: thirtyDaysAgo } },
+        where: { createdAt: { gte: start, lte: end } },
       }),
       this.prisma.order.count({
-        where: { createdAt: { gte: sixtyDaysAgo, lt: thirtyDaysAgo } },
+        where: { createdAt: { gte: prevStart, lt: prevEnd } },
       }),
       this.prisma.user.count({
-        where: { createdAt: { gte: thirtyDaysAgo }, role: 'CUSTOMER' },
+        where: { createdAt: { gte: start, lte: end }, role: 'CUSTOMER' },
       }),
       this.prisma.user.count({
         where: {
-          createdAt: { gte: sixtyDaysAgo, lt: thirtyDaysAgo },
+          createdAt: { gte: prevStart, lt: prevEnd },
           role: 'CUSTOMER',
         },
       }),
@@ -149,7 +159,10 @@ export class DashboardService {
         where: { status: 'ACTIVE' },
       }),
       this.prisma.product.count({
-        where: { createdAt: { gte: sixtyDaysAgo, lt: thirtyDaysAgo } },
+        where: { createdAt: { gte: start, lte: end } },
+      }),
+      this.prisma.product.count({
+        where: { createdAt: { gte: prevStart, lt: prevEnd } },
       }),
       this.prisma.order.count({
         where: { status: 'PENDING' },
@@ -176,7 +189,7 @@ export class DashboardService {
       revenueGrowth: this.calculateGrowth(currentRev, prevRev),
       ordersGrowth: this.calculateGrowth(totalOrders, previousOrders),
       customersGrowth: this.calculateGrowth(totalCustomers, previousCustomers),
-      productsGrowth: this.calculateGrowth(totalProducts, previousProducts),
+      productsGrowth: this.calculateGrowth(currentProducts, previousProducts),
       pendingOrders,
       processingOrders,
       lowStockProducts,
@@ -188,17 +201,17 @@ export class DashboardService {
   /**
    * Get chart data for the admin dashboard.
    *
-   * Returns revenue/orders over the last 30 days, top-selling products,
-   * and revenue breakdown by category. All monetary values in BDT (৳).
+   * Returns revenue/orders over the requested range, top-selling products,
+   * and revenue breakdown by category. Defaults to last 30 days when no
+   * range is supplied. All monetary values in BDT (৳).
    */
-  async getChartsData(): Promise<ChartsData> {
-    const now = new Date();
-    const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+  async getChartsData(query?: DashboardQueryDto): Promise<ChartsData> {
+    const { start, end } = this.resolveRange(query);
 
     const [revenueOverTime, topProducts, revenueByCategory] = await Promise.all([
-      this.getRevenueOverTime(thirtyDaysAgo, now),
-      this.getTopProducts(thirtyDaysAgo),
-      this.getRevenueByCategory(thirtyDaysAgo),
+      this.getRevenueOverTime(start, end),
+      this.getTopProducts(start, end),
+      this.getRevenueByCategory(start, end),
     ]);
 
     return {
@@ -335,10 +348,7 @@ export class DashboardService {
   /**
    * Get daily revenue and order counts for the given date range.
    */
-  private async getRevenueOverTime(
-    startDate: Date,
-    endDate: Date,
-  ): Promise<ChartDataPoint[]> {
+  private async getRevenueOverTime(startDate: Date, endDate: Date): Promise<ChartDataPoint[]> {
     const orders = await this.prisma.order.findMany({
       where: {
         createdAt: { gte: startDate, lte: endDate },
@@ -380,9 +390,9 @@ export class DashboardService {
   }
 
   /**
-   * Get top-selling products by quantity sold.
+   * Get top-selling products by quantity sold within the date range.
    */
-  private async getTopProducts(since: Date): Promise<TopProduct[]> {
+  private async getTopProducts(start: Date, end: Date): Promise<TopProduct[]> {
     const orderItems = await this.prisma.orderItem.groupBy({
       by: ['productId'],
       _sum: {
@@ -391,7 +401,7 @@ export class DashboardService {
       },
       where: {
         order: {
-          createdAt: { gte: since },
+          createdAt: { gte: start, lte: end },
           status: { notIn: ['CANCELLED', 'REFUNDED'] },
         },
       },
@@ -418,13 +428,13 @@ export class DashboardService {
   }
 
   /**
-   * Get revenue breakdown by category.
+   * Get revenue breakdown by category within the date range.
    */
-  private async getRevenueByCategory(since: Date): Promise<CategoryRevenue[]> {
+  private async getRevenueByCategory(start: Date, end: Date): Promise<CategoryRevenue[]> {
     const orderItems = await this.prisma.orderItem.findMany({
       where: {
         order: {
-          createdAt: { gte: since },
+          createdAt: { gte: start, lte: end },
           status: { notIn: ['CANCELLED', 'REFUNDED'] },
         },
       },
@@ -454,16 +464,47 @@ export class DashboardService {
       .map(([category, revenue]) => ({
         category,
         revenue: Math.round(revenue),
-        percentage:
-          totalRevenue > 0
-            ? Math.round((revenue / totalRevenue) * 100 * 10) / 10
-            : 0,
+        percentage: totalRevenue > 0 ? Math.round((revenue / totalRevenue) * 100 * 10) / 10 : 0,
       }))
       .sort((a, b) => b.revenue - a.revenue)
       .slice(0, 8);
   }
 
   // ─── Helpers ────────────────────────────────────────────────────────────────
+
+  /**
+   * Resolve the requested date range plus the immediately preceding window
+   * of equal length (used for growth comparisons). Defaults to the last 30
+   * days when nothing is supplied. Invalid dates fall back to the default.
+   */
+  private resolveRange(query?: DashboardQueryDto): ResolvedRange {
+    const now = new Date();
+    const parse = (s?: string): Date | null => {
+      if (!s) {
+        return null;
+      }
+      const d = new Date(s);
+      return isNaN(d.getTime()) ? null : d;
+    };
+
+    let start = parse(query?.startDate);
+    let end = parse(query?.endDate);
+
+    if (!start || !end || start > end) {
+      end = now;
+      start = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+    } else {
+      // Treat endDate as end-of-day so a single-day range is inclusive.
+      end = new Date(end);
+      end.setHours(23, 59, 59, 999);
+    }
+
+    const durationMs = Math.max(end.getTime() - start.getTime(), 24 * 60 * 60 * 1000);
+    const prevEnd = new Date(start.getTime());
+    const prevStart = new Date(start.getTime() - durationMs);
+
+    return { start, end, prevStart, prevEnd };
+  }
 
   /**
    * Calculate percentage growth between two values.

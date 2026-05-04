@@ -20,38 +20,41 @@ interface DateRangePickerProps {
 // Presets
 // ──────────────────────────────────────────────────────────
 
-type PresetKey = '7d' | '30d' | '90d' | 'year';
+export type PresetKey = '1d' | '1w' | '1m' | '1y';
 
 const presets: { key: PresetKey; label: string }[] = [
-  { key: '7d', label: '7 Days' },
-  { key: '30d', label: '30 Days' },
-  { key: '90d', label: '90 Days' },
-  { key: 'year', label: 'This Year' },
+  { key: '1d', label: '1 Day' },
+  { key: '1w', label: '1 Week' },
+  { key: '1m', label: '1 Month' },
+  { key: '1y', label: '1 Year' },
 ];
 
 function toDateString(date: Date): string {
   return date.toISOString().slice(0, 10);
 }
 
-function getPresetRange(key: PresetKey): DateRange {
+export function getPresetRange(key: PresetKey): DateRange {
   const now = new Date();
   const endDate = toDateString(now);
 
   switch (key) {
-    case '7d': {
+    case '1d': {
+      const start = new Date(now.getTime() - 1 * 24 * 60 * 60 * 1000);
+      return { startDate: toDateString(start), endDate };
+    }
+    case '1w': {
       const start = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
       return { startDate: toDateString(start), endDate };
     }
-    case '30d': {
-      const start = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+    case '1m': {
+      const start = new Date(now);
+      start.setMonth(start.getMonth() - 1);
       return { startDate: toDateString(start), endDate };
     }
-    case '90d': {
-      const start = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
+    case '1y': {
+      const start = new Date(now);
+      start.setFullYear(start.getFullYear() - 1);
       return { startDate: toDateString(start), endDate };
-    }
-    case 'year': {
-      return { startDate: `${now.getFullYear()}-01-01`, endDate };
     }
   }
 }
