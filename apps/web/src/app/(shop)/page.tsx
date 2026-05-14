@@ -550,7 +550,7 @@ export default function HomePage() {
       {/* ─── Shop by Category ────────────────────────────────────────── */}
       <section className="site-container px-4 py-14">
         <div className="mb-8 text-center">
-          <h2 className="text-2xl font-bold text-gray-900 md:text-3xl">Shop by Category</h2>
+          <h2 className="text-2xl font-bold text-gray-900 md:text-3xl">Shop by Categories</h2>
           <p className="mt-2 text-gray-500">Browse our wide range of product categories</p>
         </div>
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4">
