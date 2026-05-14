@@ -50,9 +50,9 @@ test-results/
 .turbo/
 
 # ═══════════════════════════════════════════════════════════
-# Package managers
+# Package managers — commit pnpm-lock.yaml for reproducible
+# CI/Docker builds; keep the others out so they don't conflict.
 # ═══════════════════════════════════════════════════════════
-pnpm-lock.yaml
 package-lock.json
 yarn.lock
 *.tgz
