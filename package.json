@@ -31,7 +31,7 @@
     "db:generate": "turbo run db:generate",
     "db:push": "turbo run db:push",
     "db:seed": "turbo run db:seed",
-    "prepare": "husky install",
+    "prepare": "command -v husky >/dev/null && husky install || true",
     "commitlint": "commitlint --edit"
   },
   "devDependencies": {

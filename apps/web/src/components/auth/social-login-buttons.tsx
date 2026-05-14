@@ -66,7 +66,21 @@ export function SocialLoginButtons({ mode = 'login' }: SocialLoginButtonsProps) 
       ) {
         return;
       }
-      toast.error('Google login failed. Please try again.');
+      if (code === 'auth/unauthorized-domain') {
+        toast.error(
+          'This domain is not authorized for Google sign-in. Add it to Firebase Authentication → Settings → Authorized domains.',
+        );
+        return;
+      }
+      if (code === 'auth/popup-blocked') {
+        toast.error(
+          'Browser blocked the Google sign-in popup. Allow popups for this site and try again.',
+        );
+        return;
+      }
+      toast.error(
+        code ? `Google login failed (${code})` : 'Google login failed. Please try again.',
+      );
     } finally {
       setIsGoogleLoading(false);
     }

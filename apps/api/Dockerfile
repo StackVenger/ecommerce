@@ -2,80 +2,104 @@
 # E-Commerce API — Multi-stage Docker Build
 # ═══════════════════════════════════════════════════════════
 # Build:   docker build -t ecommerce-api -f apps/api/Dockerfile .
-# Run:     docker run -p 3001:3001 --env-file .env ecommerce-api
+# Run:     docker run -p 4000:4000 --env-file .env ecommerce-api
 # ═══════════════════════════════════════════════════════════
 
 # ───────────────────────────────────────────────────────────
-# Stage 1: Install dependencies
+# Stage 1: Install workspace deps (full graph — needed for build)
 # ───────────────────────────────────────────────────────────
 FROM node:20-alpine AS deps
 
-RUN apk add --no-cache libc6-compat
+RUN apk add --no-cache libc6-compat openssl
 RUN corepack enable && corepack prepare pnpm@9.15.0 --activate
 
 WORKDIR /app
 
-# Copy workspace configuration
-COPY pnpm-workspace.yaml package.json pnpm-lock.yaml* ./
-COPY packages/config/typescript/package.json ./packages/config/typescript/
+COPY pnpm-workspace.yaml package.json pnpm-lock.yaml* turbo.json .npmrc ./
+COPY packages/config/tsconfig/package.json ./packages/config/tsconfig/
 COPY packages/config/eslint/package.json ./packages/config/eslint/
 COPY packages/types/package.json ./packages/types/
 COPY packages/database/package.json ./packages/database/
 COPY apps/api/package.json ./apps/api/
 
-# Install only the dependencies needed for the API
-RUN pnpm install --frozen-lockfile --filter @ecommerce/api...
+ENV HUSKY=0
+RUN pnpm install --frozen-lockfile --filter @ecommerce/api... --filter @ecommerce/database...
 
 # ───────────────────────────────────────────────────────────
-# Stage 2: Build the application
+# Stage 2: Build the application (and generate Prisma client)
 # ───────────────────────────────────────────────────────────
 FROM node:20-alpine AS builder
 
+RUN apk add --no-cache libc6-compat openssl
 RUN corepack enable && corepack prepare pnpm@9.15.0 --activate
 
 WORKDIR /app
 
-# Copy installed node_modules from deps stage
 COPY --from=deps /app/ ./
 
-# Copy source code for all packages the API depends on
-COPY packages/config/typescript/ ./packages/config/typescript/
+COPY packages/config/tsconfig/ ./packages/config/tsconfig/
 COPY packages/config/eslint/ ./packages/config/eslint/
 COPY packages/types/ ./packages/types/
 COPY packages/database/ ./packages/database/
 COPY apps/api/ ./apps/api/
 
-# Build the API and its dependencies
-RUN pnpm build --filter @ecommerce/api
+# Generate Prisma client from packages/database (where prisma is installed
+# as devDep and the schema lives), then compile the Nest app.
+RUN cd packages/database && pnpm exec prisma generate \
+ && cd /app && pnpm --filter @ecommerce/api run build
 
 # ───────────────────────────────────────────────────────────
-# Stage 3: Production runner
+# Stage 3: Production runner — fresh pnpm install (no devDeps)
+# Doing a clean install here avoids carrying the builder's
+# pnpm symlink graph (which breaks when copied into a slim image).
 # ───────────────────────────────────────────────────────────
 FROM node:20-alpine AS runner
 
-RUN apk add --no-cache dumb-init
+RUN apk add --no-cache dumb-init libc6-compat openssl
+RUN corepack enable && corepack prepare pnpm@9.15.0 --activate
 
 WORKDIR /app
 
 ENV NODE_ENV=production
-ENV PORT=3001
+ENV PORT=4000
 
-# Create non-root user for security
 RUN addgroup --system --gid 1001 nodejs && \
     adduser --system --uid 1001 nestjs
 
-# Copy only the built output and production dependencies
-COPY --from=builder --chown=nestjs:nodejs /app/apps/api/dist ./dist
-COPY --from=builder --chown=nestjs:nodejs /app/apps/api/node_modules ./node_modules
-COPY --from=builder --chown=nestjs:nodejs /app/apps/api/package.json ./package.json
+# Workspace manifests (install needs the full workspace shape).
+COPY --chown=nestjs:nodejs pnpm-workspace.yaml package.json pnpm-lock.yaml* turbo.json .npmrc ./
+COPY --chown=nestjs:nodejs packages/config/tsconfig/package.json ./packages/config/tsconfig/
+COPY --chown=nestjs:nodejs packages/config/eslint/package.json ./packages/config/eslint/
+COPY --chown=nestjs:nodejs packages/types/package.json ./packages/types/
+COPY --chown=nestjs:nodejs packages/database/package.json ./packages/database/
+COPY --chown=nestjs:nodejs apps/api/package.json ./apps/api/
+
+# Fresh install — include dev deps so the `prisma` CLI is available for
+# `migrate deploy` at startup. This is small (single CLI) and avoids
+# shipping a separate migrator container.
+# NODE_ENV=production above would cause pnpm to skip devDeps; pass --prod=false.
+ENV HUSKY=0
+RUN pnpm install --frozen-lockfile --prod=false --filter @ecommerce/api... --filter @ecommerce/database...
+
+# Built application + Prisma schema/migrations + entrypoint + admin scripts.
+COPY --from=builder --chown=nestjs:nodejs /app/apps/api/dist ./apps/api/dist
+COPY --from=builder --chown=nestjs:nodejs /app/packages/database/prisma ./packages/database/prisma
+COPY --from=builder --chown=nestjs:nodejs /app/packages/types/src ./packages/types/src
+COPY --chown=nestjs:nodejs apps/api/scripts ./apps/api/scripts
+COPY --chown=nestjs:nodejs apps/api/docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+
+# Generate the Prisma client in the runner so it's wired to the runner's node_modules.
+RUN cd packages/database && pnpm exec prisma generate \
+ && chmod +x /usr/local/bin/docker-entrypoint.sh
 
 USER nestjs
 
-EXPOSE 3001
+WORKDIR /app/apps/api
 
-HEALTHCHECK --interval=30s --timeout=10s --start-period=15s --retries=3 \
-  CMD wget --no-verbose --tries=1 --spider http://localhost:3001/health || exit 1
+EXPOSE 4000
 
-# Use dumb-init to handle PID 1 properly
-ENTRYPOINT ["dumb-init", "--"]
+HEALTHCHECK --interval=30s --timeout=10s --start-period=45s --retries=3 \
+  CMD wget --no-verbose --tries=1 --spider http://localhost:4000/api/v1/healthz || exit 1
+
+ENTRYPOINT ["dumb-init", "--", "/usr/local/bin/docker-entrypoint.sh"]
 CMD ["node", "dist/main"]

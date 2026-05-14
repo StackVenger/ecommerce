@@ -19,7 +19,11 @@ function setCookie(
     return;
   }
 
-  const { secure = process.env.NODE_ENV === 'production', sameSite = 'lax' } = options;
+  // Only mark the cookie Secure when the page itself is loaded over HTTPS.
+  // Keying off NODE_ENV alone breaks HTTP-only deploys (the browser drops
+  // Secure cookies on http://, so the next request has no token).
+  const isHttps = typeof window !== 'undefined' && window.location.protocol === 'https:';
+  const { secure = isHttps, sameSite = 'lax' } = options;
 
   const parts = [
     `${encodeURIComponent(name)}=${encodeURIComponent(value)}`,

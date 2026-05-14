@@ -1,8 +1,5 @@
-import * as fs from 'fs/promises';
-import * as path from 'path';
-
 import { Injectable, Logger, NotFoundException, BadRequestException } from '@nestjs/common';
-import * as sharp from 'sharp';
+import sharp from 'sharp';
 
 import { PrismaService } from '../prisma/prisma.service';
 import { UploadService } from '../upload/upload.service';
@@ -12,22 +9,11 @@ import { UpdateAddressDto } from './dto/update-address.dto';
 @Injectable()
 export class UsersService {
   private readonly logger = new Logger(UsersService.name);
-  private readonly uploadDir = path.join(process.cwd(), 'uploads', 'avatars');
 
   constructor(
     private readonly prisma: PrismaService,
     private readonly uploadService: UploadService,
-  ) {
-    void this.ensureUploadDir();
-  }
-
-  private async ensureUploadDir() {
-    try {
-      await fs.mkdir(this.uploadDir, { recursive: true });
-    } catch (error) {
-      this.logger.warn(`Could not create avatar upload directory: ${error.message}`);
-    }
-  }
+  ) {}
 
   // ──────────────────────────────────────────────────────────
   // Avatar Upload
@@ -48,73 +34,41 @@ export class UsersService {
       throw new BadRequestException('File size must not exceed 5MB');
     }
 
-    const timestamp = Date.now();
-    const ext = 'webp';
-
-    // Generate two sizes: 200x200 (profile) and 50x50 (thumbnail)
-    const avatarFilename = `avatar_${userId}_${timestamp}.${ext}`;
-    const thumbFilename = `avatar_${userId}_${timestamp}_thumb.${ext}`;
-
-    const avatarPath = path.join(this.uploadDir, avatarFilename);
-    const thumbPath = path.join(this.uploadDir, thumbFilename);
-
-    // Resize to 200x200 for profile display
-    await sharp(file.buffer)
-      .resize(200, 200, {
-        fit: 'cover',
-        position: 'centre',
-      })
+    // Resize to a 200x200 webp profile image and hand it to the configured
+    // storage adapter (Cloudinary in prod; local-disk fallback otherwise).
+    const resized = await sharp(file.buffer)
+      .resize(200, 200, { fit: 'cover', position: 'centre' })
       .webp({ quality: 85 })
-      .toFile(avatarPath);
+      .toBuffer();
 
-    // Resize to 50x50 for thumbnail/navbar
-    await sharp(file.buffer)
-      .resize(50, 50, {
-        fit: 'cover',
-        position: 'centre',
-      })
-      .webp({ quality: 80 })
-      .toFile(thumbPath);
+    const filename = `avatar_${userId}_${Date.now()}.webp`;
+    const result = await this.uploadService.uploadFile(resized, filename, 'image/webp', {
+      directory: 'avatars',
+      isPublic: true,
+    });
 
-    // Delete old avatar files if they exist
+    // Best-effort cleanup of the previous avatar (Cloudinary or local).
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
       select: { avatar: true },
     });
-
     if (user?.avatar) {
-      // Destroy any Cloudinary-hosted old avatar first; local files get
-      // deleted below as a best-effort fallback.
-      await this.uploadService.deleteByUrl(user.avatar);
-
-      const oldFilename = path.basename(user.avatar);
-      const oldThumbFilename = oldFilename.replace('.webp', '_thumb.webp');
-
       try {
-        await fs.unlink(path.join(this.uploadDir, oldFilename));
-        await fs.unlink(path.join(this.uploadDir, oldThumbFilename));
-      } catch {
-        // Old files may not exist — ignore
+        await this.uploadService.deleteByUrl(user.avatar);
+      } catch (error) {
+        this.logger.warn(`Could not delete old avatar: ${error.message}`);
       }
     }
 
-    const avatarUrl = `/uploads/avatars/${avatarFilename}`;
-    const thumbUrl = `/uploads/avatars/${thumbFilename}`;
-
     await this.prisma.user.update({
       where: { id: userId },
-      data: {
-        avatar: avatarUrl,
-        avatarThumb: thumbUrl,
-        updatedAt: new Date(),
-      },
+      data: { avatar: result.url, updatedAt: new Date() },
     });
 
-    this.logger.log(`Avatar uploaded for user ${userId}: ${avatarFilename}`);
+    this.logger.log(`Avatar uploaded for user ${userId}: ${result.url}`);
 
     return {
-      avatar: avatarUrl,
-      thumbnail: thumbUrl,
+      avatar: result.url,
       message: 'Avatar uploaded successfully',
     };
   }
