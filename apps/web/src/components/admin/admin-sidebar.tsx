@@ -7,7 +7,7 @@ import {
   ShoppingCart,
   Users,
   FileText,
-  Palette,
+  // Palette,
   Settings,
   Shield,
   ChevronLeft,
@@ -74,20 +74,20 @@ const navigation: NavItem[] = [
     label: 'Content',
     icon: FileText,
     children: [
-      { label: 'Pages', href: '/admin/pages' },
+      // { label: 'Pages', href: '/admin/pages' },
       { label: 'Banners', href: '/admin/banners' },
       { label: 'Coupons', href: '/admin/coupons' },
     ],
   },
-  {
-    label: 'Appearance',
-    icon: Palette,
-    children: [
-      { label: 'Theme', href: '/admin/appearance/theme' },
-      { label: 'Navigation', href: '/admin/appearance/navigation' },
-      { label: 'Home layout', href: '/admin/appearance/home' },
-    ],
-  },
+  // {
+  //   label: 'Appearance',
+  //   icon: Palette,
+  //   children: [
+  //     { label: 'Theme', href: '/admin/appearance/theme' },
+  //     { label: 'Navigation', href: '/admin/appearance/navigation' },
+  //     { label: 'Home layout', href: '/admin/appearance/home' },
+  //   ],
+  // },
   {
     label: 'Settings',
     icon: Settings,

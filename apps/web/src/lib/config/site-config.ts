@@ -123,6 +123,7 @@ export interface SiteConfig {
   banners: {
     hero: Banner[];
     sidebar: Banner[];
+    footer: Banner[];
     announcement: Banner[];
   };
 }
@@ -282,6 +283,7 @@ export async function getSiteConfig(): Promise<SiteConfig> {
     mobileMenu,
     heroBanners,
     sidebarBanners,
+    footerBanners,
     announcementBanners,
   ] = await Promise.all([
     getPublicSettings(),
@@ -291,6 +293,7 @@ export async function getSiteConfig(): Promise<SiteConfig> {
     getMenuByLocation('MOBILE'),
     getBannersByPosition('HERO'),
     getBannersByPosition('SIDEBAR'),
+    getBannersByPosition('FOOTER'),
     getBannersByPosition('ANNOUNCEMENT'),
   ]);
 
@@ -301,6 +304,7 @@ export async function getSiteConfig(): Promise<SiteConfig> {
     banners: {
       hero: heroBanners,
       sidebar: sidebarBanners,
+      footer: footerBanners,
       announcement: announcementBanners,
     },
   };

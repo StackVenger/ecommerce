@@ -97,6 +97,14 @@ interface HeroSlide {
   overlay: string;
 }
 
+interface PromoBanner {
+  id: string;
+  title: string;
+  subtitle?: string | null;
+  image: string;
+  link?: string | null;
+}
+
 // Fallbacks used when no HERO banners exist in the DB (fresh install /
 // admin cleared the carousel). Keep this lean — admins are expected to
 // replace these with real promotions in /admin/banners.
@@ -203,6 +211,7 @@ export default function HomePage() {
   const [newArrivals, setNewArrivals] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [heroSlides, setHeroSlides] = useState<HeroSlide[]>(DEFAULT_HERO_SLIDES);
+  const [sidebarBanners, setSidebarBanners] = useState<PromoBanner[]>([]);
   const [heroIndex, setHeroIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   const { addItem } = useCart();
@@ -211,7 +220,7 @@ export default function HomePage() {
   useEffect(() => {
     async function fetchData() {
       try {
-        const [featuredRes, newRes, catRes, heroRes] = await Promise.all([
+        const [featuredRes, newRes, catRes, heroRes, sidebarRes] = await Promise.all([
           apiClient.get('/products', {
             params: { limit: 8, sortBy: 'viewCount', sortOrder: 'desc', isFeatured: true },
           }),
@@ -220,6 +229,7 @@ export default function HomePage() {
           }),
           apiClient.get('/categories'),
           apiClient.get('/banners', { params: { position: 'HERO' } }).catch(() => null),
+          apiClient.get('/banners', { params: { position: 'SIDEBAR' } }).catch(() => null),
         ]);
 
         setFeaturedProducts((featuredRes.data.data || []).map(normalizeProduct));
@@ -239,6 +249,23 @@ export default function HomePage() {
           const fromAdmin = bannersToHeroSlides(payload);
           if (fromAdmin.length > 0) {
             setHeroSlides(fromAdmin);
+          }
+        }
+
+        if (sidebarRes) {
+          const payload = sidebarRes.data?.data ?? sidebarRes.data?.banners ?? sidebarRes.data;
+          if (Array.isArray(payload)) {
+            setSidebarBanners(
+              payload
+                .filter((b: { image?: string; title?: string }) => b?.image && b?.title)
+                .map((b) => ({
+                  id: b.id,
+                  title: b.title,
+                  subtitle: b.subtitle ?? null,
+                  image: b.image,
+                  link: b.link ?? null,
+                })),
+            );
           }
         }
       } catch (err) {
@@ -477,6 +504,48 @@ export default function HomePage() {
           ))}
         </div>
       </section>
+
+      {/* ─── Sidebar promo banners (SIDEBAR position) ────────────────── */}
+      {sidebarBanners.length > 0 && (
+        <section className="site-container px-4 pt-8">
+          <div
+            className={`grid gap-4 ${
+              sidebarBanners.length === 1
+                ? 'grid-cols-1'
+                : sidebarBanners.length === 2
+                  ? 'grid-cols-1 md:grid-cols-2'
+                  : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
+            }`}
+          >
+            {sidebarBanners.slice(0, 6).map((b) => {
+              const card = (
+                <div className="group relative overflow-hidden rounded-xl shadow-sm ring-1 ring-gray-200 transition hover:shadow-md">
+                  <img
+                    src={b.image}
+                    alt={b.title}
+                    className="h-40 w-full object-cover transition-transform duration-500 group-hover:scale-105 sm:h-48"
+                    loading="lazy"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/25 to-transparent" />
+                  <div className="absolute bottom-4 left-5 right-5 text-white">
+                    <h3 className="text-lg font-semibold drop-shadow">{b.title}</h3>
+                    {b.subtitle && (
+                      <p className="mt-0.5 text-sm opacity-90 drop-shadow">{b.subtitle}</p>
+                    )}
+                  </div>
+                </div>
+              );
+              return b.link ? (
+                <Link key={b.id} href={b.link}>
+                  {card}
+                </Link>
+              ) : (
+                <div key={b.id}>{card}</div>
+              );
+            })}
+          </div>
+        </section>
+      )}
 
       {/* ─── Shop by Category ────────────────────────────────────────── */}
       <section className="site-container px-4 py-14">

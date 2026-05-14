@@ -2,6 +2,7 @@ import { type ReactNode } from 'react';
 
 import { AnnouncementBar } from '@/components/layout/announcement-bar';
 import { Footer } from '@/components/layout/footer';
+import { FooterBanners } from '@/components/layout/footer-banners';
 import { Header } from '@/components/layout/header';
 import { getSiteConfig } from '@/lib/config/site-config';
 
@@ -25,6 +26,7 @@ export default async function ShopLayout({ children }: ShopLayoutProps) {
         menu={config.menus.header}
       />
       <main className="flex-1">{children}</main>
+      <FooterBanners banners={config.banners.footer} />
       <Footer
         siteName={config.settings.general.site_name}
         tagline={config.settings.general.site_tagline}

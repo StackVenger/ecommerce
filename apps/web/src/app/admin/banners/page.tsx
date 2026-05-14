@@ -1,12 +1,19 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { toast } from 'sonner';
 
 import { apiClient } from '@/lib/api/client';
 import { getApiErrorMessage } from '@/lib/api/errors';
 
 type BannerPosition = 'HERO' | 'SIDEBAR' | 'FOOTER' | 'POPUP';
+
+const BANNER_POSITIONS: { value: BannerPosition; label: string; hint: string }[] = [
+  { value: 'HERO', label: 'Hero (homepage carousel)', hint: 'Top of homepage' },
+  { value: 'SIDEBAR', label: 'Sidebar (homepage promo strip)', hint: 'Below hero on home' },
+  { value: 'FOOTER', label: 'Footer (above site footer)', hint: 'Every page' },
+  { value: 'POPUP', label: 'Popup', hint: 'Modal overlay (not yet rendered)' },
+];
 
 interface Banner {
   id: string;
@@ -33,6 +40,7 @@ interface BannerFormData {
   image: string;
   imageMobile: string;
   link: string;
+  position: BannerPosition;
   isActive: boolean;
   startDate: string;
   endDate: string;
@@ -50,6 +58,7 @@ const defaultFormData: BannerFormData = {
   image: '',
   imageMobile: '',
   link: '',
+  position: 'HERO',
   isActive: true,
   startDate: '',
   endDate: '',
@@ -67,6 +76,9 @@ export default function AdminBannersPage() {
   const [formData, setFormData] = useState<BannerFormData>(defaultFormData);
   const [saving, setSaving] = useState(false);
   const [draggedId, setDraggedId] = useState<string | null>(null);
+  const [uploading, setUploading] = useState<'desktop' | 'mobile' | null>(null);
+  const desktopFileRef = useRef<HTMLInputElement>(null);
+  const mobileFileRef = useRef<HTMLInputElement>(null);
 
   const fetchBanners = useCallback(async () => {
     try {
@@ -75,11 +87,39 @@ export default function AdminBannersPage() {
       setBanners(result.banners ?? result ?? []);
     } catch (error) {
       console.error('Fetch banners error:', error);
-      toast.error(getApiErrorMessage(err, 'Failed to load banners'));
+      toast.error(getApiErrorMessage(error, 'Failed to load banners'));
     } finally {
       setLoading(false);
     }
   }, []);
+
+  const handleImageUpload = async (file: File, slot: 'desktop' | 'mobile') => {
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please choose an image file');
+      return;
+    }
+    setUploading(slot);
+    try {
+      const body = new FormData();
+      body.append('file', file);
+      const { data } = await apiClient.post('/upload/image', body, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      const url = (data?.data?.url ?? data?.url) as string | undefined;
+      if (!url) {
+        throw new Error('Upload returned no URL');
+      }
+      setFormData((prev) =>
+        slot === 'desktop' ? { ...prev, image: url } : { ...prev, imageMobile: url },
+      );
+      toast.success('Image uploaded');
+    } catch (error) {
+      console.error('Image upload error:', error);
+      toast.error(getApiErrorMessage(error, 'Failed to upload image'));
+    } finally {
+      setUploading(null);
+    }
+  };
 
   useEffect(() => {
     fetchBanners();
@@ -100,6 +140,7 @@ export default function AdminBannersPage() {
       image: banner.image || '',
       imageMobile: banner.mobileImage || '',
       link: banner.link || '',
+      position: banner.position,
       isActive: banner.isActive,
       startDate: banner.startsAt ? (banner.startsAt.split('T')[0] ?? '') : '',
       endDate: banner.endsAt ? (banner.endsAt.split('T')[0] ?? '') : '',
@@ -114,6 +155,10 @@ export default function AdminBannersPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!formData.image) {
+      toast.error('Please upload a desktop image first');
+      return;
+    }
     setSaving(true);
 
     try {
@@ -128,7 +173,7 @@ export default function AdminBannersPage() {
       fetchBanners();
     } catch (error) {
       console.error('Save banner error:', error);
-      toast.error(getApiErrorMessage(err, 'Failed to save banner'));
+      toast.error(getApiErrorMessage(error, 'Failed to save banner'));
     } finally {
       setSaving(false);
     }
@@ -144,7 +189,7 @@ export default function AdminBannersPage() {
       toast.success('Banner deleted');
     } catch (error) {
       console.error('Delete banner error:', error);
-      toast.error(getApiErrorMessage(err, 'Failed to delete banner'));
+      toast.error(getApiErrorMessage(error, 'Failed to delete banner'));
     }
   };
 
@@ -157,7 +202,7 @@ export default function AdminBannersPage() {
       toast.success(banner.isActive ? 'Banner deactivated' : 'Banner activated');
     } catch (error) {
       console.error('Toggle active error:', error);
-      toast.error(getApiErrorMessage(err, 'Failed to update banner'));
+      toast.error(getApiErrorMessage(error, 'Failed to update banner'));
     }
   };
 
@@ -198,7 +243,7 @@ export default function AdminBannersPage() {
       await apiClient.post('/admin/banners/reorder', { positions });
     } catch (error) {
       console.error('Reorder error:', error);
-      toast.error(getApiErrorMessage(err, 'Failed to reorder banners'));
+      toast.error(getApiErrorMessage(error, 'Failed to reorder banners'));
       fetchBanners(); // Revert on error
     }
   };
@@ -406,32 +451,137 @@ export default function AdminBannersPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Desktop Image URL
-                </label>
-                <input
-                  type="text"
-                  value={formData.image}
-                  onChange={(e) => setFormData((prev) => ({ ...prev, image: e.target.value }))}
-                  placeholder="https://..."
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
-                  required
-                />
+                <label className="block text-sm font-medium text-gray-700 mb-1">Position</label>
+                <select
+                  value={formData.position}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      position: e.target.value as BannerPosition,
+                    }))
+                  }
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white"
+                >
+                  {BANNER_POSITIONS.map((opt) => (
+                    <option key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </option>
+                  ))}
+                </select>
+                <p className="mt-1 text-xs text-gray-500">
+                  {BANNER_POSITIONS.find((o) => o.value === formData.position)?.hint}
+                </p>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Mobile Image URL (optional)
+                  Desktop Image
                 </label>
                 <input
-                  type="text"
-                  value={formData.imageMobile}
-                  onChange={(e) =>
-                    setFormData((prev) => ({ ...prev, imageMobile: e.target.value }))
-                  }
-                  placeholder="https://..."
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                  ref={desktopFileRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      handleImageUpload(file, 'desktop');
+                    }
+                    e.target.value = '';
+                  }}
                 />
+                <div className="flex items-center gap-3">
+                  {formData.image ? (
+                    <div className="relative h-20 w-32 overflow-hidden rounded-lg border border-gray-200 bg-gray-50">
+                      <img
+                        src={formData.image}
+                        alt="Banner preview"
+                        className="h-full w-full object-cover"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setFormData((prev) => ({ ...prev, image: '' }))}
+                        className="absolute -right-1 -top-1 rounded-full bg-red-500 px-1.5 text-xs text-white shadow"
+                        aria-label="Remove image"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex h-20 w-32 items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 text-xs text-gray-400">
+                      No image
+                    </div>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => desktopFileRef.current?.click()}
+                    disabled={uploading === 'desktop'}
+                    className="rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                  >
+                    {uploading === 'desktop'
+                      ? 'Uploading…'
+                      : formData.image
+                        ? 'Replace image'
+                        : 'Upload image'}
+                  </button>
+                </div>
+                {!formData.image && (
+                  <p className="mt-1 text-xs text-red-600">A desktop image is required.</p>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Mobile Image (optional)
+                </label>
+                <input
+                  ref={mobileFileRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      handleImageUpload(file, 'mobile');
+                    }
+                    e.target.value = '';
+                  }}
+                />
+                <div className="flex items-center gap-3">
+                  {formData.imageMobile ? (
+                    <div className="relative h-20 w-20 overflow-hidden rounded-lg border border-gray-200 bg-gray-50">
+                      <img
+                        src={formData.imageMobile}
+                        alt="Mobile banner preview"
+                        className="h-full w-full object-cover"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setFormData((prev) => ({ ...prev, imageMobile: '' }))}
+                        className="absolute -right-1 -top-1 rounded-full bg-red-500 px-1.5 text-xs text-white shadow"
+                        aria-label="Remove mobile image"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex h-20 w-20 items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 text-xs text-gray-400">
+                      None
+                    </div>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => mobileFileRef.current?.click()}
+                    disabled={uploading === 'mobile'}
+                    className="rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                  >
+                    {uploading === 'mobile'
+                      ? 'Uploading…'
+                      : formData.imageMobile
+                        ? 'Replace image'
+                        : 'Upload image'}
+                  </button>
+                </div>
               </div>
 
               <div>

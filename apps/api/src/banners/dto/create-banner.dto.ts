@@ -1,4 +1,7 @@
-import { IsString, IsOptional, IsBoolean, IsDateString, IsNotEmpty } from 'class-validator';
+import { IsString, IsOptional, IsBoolean, IsDateString, IsNotEmpty, IsIn } from 'class-validator';
+
+export const BANNER_POSITIONS = ['HERO', 'SIDEBAR', 'FOOTER', 'POPUP'] as const;
+export type BannerPositionDto = (typeof BANNER_POSITIONS)[number];
 
 export class CreateBannerDto {
   @IsString()
@@ -28,6 +31,10 @@ export class CreateBannerDto {
   @IsString()
   @IsOptional()
   link?: string;
+
+  @IsIn(BANNER_POSITIONS)
+  @IsOptional()
+  position?: BannerPositionDto;
 
   @IsBoolean()
   @IsOptional()
