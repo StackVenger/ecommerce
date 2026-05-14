@@ -1,237 +1,129 @@
 # ═══════════════════════════════════════════════════════════
-# Deployment Pipeline — Build & Deploy on push to main/develop
+# Deploy to VPS — runs on every push to main
+# ═══════════════════════════════════════════════════════════
+# Required GitHub secrets (set via `gh secret set <NAME>`):
+#   VPS_HOST     — e.g. 103.187.23.21 or yourdomain.com
+#   VPS_USER     — usually "root"
+#   VPS_SSH_KEY  — private key (PEM) matching a pubkey in the VPS authorized_keys
+#
+# What it does:
+#   1. Checkout the repo
+#   2. rsync the codebase to /opt/ecommerce on the VPS
+#   3. docker compose up -d --build (rebuilds only what changed)
+#   4. wait for api + web healthchecks to flip to healthy
+#   5. smoke-test the public endpoints
 # ═══════════════════════════════════════════════════════════
 
-name: Deploy
+name: Deploy to VPS
 
 on:
   push:
-    branches:
-      - main
-      - develop
+    branches: [main]
+  workflow_dispatch: # also allow manual triggers from the Actions tab
 
 concurrency:
-  group: deploy-${{ github.ref_name }}
-  cancel-in-progress: false
-
-env:
-  NODE_VERSION: "20"
-  PNPM_VERSION: "9.15.0"
-  REGISTRY: ghcr.io
-  IMAGE_PREFIX: ghcr.io/${{ github.repository }}
-
-permissions:
-  contents: read
-  packages: write
+  group: deploy-vps
+  cancel-in-progress: false # don't kill an in-flight deploy
 
 jobs:
-  # ─────────────────────────────────────────────────────────
-  # Determine target environment from branch
-  # ─────────────────────────────────────────────────────────
-  prepare:
-    name: Prepare
-    runs-on: ubuntu-latest
-    outputs:
-      environment: ${{ steps.env.outputs.environment }}
-      api_image: ${{ steps.meta.outputs.api_image }}
-      web_image: ${{ steps.meta.outputs.web_image }}
-
-    steps:
-      - name: Determine environment
-        id: env
-        run: |
-          if [[ "${{ github.ref_name }}" == "main" ]]; then
-            echo "environment=production" >> "$GITHUB_OUTPUT"
-          else
-            echo "environment=staging" >> "$GITHUB_OUTPUT"
-          fi
-
-      - name: Set image tags
-        id: meta
-        run: |
-          SHA="${{ github.sha }}"
-          SHORT_SHA="${SHA:0:7}"
-          ENV="${{ steps.env.outputs.environment }}"
-          echo "api_image=${{ env.IMAGE_PREFIX }}/api:${ENV}-${SHORT_SHA}" >> "$GITHUB_OUTPUT"
-          echo "web_image=${{ env.IMAGE_PREFIX }}/web:${ENV}-${SHORT_SHA}" >> "$GITHUB_OUTPUT"
-
-  # ─────────────────────────────────────────────────────────
-  # Build & Push Docker Images
-  # ─────────────────────────────────────────────────────────
-  build-api:
-    name: Build API Image
-    runs-on: ubuntu-latest
-    needs: prepare
-    environment: ${{ needs.prepare.outputs.environment }}
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Log in to Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Build and push API image
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          file: apps/api/Dockerfile
-          push: true
-          tags: |
-            ${{ needs.prepare.outputs.api_image }}
-            ${{ env.IMAGE_PREFIX }}/api:${{ needs.prepare.outputs.environment }}-latest
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-
-  build-web:
-    name: Build Web Image
-    runs-on: ubuntu-latest
-    needs: prepare
-    environment: ${{ needs.prepare.outputs.environment }}
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Log in to Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Build and push Web image
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          file: apps/web/Dockerfile
-          push: true
-          tags: |
-            ${{ needs.prepare.outputs.web_image }}
-            ${{ env.IMAGE_PREFIX }}/web:${{ needs.prepare.outputs.environment }}-latest
-          build-args: |
-            NEXT_PUBLIC_API_URL=${{ vars.NEXT_PUBLIC_API_URL }}
-            NEXT_PUBLIC_APP_URL=${{ vars.NEXT_PUBLIC_APP_URL }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-
-  # ─────────────────────────────────────────────────────────
-  # Deploy to target environment
-  # ─────────────────────────────────────────────────────────
   deploy:
-    name: Deploy to ${{ needs.prepare.outputs.environment }}
+    name: Build and deploy
     runs-on: ubuntu-latest
-    needs: [prepare, build-api, build-web]
-    environment:
-      name: ${{ needs.prepare.outputs.environment }}
-      url: ${{ steps.deploy.outputs.url }}
+    timeout-minutes: 30
 
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Deploy services
-        id: deploy
-        env:
-          ENVIRONMENT: ${{ needs.prepare.outputs.environment }}
-          API_IMAGE: ${{ needs.prepare.outputs.api_image }}
-          WEB_IMAGE: ${{ needs.prepare.outputs.web_image }}
-          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
-          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+      - name: Load SSH key
         run: |
-          echo "═══════════════════════════════════════════════════"
-          echo "  Deploying to ${ENVIRONMENT}"
-          echo "═══════════════════════════════════════════════════"
-          echo "  API Image: ${API_IMAGE}"
-          echo "  Web Image: ${WEB_IMAGE}"
-          echo "═══════════════════════════════════════════════════"
+          mkdir -p ~/.ssh
+          echo "${{ secrets.VPS_SSH_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H "${{ secrets.VPS_HOST }}" >> ~/.ssh/known_hosts 2>/dev/null
 
-          # ─────────────────────────────────────────────────
-          # TODO: Replace with actual deployment commands
-          # Examples:
-          #   - kubectl set image deployment/api api=${API_IMAGE}
-          #   - ssh deploy@${DEPLOY_HOST} "docker pull ${API_IMAGE} && docker-compose up -d"
-          #   - aws ecs update-service --cluster ecommerce --service api --force-new-deployment
-          # ─────────────────────────────────────────────────
+      - name: Sync code to VPS
+        run: |
+          rsync -az --delete \
+            --exclude='.git' \
+            --exclude='node_modules' \
+            --exclude='dist' \
+            --exclude='.next' \
+            --exclude='.turbo' \
+            --exclude='.env' \
+            --exclude='.env.local' \
+            --exclude='.env.production' \
+            --exclude='*.log' \
+            --exclude='uploads/' \
+            --exclude='secrets.md' \
+            -e "ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no" \
+            ./ "${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/opt/ecommerce/"
 
-          if [[ "${ENVIRONMENT}" == "production" ]]; then
-            echo "url=https://ecommerce.example.com" >> "$GITHUB_OUTPUT"
-          else
-            echo "url=https://staging.ecommerce.example.com" >> "$GITHUB_OUTPUT"
+      - name: Build + restart Docker stack
+        run: |
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no \
+            "${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}" <<'REMOTE'
+            set -e
+            cd /opt/ecommerce
+            echo "--- pulling third-party images if newer ---"
+            docker compose -f docker-compose.prod.yml --env-file .env pull postgres redis nginx 2>&1 | tail -5 || true
+            echo "--- building app images ---"
+            docker compose -f docker-compose.prod.yml --env-file .env build api web
+            echo "--- bringing stack up ---"
+            docker compose -f docker-compose.prod.yml --env-file .env up -d --remove-orphans
+            echo "--- pruning dangling images to reclaim disk ---"
+            docker image prune -f 2>&1 | tail -3
+          REMOTE
+
+      - name: Wait for healthy
+        run: |
+          for i in $(seq 1 30); do
+            STATUS=$(ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no \
+              "${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}" \
+              'docker inspect ecommerce-api ecommerce-web --format "{{.Name}}={{.State.Health.Status}}" 2>/dev/null | paste -sd "," -')
+            echo "[$i/30] $STATUS"
+            case "$STATUS" in
+              *unhealthy*)
+                echo "::error::A container went unhealthy"
+                ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no \
+                  "${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}" \
+                  'docker logs --tail=80 ecommerce-api; echo "---web---"; docker logs --tail=40 ecommerce-web'
+                exit 1
+                ;;
+              *starting*)
+                sleep 5
+                continue
+                ;;
+              *=healthy*=healthy*)
+                echo "✓ both api + web healthy"
+                exit 0
+                ;;
+            esac
+            sleep 5
+          done
+          echo "::error::Timed out waiting for healthy"
+          exit 1
+
+      - name: Smoke-test public endpoints
+        run: |
+          HOST="${{ secrets.VPS_HOST }}"
+          SCHEME_OK=""
+          for SCHEME in https http; do
+            CODE=$(curl -sk -o /dev/null -w "%{http_code}" -m 10 "$SCHEME://$HOST/api/v1/healthz" || echo "000")
+            if [ "$CODE" = "200" ]; then
+              echo "✓ $SCHEME://$HOST is up"
+              SCHEME_OK=$SCHEME
+              break
+            fi
+          done
+          if [ -z "$SCHEME_OK" ]; then
+            echo "::error::Neither http nor https responded with 200 on /api/v1/healthz"
+            exit 1
           fi
-
-          echo "Deployment placeholder — configure with your hosting provider"
-
-      - name: Run post-deploy health check
-        env:
-          DEPLOY_URL: ${{ steps.deploy.outputs.url }}
-        run: |
-          echo "Running health check against ${DEPLOY_URL}/health ..."
-          # TODO: Uncomment once deployed
-          # for i in {1..10}; do
-          #   status=$(curl -s -o /dev/null -w "%{http_code}" "${DEPLOY_URL}/health" || true)
-          #   if [[ "$status" == "200" ]]; then
-          #     echo "Health check passed!"
-          #     exit 0
-          #   fi
-          #   echo "Attempt $i: status=$status — retrying in 10s..."
-          #   sleep 10
-          # done
-          # echo "Health check failed after 10 attempts"
-          # exit 1
-          echo "Health check placeholder — enable after configuring deployment"
-
-      - name: Notify on failure
-        if: failure()
-        run: |
-          echo "Deployment to ${{ needs.prepare.outputs.environment }} failed!"
-          # TODO: Send Slack/Discord notification
-          # curl -X POST "${{ secrets.SLACK_WEBHOOK_URL }}" \
-          #   -H "Content-Type: application/json" \
-          #   -d '{"text":"Deployment to ${{ needs.prepare.outputs.environment }} failed for commit ${{ github.sha }}"}'
-
-  # ─────────────────────────────────────────────────────────
-  # Run database migrations after deploy
-  # ─────────────────────────────────────────────────────────
-  migrate:
-    name: Run Migrations
-    runs-on: ubuntu-latest
-    needs: [prepare, deploy]
-    environment: ${{ needs.prepare.outputs.environment }}
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: ${{ env.PNPM_VERSION }}
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: "pnpm"
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Run database migrations
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-        run: |
-          echo "Running Prisma migrations..."
-          # TODO: Uncomment once database is configured
-          # pnpm --filter @ecommerce/database exec prisma migrate deploy
-          echo "Migration placeholder — configure DATABASE_URL secret"
+          for PATH_ in / /shop /login /admin /api/v1/health; do
+            CODE=$(curl -sk -o /dev/null -w "%{http_code}" -m 10 "$SCHEME_OK://$HOST$PATH_" || echo "000")
+            printf "  %-20s -> %s\n" "$PATH_" "$CODE"
+            if [ "$CODE" != "200" ]; then
+              echo "::warning::$PATH_ returned $CODE"
+            fi
+          done
