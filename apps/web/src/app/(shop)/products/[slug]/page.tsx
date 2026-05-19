@@ -182,11 +182,15 @@ export default function ProductPage() {
 
   const hasVariants = (product?.variants?.length ?? 0) > 0;
 
-  // True only when variants are the source of stock truth — i.e. at least
-  // one variant carries inventory. Otherwise the parent product's quantity
-  // is the source of truth (covers products created with vestigial 0-stock
-  // variants where the admin set stock at the parent level).
-  const variantsActive = hasVariants && (product?.variants ?? []).some((v) => v.quantity > 0);
+  // Once variants exist on a product, they own the UI — even when every
+  // variant currently has zero stock. The previous version also gated on
+  // "at least one variant has quantity > 0", which silently hid the
+  // colour/size picker for any product whose admin defined variants but
+  // hadn't yet set per-variant stock; customers saw a plain "In Stock"
+  // page driven by the stale parent quantity. Always render the picker
+  // when variants exist and let the per-value `inStockCombo` flag and the
+  // overall `inStock` calculation surface the out-of-stock state cleanly.
+  const variantsActive = hasVariants;
 
   /** Flatten a variant's attributeValues into { attrName: value }. */
   const variantOptions = (v: ProductVariant): Record<string, string> => {
