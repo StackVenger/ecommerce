@@ -1,11 +1,14 @@
 'use client';
 
-import type { ReactNode } from 'react';
 import { Toaster } from 'sonner';
+
 import { AuthProvider } from './auth-provider';
 import { CartProvider } from './cart-provider';
+
+import type { ReactNode } from 'react';
+
 import { CartDrawer } from '@/components/cart/cart-drawer';
-import { ChatWidget } from '@/components/chat';
+// import { ChatWidget } from '@/components/chat'; // temporarily hidden — re-enable to bring back the Shopping Assistant launcher
 
 export function Providers({ children }: { children: ReactNode }) {
   return (
@@ -13,7 +16,7 @@ export function Providers({ children }: { children: ReactNode }) {
       <CartProvider>
         {children}
         <CartDrawer />
-        <ChatWidget />
+        {/* <ChatWidget /> */}
         <Toaster position="top-right" richColors closeButton duration={3000} />
       </CartProvider>
     </AuthProvider>
