@@ -519,6 +519,36 @@ export function VariantsForm({
 
   const totalVariants = canGenerate ? validOptions.reduce((acc, o) => acc * o.values.length, 1) : 0;
 
+  // Daraz-style "one image per colour value": detect the colour option (if
+  // any), and only expose an editable image picker on the first matrix row
+  // for each colour value. Size/material-only rows of the same colour
+  // inherit that image. When there's no colour option at all, the IMAGE
+  // column disappears completely — uploading per size makes no sense.
+  const colorOptionName = options.find((o) => /^(color|colour)$/i.test(o.name.trim()))?.name;
+  const colorOwnerIndex: Record<string, number> = {};
+  if (colorOptionName) {
+    variants.forEach((v, i) => {
+      const c = v.options[colorOptionName];
+      if (c && !(c in colorOwnerIndex)) {
+        colorOwnerIndex[c] = i;
+      }
+    });
+  }
+
+  /** Apply an image URL to every variant row sharing a colour value, so the
+   *  saved data stays internally consistent regardless of which combination
+   *  the customer ends up selecting. */
+  const setImageForColor = (colorValue: string, url: string | null) => {
+    if (!colorOptionName) {
+      return;
+    }
+    onVariantsChange(
+      variants.map((v) =>
+        v.options[colorOptionName] === colorValue ? { ...v, imageUrl: url } : v,
+      ),
+    );
+  };
+
   return (
     <div className="space-y-6">
       {confirmDialog}
@@ -637,9 +667,11 @@ export function VariantsForm({
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="w-14 px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                    Image
-                  </th>
+                  {colorOptionName && (
+                    <th className="w-14 px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                      Image
+                    </th>
+                  )}
                   {options
                     .filter((o) => o.name.trim())
                     .map((option) => (
@@ -666,87 +698,117 @@ export function VariantsForm({
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {variants.map((variant, index) => (
-                  <tr key={variant.id} className="hover:bg-gray-50">
-                    <td className="px-4 py-2">
-                      <VariantImagePicker
-                        value={variant.imageUrl}
-                        productImages={productImages}
-                        onChange={(url) => updateVariant(index, 'imageUrl', url)}
-                      />
-                    </td>
-                    {options
-                      .filter((o) => o.name.trim())
-                      .map((option) => (
-                        <td
-                          key={option.id}
-                          className="whitespace-nowrap px-4 py-2 text-sm text-gray-700"
-                        >
-                          <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium">
-                            {variant.options[option.name] ?? '—'}
-                          </span>
+                {variants.map((variant, index) => {
+                  const colorValue = colorOptionName ? variant.options[colorOptionName] : undefined;
+                  const ownerIdx = colorValue ? colorOwnerIndex[colorValue] : undefined;
+                  const isImageOwner = ownerIdx === index;
+                  const inheritedUrl =
+                    colorValue && ownerIdx !== undefined ? variants[ownerIdx]?.imageUrl : null;
+
+                  return (
+                    <tr key={variant.id} className="hover:bg-gray-50">
+                      {colorOptionName && (
+                        <td className="px-4 py-2">
+                          {isImageOwner && colorValue ? (
+                            <VariantImagePicker
+                              value={variant.imageUrl}
+                              productImages={productImages}
+                              onChange={(url) => setImageForColor(colorValue, url)}
+                            />
+                          ) : inheritedUrl ? (
+                            <div
+                              className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-md border border-gray-200 bg-gray-50 opacity-70"
+                              title={`Image inherited from the ${colorValue} colour`}
+                            >
+                              <img
+                                src={inheritedUrl}
+                                alt={`${colorValue} variant`}
+                                className="h-full w-full object-cover"
+                              />
+                            </div>
+                          ) : (
+                            <div
+                              className="flex h-10 w-10 items-center justify-center rounded-md border border-dashed border-gray-200 bg-gray-50 text-[10px] text-gray-400"
+                              title={`Set an image on the first ${colorValue ?? 'colour'} row`}
+                            >
+                              —
+                            </div>
+                          )}
                         </td>
-                      ))}
-                    <td className="px-4 py-2">
-                      <div className="flex rounded border border-gray-300 focus-within:border-teal-500 focus-within:ring-1 focus-within:ring-teal-500">
-                        <span className="inline-flex items-center border-r border-gray-300 bg-gray-50 px-2 text-xs text-gray-500">
-                          ৳
-                        </span>
+                      )}
+                      {options
+                        .filter((o) => o.name.trim())
+                        .map((option) => (
+                          <td
+                            key={option.id}
+                            className="whitespace-nowrap px-4 py-2 text-sm text-gray-700"
+                          >
+                            <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium">
+                              {variant.options[option.name] ?? '—'}
+                            </span>
+                          </td>
+                        ))}
+                      <td className="px-4 py-2">
+                        <div className="flex rounded border border-gray-300 focus-within:border-teal-500 focus-within:ring-1 focus-within:ring-teal-500">
+                          <span className="inline-flex items-center border-r border-gray-300 bg-gray-50 px-2 text-xs text-gray-500">
+                            ৳
+                          </span>
+                          <input
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            value={variant.price ?? ''}
+                            onChange={(e) =>
+                              updateVariant(
+                                index,
+                                'price',
+                                e.target.value ? parseFloat(e.target.value) : null,
+                              )
+                            }
+                            className="w-24 rounded-r px-2 py-1.5 text-sm focus:outline-none"
+                          />
+                        </div>
+                      </td>
+                      <td className="px-4 py-2">
                         <input
                           type="number"
                           min="0"
-                          step="0.01"
-                          value={variant.price ?? ''}
+                          value={variant.stock}
                           onChange={(e) =>
-                            updateVariant(
-                              index,
-                              'price',
-                              e.target.value ? parseFloat(e.target.value) : null,
-                            )
+                            updateVariant(index, 'stock', parseInt(e.target.value, 10) || 0)
                           }
-                          className="w-24 rounded-r px-2 py-1.5 text-sm focus:outline-none"
+                          className="w-20 rounded border border-gray-300 px-2 py-1.5 text-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
                         />
-                      </div>
-                    </td>
-                    <td className="px-4 py-2">
-                      <input
-                        type="number"
-                        min="0"
-                        value={variant.stock}
-                        onChange={(e) =>
-                          updateVariant(index, 'stock', parseInt(e.target.value, 10) || 0)
-                        }
-                        className="w-20 rounded border border-gray-300 px-2 py-1.5 text-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
-                      />
-                    </td>
-                    <td className="px-4 py-2">
-                      <input
-                        type="text"
-                        value={variant.sku}
-                        onChange={(e) => updateVariant(index, 'sku', e.target.value)}
-                        className="w-36 rounded border border-gray-300 px-2 py-1.5 text-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
-                      />
-                    </td>
-                    <td className="px-4 py-2 text-center">
-                      <input
-                        type="checkbox"
-                        checked={variant.isActive}
-                        onChange={(e) => updateVariant(index, 'isActive', e.target.checked)}
-                        className="h-4 w-4 rounded border-gray-300 text-teal-600 focus:ring-teal-500"
-                      />
-                    </td>
-                    <td className="px-2 py-2 text-center">
-                      <button
-                        onClick={() => deleteVariant(index)}
-                        className="rounded p-1 text-gray-400 hover:bg-red-50 hover:text-red-600"
-                        title="Delete variant"
-                        type="button"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
-                    </td>
-                  </tr>
-                ))}
+                      </td>
+                      <td className="px-4 py-2">
+                        <input
+                          type="text"
+                          value={variant.sku}
+                          onChange={(e) => updateVariant(index, 'sku', e.target.value)}
+                          className="w-36 rounded border border-gray-300 px-2 py-1.5 text-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
+                        />
+                      </td>
+                      <td className="px-4 py-2 text-center">
+                        <input
+                          type="checkbox"
+                          checked={variant.isActive}
+                          onChange={(e) => updateVariant(index, 'isActive', e.target.checked)}
+                          className="h-4 w-4 rounded border-gray-300 text-teal-600 focus:ring-teal-500"
+                        />
+                      </td>
+                      <td className="px-2 py-2 text-center">
+                        <button
+                          onClick={() => deleteVariant(index)}
+                          className="rounded p-1 text-gray-400 hover:bg-red-50 hover:text-red-600"
+                          title="Delete variant"
+                          type="button"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
