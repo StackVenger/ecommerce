@@ -98,8 +98,8 @@ export default function AdminCustomersPage() {
         total: pg.total ?? 0,
         pages: pg.pages ?? pg.totalPages ?? 0,
       }));
-    } catch (error) {
-      console.error('Error fetching customers:', error);
+    } catch (err) {
+      console.error('Error fetching customers:', err);
       toast.error(getApiErrorMessage(err, 'Failed to load customers'));
     } finally {
       setLoading(false);
@@ -117,6 +117,23 @@ export default function AdminCustomersPage() {
       fetchCustomers();
     } catch (err) {
       toast.error(getApiErrorMessage(err, 'Failed to update user status'));
+    }
+  };
+
+  const handleDelete = async (id: string, name: string) => {
+    if (
+      !confirm(
+        `Permanently delete ${name}? This removes the account and all of their orders, reviews, addresses, cart, wishlist, and audit history. This cannot be undone.`,
+      )
+    ) {
+      return;
+    }
+    try {
+      await apiClient.delete(`/admin/users/${id}`);
+      toast.success(`${name} deleted`);
+      fetchCustomers();
+    } catch (err) {
+      toast.error(getApiErrorMessage(err, 'Failed to delete customer'));
     }
   };
 
@@ -286,12 +303,27 @@ export default function AdminCustomersPage() {
                             onClick={() => toggleStatus(customer.id)}
                             className={`text-xs px-2 py-1 rounded font-medium ${
                               customer.status === 'ACTIVE'
-                                ? 'text-red-600 hover:bg-red-50'
+                                ? 'text-amber-600 hover:bg-amber-50'
                                 : 'text-green-600 hover:bg-green-50'
                             }`}
                           >
                             {customer.status === 'ACTIVE' ? 'Deactivate' : 'Activate'}
                           </button>
+                          {customer.role !== 'SUPER_ADMIN' && (
+                            <button
+                              onClick={() =>
+                                handleDelete(
+                                  customer.id,
+                                  `${customer.firstName} ${customer.lastName}`.trim() ||
+                                    customer.email,
+                                )
+                              }
+                              className="text-xs px-2 py-1 rounded font-medium text-red-600 hover:bg-red-50"
+                              title="Permanently delete this customer and all their data"
+                            >
+                              Delete
+                            </button>
+                          )}
                         </div>
                       </td>
                     </tr>

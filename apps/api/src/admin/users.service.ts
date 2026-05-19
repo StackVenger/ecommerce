@@ -1,19 +1,19 @@
 import {
   ConflictException,
+  ForbiddenException,
   Injectable,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 
 import { PrismaService } from '../prisma/prisma.service';
-import {
-  AdminUserQueryDto,
-  CreateAdminUserDto,
-  UpdateAdminUserDto,
-} from './dto/admin-user.dto';
+import { AdminUserQueryDto, CreateAdminUserDto, UpdateAdminUserDto } from './dto/admin-user.dto';
 
 @Injectable()
 export class AdminUsersService {
+  private readonly logger = new Logger(AdminUsersService.name);
+
   constructor(private readonly prisma: PrismaService) {}
 
   async findAll(query: AdminUserQueryDto) {
@@ -92,7 +92,9 @@ export class AdminUsersService {
       },
     });
 
-    if (!user) throw new NotFoundException('User not found');
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
     return user;
   }
 
@@ -101,7 +103,9 @@ export class AdminUsersService {
       where: { email: dto.email },
     });
 
-    if (existing) throw new ConflictException('Email already registered');
+    if (existing) {
+      throw new ConflictException('Email already registered');
+    }
 
     const hashedPassword = await bcrypt.hash(dto.password, 12);
 
@@ -123,12 +127,24 @@ export class AdminUsersService {
     await this.findById(id);
 
     const data: Record<string, unknown> = {};
-    if (dto.firstName !== undefined) data.firstName = dto.firstName;
-    if (dto.lastName !== undefined) data.lastName = dto.lastName;
-    if (dto.email !== undefined) data.email = dto.email;
-    if (dto.role !== undefined) data.role = dto.role;
-    if (dto.status !== undefined) data.status = dto.status;
-    if (dto.phone !== undefined) data.phone = dto.phone;
+    if (dto.firstName !== undefined) {
+      data.firstName = dto.firstName;
+    }
+    if (dto.lastName !== undefined) {
+      data.lastName = dto.lastName;
+    }
+    if (dto.email !== undefined) {
+      data.email = dto.email;
+    }
+    if (dto.role !== undefined) {
+      data.role = dto.role;
+    }
+    if (dto.status !== undefined) {
+      data.status = dto.status;
+    }
+    if (dto.phone !== undefined) {
+      data.phone = dto.phone;
+    }
 
     return this.prisma.user.update({
       where: { id },
@@ -148,9 +164,42 @@ export class AdminUsersService {
     });
   }
 
-  async remove(id: string) {
-    await this.findById(id);
-    await this.prisma.user.delete({ where: { id } });
-    return { deleted: true };
+  /**
+   * Hard-delete a user and all their traces from the database.
+   *
+   * Several relations default to ON DELETE RESTRICT (Order, Review) so a
+   * naked `user.delete` fails for any account with order or review history.
+   * We explicitly clear those, plus AuditLog rows authored by this user
+   * (the schema defaults to SetNull, but "all trace" means the rows go too).
+   * Account, Address, Cart, Wishlist, Notification cascade automatically.
+   * Pages keep their content with authorId nulled (they aren't customer data).
+   */
+  async remove(id: string, currentUserId?: string) {
+    if (currentUserId && id === currentUserId) {
+      throw new ForbiddenException('You cannot delete your own account');
+    }
+
+    const user = await this.prisma.user.findUnique({
+      where: { id },
+      select: { id: true, email: true, role: true },
+    });
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    if (user.role === 'SUPER_ADMIN') {
+      throw new ForbiddenException('Cannot delete a SUPER_ADMIN account');
+    }
+
+    await this.prisma.$transaction(async (tx) => {
+      await tx.auditLog.deleteMany({ where: { userId: id } });
+      await tx.review.deleteMany({ where: { userId: id } });
+      // Order children (OrderItem, Payment, OrderShipping) all cascade on the
+      // Order FK, so deleting the orders is enough.
+      await tx.order.deleteMany({ where: { userId: id } });
+      await tx.user.delete({ where: { id } });
+    });
+
+    this.logger.log(`User hard-deleted: ${id} (${user.email})`);
+    return { deleted: true, id };
   }
 }

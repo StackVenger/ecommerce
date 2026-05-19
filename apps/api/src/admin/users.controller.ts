@@ -10,14 +10,11 @@ import {
   UseGuards,
 } from '@nestjs/common';
 
+import { AdminUserQueryDto, CreateAdminUserDto, UpdateAdminUserDto } from './dto/admin-user.dto';
+import { AdminUsersService } from './users.service';
+import { CurrentUser, AuthenticatedUser } from '../auth/decorators/current-user.decorator';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
-import {
-  AdminUserQueryDto,
-  CreateAdminUserDto,
-  UpdateAdminUserDto,
-} from './dto/admin-user.dto';
-import { AdminUsersService } from './users.service';
 
 @Controller('admin/users')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -50,7 +47,7 @@ export class AdminUsersController {
   }
 
   @Delete(':id')
-  async remove(@Param('id') id: string) {
-    return { data: await this.usersService.remove(id) };
+  async remove(@Param('id') id: string, @CurrentUser() user: AuthenticatedUser) {
+    return { data: await this.usersService.remove(id, user.id) };
   }
 }
