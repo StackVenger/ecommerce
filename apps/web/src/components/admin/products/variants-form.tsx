@@ -13,7 +13,8 @@ import {
   Upload,
   X,
 } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { toast } from 'sonner';
 
 import { useConfirm } from '@/components/admin/ui/confirm-dialog';
@@ -134,28 +135,64 @@ interface VariantImagePickerProps {
 function VariantImagePicker({ value, productImages, onChange }: VariantImagePickerProps) {
   const [open, setOpen] = useState(false);
   const [uploading, setUploading] = useState(false);
-  const ref = useRef<HTMLDivElement | null>(null);
+  const [coords, setCoords] = useState<{ top: number; left: number } | null>(null);
+  const triggerRef = useRef<HTMLButtonElement | null>(null);
+  const popoverRef = useRef<HTMLDivElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  // Position the popover relative to the viewport so it escapes the table's
+  // `overflow-x-auto` ancestor that was clipping the absolutely-positioned
+  // version. Anchored to the trigger's bottom-right, flipped above when
+  // there isn't enough room below.
+  useLayoutEffect(() => {
+    if (!open) {
+      return;
+    }
+    const POPOVER_W = 256;
+    const POPOVER_H = 280;
+    const GAP = 6;
+    const rect = triggerRef.current?.getBoundingClientRect();
+    if (!rect) {
+      return;
+    }
+    const spaceBelow = window.innerHeight - rect.bottom;
+    const top = spaceBelow >= POPOVER_H + GAP ? rect.bottom + GAP : rect.top - POPOVER_H - GAP;
+    let left = rect.right - POPOVER_W;
+    if (left < 8) {
+      left = 8;
+    }
+    if (left + POPOVER_W > window.innerWidth - 8) {
+      left = window.innerWidth - POPOVER_W - 8;
+    }
+    setCoords({ top, left });
+  }, [open]);
 
   useEffect(() => {
     if (!open) {
       return;
     }
     const handleClick = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) {
-        setOpen(false);
+      const target = e.target as Node;
+      if (popoverRef.current?.contains(target) || triggerRef.current?.contains(target)) {
+        return;
       }
+      setOpen(false);
     };
     const handleEsc = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         setOpen(false);
       }
     };
+    const handleReposition = () => setOpen(false);
     document.addEventListener('mousedown', handleClick);
     document.addEventListener('keydown', handleEsc);
+    window.addEventListener('scroll', handleReposition, true);
+    window.addEventListener('resize', handleReposition);
     return () => {
       document.removeEventListener('mousedown', handleClick);
       document.removeEventListener('keydown', handleEsc);
+      window.removeEventListener('scroll', handleReposition, true);
+      window.removeEventListener('resize', handleReposition);
     };
   }, [open]);
 
@@ -189,9 +226,94 @@ function VariantImagePicker({ value, productImages, onChange }: VariantImagePick
     }
   };
 
+  const popover =
+    open && coords && typeof document !== 'undefined'
+      ? createPortal(
+          <div
+            ref={popoverRef}
+            style={{ position: 'fixed', top: coords.top, left: coords.left, width: 256 }}
+            className="z-50 rounded-lg border border-gray-200 bg-white p-3 shadow-xl"
+          >
+            <div className="mb-2 flex items-center justify-between">
+              <span className="text-xs font-medium text-gray-700">Variant image</span>
+              {value && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    onChange(null);
+                    setOpen(false);
+                  }}
+                  className="text-xs font-medium text-red-600 hover:underline"
+                >
+                  Remove
+                </button>
+              )}
+            </div>
+
+            <button
+              type="button"
+              disabled={uploading}
+              onClick={() => fileInputRef.current?.click()}
+              className="mb-2 inline-flex w-full items-center justify-center gap-1.5 rounded-md border border-dashed border-teal-400 px-2 py-2 text-xs font-medium text-teal-700 hover:bg-teal-50 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {uploading ? (
+                <>
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" /> Uploading…
+                </>
+              ) : (
+                <>
+                  <Upload className="h-3.5 w-3.5" /> Upload new image
+                </>
+              )}
+            </button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) {
+                  handleFile(file);
+                }
+              }}
+            />
+
+            {productImages.length > 0 && (
+              <>
+                <p className="mb-1 text-[11px] font-medium uppercase tracking-wide text-gray-500">
+                  Or pick from product images
+                </p>
+                <div className="grid max-h-40 grid-cols-3 gap-2 overflow-y-auto">
+                  {productImages.map((url) => (
+                    <button
+                      key={url}
+                      type="button"
+                      onClick={() => {
+                        onChange(url);
+                        setOpen(false);
+                      }}
+                      className={`aspect-square overflow-hidden rounded-md border-2 ${
+                        url === value
+                          ? 'border-teal-500'
+                          : 'border-transparent hover:border-gray-300'
+                      }`}
+                    >
+                      <img src={url} alt="" className="h-full w-full object-cover" />
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>,
+          document.body,
+        )
+      : null;
+
   return (
-    <div ref={ref} className="relative">
+    <>
       <button
+        ref={triggerRef}
         type="button"
         onClick={() => setOpen((o) => !o)}
         title={value ? 'Change variant image' : 'Assign an image to this variant'}
@@ -203,81 +325,8 @@ function VariantImagePicker({ value, productImages, onChange }: VariantImagePick
           <ImageIcon className="h-4 w-4 text-gray-400" />
         )}
       </button>
-
-      {open && (
-        <div className="absolute right-0 top-11 z-20 w-64 rounded-lg border border-gray-200 bg-white p-3 shadow-lg">
-          <div className="mb-2 flex items-center justify-between">
-            <span className="text-xs font-medium text-gray-700">Variant image</span>
-            {value && (
-              <button
-                type="button"
-                onClick={() => {
-                  onChange(null);
-                  setOpen(false);
-                }}
-                className="text-xs font-medium text-red-600 hover:underline"
-              >
-                Remove
-              </button>
-            )}
-          </div>
-
-          <button
-            type="button"
-            disabled={uploading}
-            onClick={() => fileInputRef.current?.click()}
-            className="mb-2 inline-flex w-full items-center justify-center gap-1.5 rounded-md border border-dashed border-teal-400 px-2 py-2 text-xs font-medium text-teal-700 hover:bg-teal-50 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            {uploading ? (
-              <>
-                <Loader2 className="h-3.5 w-3.5 animate-spin" /> Uploading…
-              </>
-            ) : (
-              <>
-                <Upload className="h-3.5 w-3.5" /> Upload new image
-              </>
-            )}
-          </button>
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            className="hidden"
-            onChange={(e) => {
-              const file = e.target.files?.[0];
-              if (file) {
-                handleFile(file);
-              }
-            }}
-          />
-
-          {productImages.length > 0 && (
-            <>
-              <p className="mb-1 text-[11px] font-medium uppercase tracking-wide text-gray-500">
-                Or pick from product images
-              </p>
-              <div className="grid max-h-40 grid-cols-3 gap-2 overflow-y-auto">
-                {productImages.map((url) => (
-                  <button
-                    key={url}
-                    type="button"
-                    onClick={() => {
-                      onChange(url);
-                      setOpen(false);
-                    }}
-                    className={`aspect-square overflow-hidden rounded-md border-2 ${
-                      url === value ? 'border-teal-500' : 'border-transparent hover:border-gray-300'
-                    }`}
-                  >
-                    <img src={url} alt="" className="h-full w-full object-cover" />
-                  </button>
-                ))}
-              </div>
-            </>
-          )}
-        </div>
-      )}
-    </div>
+      {popover}
+    </>
   );
 }
 
