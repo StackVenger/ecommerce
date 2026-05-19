@@ -91,6 +91,25 @@ function formatBDT(amount: number): string {
   return `৳${Number(amount).toLocaleString('en-IN')}`;
 }
 
+/**
+ * Format a weight stored in grams (the unit the admin form collects, see
+ * components/admin/products/pricing-form.tsx) into a human-readable string.
+ * Sub-kilogram values stay in grams; ≥1 kg renders in kg with up to two
+ * decimal places. Ignores the (legacy) `weightUnit` field on the product
+ * row, which defaulted to "kg" in the schema and produced "100 kg" for
+ * 100-gram items.
+ */
+function formatWeight(grams: number): string {
+  if (!Number.isFinite(grams) || grams <= 0) {
+    return '—';
+  }
+  if (grams < 1000) {
+    return `${Math.round(grams)} g`;
+  }
+  const kg = grams / 1000;
+  return `${kg.toFixed(kg % 1 === 0 ? 0 : 2)} kg`;
+}
+
 // ──────────────────────────────────────────────────────────
 // Component
 // ──────────────────────────────────────────────────────────
@@ -700,7 +719,7 @@ export default function ProductPage() {
                       <tr className="border-b">
                         <td className="py-3 pr-4 text-sm font-medium text-gray-500">Weight</td>
                         <td className="py-3 text-sm text-gray-900">
-                          {Number(product.weight)} {product.weightUnit || 'kg'}
+                          {formatWeight(Number(product.weight))}
                         </td>
                       </tr>
                     )}
