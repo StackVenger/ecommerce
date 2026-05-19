@@ -38,6 +38,7 @@ interface ProductImage {
 
 interface Product {
   id: string;
+  slug: string;
   name: string;
   sku: string;
   price: number;
@@ -440,7 +441,7 @@ export default function AdminProductsPage() {
                     <td className="whitespace-nowrap px-4 py-3 text-right">
                       <div className="flex items-center justify-end gap-1">
                         <Link
-                          href={`/products/${product.id}`}
+                          href={`/products/${product.slug}`}
                           target="_blank"
                           className="rounded p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
                           title="View on store"
