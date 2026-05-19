@@ -1,9 +1,14 @@
-import { Controller, Get, Query } from '@nestjs/common';
+import { Controller, Get, Query, UseGuards } from '@nestjs/common';
 
 import { FacetsService } from './facets.service';
 import { SearchService } from './search.service';
+import { CurrentUser, AuthenticatedUser } from '../auth/decorators/current-user.decorator';
+import { Public } from '../auth/decorators/public.decorator';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @Controller('search')
+@UseGuards(JwtAuthGuard)
+@Public()
 export class SearchController {
   constructor(
     private readonly searchService: SearchService,
@@ -14,6 +19,7 @@ export class SearchController {
   @Get()
   async search(
     @Query('q') q: string,
+    @CurrentUser() user: AuthenticatedUser | null,
     @Query('page') page?: string,
     @Query('limit') limit?: string,
     @Query('categoryId') categoryId?: string,
@@ -35,9 +41,14 @@ export class SearchController {
       inStock: inStock === 'true',
     });
 
-    // Log search term for analytics (fire-and-forget)
-    if (q?.trim()) {
-      this.searchService.logSearch(q, result.pagination?.total ?? 0).catch(() => {});
+    // Log search term for analytics (fire-and-forget). Admin staff browsing
+    // the storefront never count toward "Most Searched Terms".
+    const isAdmin = user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN';
+    if (q?.trim() && !isAdmin) {
+      this.searchService
+        .logSearch(q, result.pagination?.total ?? 0)
+        // eslint-disable-next-line @typescript-eslint/no-empty-function
+        .catch(() => {});
     }
 
     return { data: result };
@@ -46,19 +57,14 @@ export class SearchController {
   /** GET /search/suggest?q=keyword — autocomplete suggestions */
   @Get('suggest')
   async suggest(@Query('q') q: string, @Query('limit') limit?: string) {
-    const results = await this.searchService.suggest(
-      q ?? '',
-      limit ? Number(limit) : 8,
-    );
+    const results = await this.searchService.suggest(q ?? '', limit ? Number(limit) : 8);
     return { data: results };
   }
 
   /** GET /search/popular — trending search terms */
   @Get('popular')
   async popular(@Query('limit') limit?: string) {
-    const terms = await this.searchService.getPopularSearches(
-      limit ? Number(limit) : 10,
-    );
+    const terms = await this.searchService.getPopularSearches(limit ? Number(limit) : 10);
     return { data: terms };
   }
 }
@@ -69,10 +75,7 @@ export class ProductFacetsController {
 
   /** GET /products/facets?categoryId=...&q=... — faceted filters */
   @Get('facets')
-  async getFacets(
-    @Query('categoryId') categoryId?: string,
-    @Query('q') query?: string,
-  ) {
+  async getFacets(@Query('categoryId') categoryId?: string, @Query('q') query?: string) {
     const facets = await this.facetsService.getFacets({ categoryId, query });
     return { data: facets };
   }

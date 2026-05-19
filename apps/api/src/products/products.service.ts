@@ -20,6 +20,15 @@ import { ReplaceVariantsDto } from './dto/replace-variants.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { UploadService } from '../upload/upload.service';
 
+/**
+ * Treat any logged-in staff member as an "admin actor" — their browsing and
+ * searching should not count toward customer-facing analytics widgets
+ * (Most Searched Terms, Most Viewed Products, etc.).
+ */
+function isAdminActor(role?: string | null): boolean {
+  return role === 'ADMIN' || role === 'SUPER_ADMIN';
+}
+
 @Injectable()
 export class ProductsService {
   private readonly logger = new Logger(ProductsService.name);
@@ -214,7 +223,7 @@ export class ProductsService {
     return product;
   }
 
-  async findAll(filters: ProductFilterDto) {
+  async findAll(filters: ProductFilterDto, actorRole?: string | null) {
     const {
       page = 1,
       limit = 20,
@@ -334,8 +343,11 @@ export class ProductsService {
       this.prisma.product.count({ where }),
     ]);
 
-    // Log search term for analytics (fire-and-forget)
-    if (search?.trim()) {
+    // Log search term for analytics (fire-and-forget). Skip when an admin
+    // is the actor so internal product browsing/searching from the admin
+    // panel never pollutes "Most Searched Terms" or other customer-facing
+    // analytics widgets.
+    if (search?.trim() && !isAdminActor(actorRole)) {
       this.prisma.searchLog
         .create({
           data: { term: search.trim().toLowerCase(), resultsCount: total },
@@ -398,7 +410,7 @@ export class ProductsService {
     return product;
   }
 
-  async findBySlug(slug: string) {
+  async findBySlug(slug: string, actorRole?: string | null) {
     const product = await this.prisma.product.findUnique({
       where: { slug },
       include: {
@@ -486,9 +498,13 @@ export class ProductsService {
       _count: { rating: true },
     });
 
-    this.logProductView(product.id).catch((err) => {
-      this.logger.warn(`Failed to log view for product ${product.id}: ${err.message}`);
-    });
+    // Admin PDP views (e.g. a staff member opening the storefront preview)
+    // shouldn't count toward customer-facing view analytics.
+    if (!isAdminActor(actorRole)) {
+      this.logProductView(product.id).catch((err) => {
+        this.logger.warn(`Failed to log view for product ${product.id}: ${err.message}`);
+      });
+    }
 
     return {
       ...product,

@@ -149,8 +149,8 @@ export class ProductsController {
    */
   @Get()
   @Public()
-  async findAll(@Query() filters: ProductFilterDto) {
-    return this.productsService.findAll(filters);
+  async findAll(@Query() filters: ProductFilterDto, @CurrentUser() user: AuthenticatedUser | null) {
+    return this.productsService.findAll(filters, user?.role);
   }
 
   /**
@@ -169,8 +169,8 @@ export class ProductsController {
    */
   @Get(':slug')
   @Public()
-  async findBySlug(@Param('slug') slug: string) {
-    return this.productsService.findBySlug(slug);
+  async findBySlug(@Param('slug') slug: string, @CurrentUser() user: AuthenticatedUser | null) {
+    return this.productsService.findBySlug(slug, user?.role);
   }
 
   /**
