@@ -1,6 +1,7 @@
+import { randomBytes } from 'crypto';
 import { Readable } from 'stream';
 
-import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
+import { Injectable, InternalServerErrorException, Logger, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import {
   v2 as cloudinary,
@@ -150,11 +151,17 @@ export class CloudinaryStorageAdapter implements StorageAdapter, OnModuleInit {
     const uploadOptions: UploadApiOptions = {
       folder,
       resource_type: isImage ? 'image' : 'raw',
-      // Filename stays as a prefix for human-readable public IDs; Cloudinary
-      // appends a random suffix when `use_filename` is combined with
-      // `unique_filename` (default).
+      // The public ID is `<sanitized-name>_<8 random hex chars>`. We append
+      // the suffix ourselves rather than relying on Cloudinary's
+      // `unique_filename` default, which in practice has not been appending
+      // anything when combined with `filename_override` — causing the
+      // second upload of any same-named file to collide on the public ID
+      // and fail because of `overwrite: false`. Setting `unique_filename`
+      // explicitly is belt-and-suspenders in case Cloudinary appends an
+      // extra suffix later; either way the second upload always succeeds.
       use_filename: true,
-      filename_override: this.sanitizeFilename(originalName),
+      unique_filename: true,
+      filename_override: this.uniqueFilenameBase(originalName),
       overwrite: false,
     };
 
@@ -281,19 +288,21 @@ export class CloudinaryStorageAdapter implements StorageAdapter, OnModuleInit {
   }
 
   /**
-   * Strip the extension and sanitise the base filename so Cloudinary's
-   * public IDs remain URL-safe.
+   * Build a unique, URL-safe public-ID base from the original filename by
+   * stripping the extension, normalising the name, and appending 8 random
+   * hex characters. Two uploads of the same file (e.g. "logo.png" twice)
+   * therefore produce different public IDs and never collide.
    */
-  private sanitizeFilename(originalName: string): string {
+  private uniqueFilenameBase(originalName: string): string {
     const dot = originalName.lastIndexOf('.');
     const base = dot > 0 ? originalName.slice(0, dot) : originalName;
-    return (
+    const cleaned =
       base
         .replace(/[^a-zA-Z0-9_-]+/g, '-')
         .replace(/-+/g, '-')
         .replace(/^-+|-+$/g, '')
         .toLowerCase()
-        .slice(0, 80) || 'file'
-    );
+        .slice(0, 60) || 'file';
+    return `${cleaned}_${randomBytes(4).toString('hex')}`;
   }
 }
