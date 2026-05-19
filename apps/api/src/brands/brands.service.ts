@@ -151,6 +151,8 @@ export class BrandsService {
         website: dto.website,
         metaTitle: dto.metaTitle || dto.name,
         metaDescription: dto.metaDescription || dto.description,
+        ...(dto.isActive !== undefined && { isActive: dto.isActive }),
+        ...(dto.sortOrder !== undefined && { sortOrder: dto.sortOrder }),
       },
     });
 
