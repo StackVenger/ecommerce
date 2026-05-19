@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
 
+import { useConfirm } from '@/components/admin/ui/confirm-dialog';
 import { apiClient } from '@/lib/api/client';
 import { getApiErrorMessage } from '@/lib/api/errors';
 
@@ -202,6 +203,7 @@ export default function AdminMenusPage() {
   const [itemForm, setItemForm] = useState<MenuItemFormData>(defaultItemForm);
   const [saving, setSaving] = useState(false);
   const [draggedId, setDraggedId] = useState<string | null>(null);
+  const { confirm, dialog: confirmDialog } = useConfirm();
 
   const fetchMenus = useCallback(async () => {
     try {
@@ -268,7 +270,12 @@ export default function AdminMenusPage() {
   };
 
   const handleDeleteItem = async (itemId: string) => {
-    if (!confirm('Delete this menu item and all its children?')) {
+    const ok = await confirm({
+      title: 'Delete this menu item and all its children?',
+      confirmLabel: 'Delete',
+      tone: 'danger',
+    });
+    if (!ok) {
       return;
     }
     try {
@@ -332,6 +339,7 @@ export default function AdminMenusPage() {
 
   return (
     <div className="space-y-6">
+      {confirmDialog}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Navigation Menus</h1>

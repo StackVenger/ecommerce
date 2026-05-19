@@ -4,6 +4,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
+import { useConfirm } from '@/components/admin/ui/confirm-dialog';
 import { apiClient } from '@/lib/api/client';
 import { getApiErrorMessage } from '@/lib/api/errors';
 
@@ -45,6 +46,7 @@ export default function AdminUserDetailPage() {
   const [form, setForm] = useState({ firstName: '', lastName: '', email: '', phone: '', role: '' });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const { confirm, dialog: confirmDialog } = useConfirm();
 
   useEffect(() => {
     apiClient
@@ -80,7 +82,13 @@ export default function AdminUserDetailPage() {
   };
 
   const handleDelete = async () => {
-    if (!confirm('Are you sure you want to delete this user?')) {
+    const ok = await confirm({
+      title: 'Delete this user?',
+      description: 'This permanently removes the account and all of their data.',
+      confirmLabel: 'Delete',
+      tone: 'danger',
+    });
+    if (!ok) {
       return;
     }
     try {
@@ -102,6 +110,7 @@ export default function AdminUserDetailPage() {
 
   return (
     <div className="space-y-8">
+      {confirmDialog}
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>

@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
 
+import { useConfirm } from '@/components/admin/ui/confirm-dialog';
 import { apiClient } from '@/lib/api/client';
 import { getApiErrorMessage } from '@/lib/api/errors';
 
@@ -59,6 +60,7 @@ export default function AdminCustomersPage() {
     total: 0,
     pages: 0,
   });
+  const { confirm, dialog: confirmDialog } = useConfirm();
 
   const fetchCustomers = useCallback(async () => {
     setLoading(true);
@@ -121,11 +123,14 @@ export default function AdminCustomersPage() {
   };
 
   const handleDelete = async (id: string, name: string) => {
-    if (
-      !confirm(
-        `Permanently delete ${name}? This removes the account and all of their orders, reviews, addresses, cart, wishlist, and audit history. This cannot be undone.`,
-      )
-    ) {
+    const ok = await confirm({
+      title: `Delete ${name}?`,
+      description:
+        'Permanently removes the account and all of their orders, reviews, addresses, cart, wishlist, and audit history. This cannot be undone.',
+      confirmLabel: 'Delete',
+      tone: 'danger',
+    });
+    if (!ok) {
       return;
     }
     try {
@@ -143,6 +148,7 @@ export default function AdminCustomersPage() {
 
   return (
     <div className="space-y-6">
+      {confirmDialog}
       {/* Header */}
       <div>
         <h1 className="text-2xl font-bold text-gray-900">Customers</h1>

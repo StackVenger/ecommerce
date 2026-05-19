@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
+import { useConfirm } from '@/components/admin/ui/confirm-dialog';
 import { apiClient } from '@/lib/api/client';
 import { getApiErrorMessage } from '@/lib/api/errors';
 
@@ -31,6 +32,7 @@ export default function AdminRolesPage() {
     description: '',
     permissions: [] as string[],
   });
+  const { confirm, dialog: confirmDialog } = useConfirm();
 
   useEffect(() => {
     Promise.all([apiClient.get('/admin/roles'), apiClient.get('/admin/roles/permissions')])
@@ -93,7 +95,12 @@ export default function AdminRolesPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Delete this role?')) {
+    const ok = await confirm({
+      title: 'Delete this role?',
+      confirmLabel: 'Delete',
+      tone: 'danger',
+    });
+    if (!ok) {
       return;
     }
     try {
@@ -115,6 +122,7 @@ export default function AdminRolesPage() {
 
   return (
     <div className="space-y-6">
+      {confirmDialog}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Roles & Permissions</h1>

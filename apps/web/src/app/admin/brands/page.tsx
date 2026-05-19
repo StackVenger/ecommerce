@@ -17,6 +17,7 @@ import {
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { toast } from 'sonner';
 
+import { useConfirm } from '@/components/admin/ui/confirm-dialog';
 import { apiClient } from '@/lib/api/client';
 import { getApiErrorMessage } from '@/lib/api/errors';
 import { cn } from '@/lib/utils';
@@ -474,6 +475,7 @@ export default function AdminBrandsPage() {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [showDialog, setShowDialog] = useState(false);
   const [editingBrand, setEditingBrand] = useState<Brand | null>(null);
+  const { confirm, dialog: confirmDialog } = useConfirm();
 
   const fetchBrands = useCallback(async () => {
     try {
@@ -498,7 +500,13 @@ export default function AdminBrandsPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Delete this brand? Products under this brand will be unbranded.')) {
+    const ok = await confirm({
+      title: 'Delete this brand?',
+      description: 'Products under this brand will be unbranded.',
+      confirmLabel: 'Delete',
+      tone: 'danger',
+    });
+    if (!ok) {
       return;
     }
     try {
@@ -519,6 +527,7 @@ export default function AdminBrandsPage() {
 
   return (
     <div className="space-y-6">
+      {confirmDialog}
       {/* Page Header */}
       <div className="flex items-center justify-between">
         <div>

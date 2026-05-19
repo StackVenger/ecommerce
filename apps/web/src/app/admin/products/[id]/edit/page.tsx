@@ -21,6 +21,7 @@ import { MediaForm } from '@/components/admin/products/media-form';
 import { PricingForm } from '@/components/admin/products/pricing-form';
 import { SeoForm } from '@/components/admin/products/seo-form';
 import { VariantsForm } from '@/components/admin/products/variants-form';
+import { useConfirm } from '@/components/admin/ui/confirm-dialog';
 import { apiClient } from '@/lib/api/client';
 import { getApiErrorMessage } from '@/lib/api/errors';
 import { cn } from '@/lib/utils';
@@ -191,6 +192,7 @@ export default function AdminProductEditPage() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [existingImages, setExistingImages] = useState<ProductImage[]>([]);
+  const { confirm, dialog: confirmDialog } = useConfirm();
 
   const [formData, setFormData] = useState<ProductFormData>({
     name: '',
@@ -442,7 +444,13 @@ export default function AdminProductEditPage() {
   // ─── Delete Handler ───────────────────────────────────────────────
 
   const handleDelete = async () => {
-    if (!confirm('Are you sure you want to delete this product? This action cannot be undone.')) {
+    const ok = await confirm({
+      title: 'Delete this product?',
+      description: 'This action cannot be undone.',
+      confirmLabel: 'Delete',
+      tone: 'danger',
+    });
+    if (!ok) {
       return;
     }
 
@@ -474,6 +482,7 @@ export default function AdminProductEditPage() {
 
   return (
     <div className="space-y-6">
+      {confirmDialog}
       {/* Page Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">

@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { toast } from 'sonner';
 
+import { useConfirm } from '@/components/admin/ui/confirm-dialog';
 import { apiClient } from '@/lib/api/client';
 import { getApiErrorMessage } from '@/lib/api/errors';
 
@@ -108,6 +109,7 @@ export default function AdminThemePage() {
   >('colors');
   const logoInputRef = useRef<HTMLInputElement>(null);
   const faviconInputRef = useRef<HTMLInputElement>(null);
+  const { confirm, dialog: confirmDialog } = useConfirm();
 
   useEffect(() => {
     async function loadTheme() {
@@ -140,7 +142,13 @@ export default function AdminThemePage() {
   };
 
   const resetTheme = async () => {
-    if (!confirm('Reset theme to defaults? All customizations will be lost.')) {
+    const ok = await confirm({
+      title: 'Reset theme to defaults?',
+      description: 'All customizations will be lost.',
+      confirmLabel: 'Reset',
+      tone: 'danger',
+    });
+    if (!ok) {
       return;
     }
     setSaving(true);
@@ -250,6 +258,7 @@ export default function AdminThemePage() {
 
   return (
     <div className="space-y-6">
+      {confirmDialog}
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>

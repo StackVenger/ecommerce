@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 
+import { useConfirm } from '@/components/admin/ui/confirm-dialog';
 import { apiClient } from '@/lib/api/client';
 import { getApiErrorMessage } from '@/lib/api/errors';
 
@@ -67,6 +68,7 @@ export default function AdminNavigationPage() {
     isVisible: true,
     parentId: '',
   });
+  const { confirm, dialog: confirmDialog } = useConfirm();
 
   const fetchMenus = async () => {
     try {
@@ -107,7 +109,12 @@ export default function AdminNavigationPage() {
   };
 
   const deleteMenu = async (menuId: string) => {
-    if (!confirm('Delete this menu and all its items?')) {
+    const ok = await confirm({
+      title: 'Delete this menu and all its items?',
+      confirmLabel: 'Delete',
+      tone: 'danger',
+    });
+    if (!ok) {
       return;
     }
     try {
@@ -181,7 +188,15 @@ export default function AdminNavigationPage() {
   };
 
   const deleteMenuItem = async (itemId: string) => {
-    if (!selectedMenuId || !confirm('Delete this menu item?')) {
+    if (!selectedMenuId) {
+      return;
+    }
+    const ok = await confirm({
+      title: 'Delete this menu item?',
+      confirmLabel: 'Delete',
+      tone: 'danger',
+    });
+    if (!ok) {
       return;
     }
     try {
@@ -217,6 +232,7 @@ export default function AdminNavigationPage() {
 
   return (
     <div className="space-y-6">
+      {confirmDialog}
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>

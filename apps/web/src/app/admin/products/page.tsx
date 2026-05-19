@@ -19,6 +19,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState, useCallback } from 'react';
 import { toast } from 'sonner';
 
+import { useConfirm } from '@/components/admin/ui/confirm-dialog';
 import { formatBDT } from '@/lib/api/admin';
 import { apiClient } from '@/lib/api/client';
 import { getApiErrorMessage } from '@/lib/api/errors';
@@ -117,6 +118,7 @@ export default function AdminProductsPage() {
   const [statusFilter, setStatusFilter] = useState<string>(searchParams.get('status') ?? 'all');
   const [sortBy, setSortBy] = useState('createdAt');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const { confirm, dialog: confirmDialog } = useConfirm();
 
   const page = parseInt(searchParams.get('page') ?? '1', 10);
 
@@ -175,7 +177,14 @@ export default function AdminProductsPage() {
   // ─── Bulk Actions ─────────────────────────────────────────────────
 
   const handleBulkDelete = async () => {
-    if (!confirm(`Delete ${selectedIds.size} selected products?`)) {
+    const ok = await confirm({
+      title: `Delete ${selectedIds.size} selected products?`,
+      description:
+        'Products with order history will be archived; the rest will be permanently removed.',
+      confirmLabel: 'Delete',
+      tone: 'danger',
+    });
+    if (!ok) {
       return;
     }
     try {
@@ -192,7 +201,13 @@ export default function AdminProductsPage() {
   };
 
   const handleDeleteOne = async (id: string, name: string) => {
-    if (!confirm(`Delete "${name}"? Products with order history will be archived instead.`)) {
+    const ok = await confirm({
+      title: `Delete "${name}"?`,
+      description: 'Products with order history will be archived instead.',
+      confirmLabel: 'Delete',
+      tone: 'danger',
+    });
+    if (!ok) {
       return;
     }
     try {
@@ -234,6 +249,7 @@ export default function AdminProductsPage() {
 
   return (
     <div className="space-y-6">
+      {confirmDialog}
       {/* Page Header */}
       <div className="flex items-center justify-between">
         <div>

@@ -16,6 +16,7 @@ import {
 import { useEffect, useState, useCallback } from 'react';
 import { toast } from 'sonner';
 
+import { useConfirm } from '@/components/admin/ui/confirm-dialog';
 import { formatBDT } from '@/lib/api/admin';
 import { apiClient } from '@/lib/api/client';
 import { getApiErrorMessage } from '@/lib/api/errors';
@@ -497,6 +498,7 @@ export default function AdminCouponsPage() {
   const [showDialog, setShowDialog] = useState(false);
   const [editingCoupon, setEditingCoupon] = useState<Coupon | null>(null);
   const [page, setPage] = useState(1);
+  const { confirm, dialog: confirmDialog } = useConfirm();
 
   const fetchCoupons = useCallback(async () => {
     try {
@@ -531,7 +533,12 @@ export default function AdminCouponsPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Delete this coupon?')) {
+    const ok = await confirm({
+      title: 'Delete this coupon?',
+      confirmLabel: 'Delete',
+      tone: 'danger',
+    });
+    if (!ok) {
       return;
     }
     try {
@@ -559,6 +566,7 @@ export default function AdminCouponsPage() {
 
   return (
     <div className="space-y-6">
+      {confirmDialog}
       {/* Page Header */}
       <div className="flex items-center justify-between">
         <div>

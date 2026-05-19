@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { toast } from 'sonner';
 
+import { useConfirm } from '@/components/admin/ui/confirm-dialog';
 import { apiClient } from '@/lib/api/client';
 import { getApiErrorMessage } from '@/lib/api/errors';
 
@@ -79,6 +80,7 @@ export default function AdminBannersPage() {
   const [uploading, setUploading] = useState<'desktop' | 'mobile' | null>(null);
   const desktopFileRef = useRef<HTMLInputElement>(null);
   const mobileFileRef = useRef<HTMLInputElement>(null);
+  const { confirm, dialog: confirmDialog } = useConfirm();
 
   const fetchBanners = useCallback(async () => {
     try {
@@ -180,7 +182,12 @@ export default function AdminBannersPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this banner?')) {
+    const ok = await confirm({
+      title: 'Delete this banner?',
+      confirmLabel: 'Delete',
+      tone: 'danger',
+    });
+    if (!ok) {
       return;
     }
     try {
@@ -250,6 +257,7 @@ export default function AdminBannersPage() {
 
   return (
     <div className="space-y-6">
+      {confirmDialog}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Banners</h1>

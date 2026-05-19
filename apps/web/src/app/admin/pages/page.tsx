@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 
+import { useConfirm } from '@/components/admin/ui/confirm-dialog';
 import { apiClient } from '@/lib/api/client';
 import { getApiErrorMessage } from '@/lib/api/errors';
 
@@ -22,6 +23,7 @@ export default function AdminPagesPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('');
+  const { confirm, dialog: confirmDialog } = useConfirm();
 
   useEffect(() => {
     async function fetchPages() {
@@ -47,7 +49,12 @@ export default function AdminPagesPage() {
   }, [search, statusFilter]);
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this page?')) {
+    const ok = await confirm({
+      title: 'Delete this page?',
+      confirmLabel: 'Delete',
+      tone: 'danger',
+    });
+    if (!ok) {
       return;
     }
     try {
@@ -74,6 +81,7 @@ export default function AdminPagesPage() {
 
   return (
     <div className="space-y-6">
+      {confirmDialog}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Pages</h1>

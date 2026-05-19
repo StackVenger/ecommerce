@@ -9,6 +9,7 @@ import CustomCSSEditor from '../../../components/admin/appearance/custom-css-edi
 import LayoutSettings from '../../../components/admin/appearance/layout-settings';
 import TypographySettings from '../../../components/admin/appearance/typography-settings';
 
+import { useConfirm } from '@/components/admin/ui/confirm-dialog';
 import { apiClient } from '@/lib/api/client';
 import { getApiErrorMessage } from '@/lib/api/errors';
 
@@ -38,6 +39,7 @@ export default function AdminAppearancePage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
+  const { confirm, dialog: confirmDialog } = useConfirm();
 
   const fetchTheme = useCallback(async () => {
     try {
@@ -75,7 +77,13 @@ export default function AdminAppearancePage() {
   };
 
   const handleReset = async () => {
-    if (!confirm('Are you sure you want to reset all appearance settings to defaults?')) {
+    const ok = await confirm({
+      title: 'Reset appearance settings?',
+      description: 'All customizations will be lost.',
+      confirmLabel: 'Reset',
+      tone: 'danger',
+    });
+    if (!ok) {
       return;
     }
 
@@ -108,6 +116,7 @@ export default function AdminAppearancePage() {
 
   return (
     <div className="space-y-6">
+      {confirmDialog}
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>

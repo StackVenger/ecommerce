@@ -16,6 +16,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { toast } from 'sonner';
 
 import { CategoryFormDialog } from '@/components/admin/categories/category-form-dialog';
+import { useConfirm } from '@/components/admin/ui/confirm-dialog';
 import { apiClient } from '@/lib/api/client';
 import { getApiErrorMessage } from '@/lib/api/errors';
 import { cn } from '@/lib/utils';
@@ -200,6 +201,7 @@ export default function AdminCategoriesPage() {
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [parentIdForNew, setParentIdForNew] = useState<string | null>(null);
   const [draggedId, setDraggedId] = useState<string | null>(null);
+  const { confirm, dialog: confirmDialog } = useConfirm();
 
   // ─── Fetch Categories ─────────────────────────────────────────────
 
@@ -234,7 +236,13 @@ export default function AdminCategoriesPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Delete this category? Products in this category will be uncategorized.')) {
+    const ok = await confirm({
+      title: 'Delete this category?',
+      description: 'Products in this category will be uncategorized.',
+      confirmLabel: 'Delete',
+      tone: 'danger',
+    });
+    if (!ok) {
       return;
     }
     try {
@@ -311,6 +319,7 @@ export default function AdminCategoriesPage() {
 
   return (
     <div className="space-y-6">
+      {confirmDialog}
       {/* Page Header */}
       <div className="flex items-center justify-between">
         <div>

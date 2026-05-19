@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
+import { useConfirm } from '@/components/admin/ui/confirm-dialog';
 import { apiClient } from '@/lib/api/client';
 import { getApiErrorMessage } from '@/lib/api/errors';
 
@@ -35,6 +36,7 @@ export default function AdminReviewsPage() {
   const [loading, setLoading] = useState(true);
   const [respondingId, setRespondingId] = useState<string | null>(null);
   const [responseText, setResponseText] = useState('');
+  const { confirm, dialog: confirmDialog } = useConfirm();
 
   const fetchReviews = async () => {
     setLoading(true);
@@ -85,7 +87,12 @@ export default function AdminReviewsPage() {
   };
 
   const deleteReview = async (id: string) => {
-    if (!confirm('Permanently delete this review?')) {
+    const ok = await confirm({
+      title: 'Permanently delete this review?',
+      confirmLabel: 'Delete',
+      tone: 'danger',
+    });
+    if (!ok) {
       return;
     }
     try {
@@ -109,6 +116,7 @@ export default function AdminReviewsPage() {
 
   return (
     <div className="space-y-6">
+      {confirmDialog}
       <div>
         <h1 className="text-2xl font-bold text-gray-900">Review Moderation</h1>
         <p className="text-sm text-gray-500">
