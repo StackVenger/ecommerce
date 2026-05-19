@@ -210,6 +210,7 @@ export default function AdminProductCreatePage() {
         compareAtPrice: formData.compareAtPrice ?? undefined,
         costPrice: formData.costPrice ?? undefined,
         quantity: formData.quantity,
+        lowStockThreshold: formData.lowStockThreshold,
         weight: formData.weight ?? undefined,
         categoryId: formData.categoryId,
         brandId: formData.brandId || undefined,

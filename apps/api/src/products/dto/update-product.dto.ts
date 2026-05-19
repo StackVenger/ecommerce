@@ -87,6 +87,12 @@ export class UpdateProductDto {
   @Type(() => Number)
   quantity?: number;
 
+  @IsNumber()
+  @IsOptional()
+  @Min(0)
+  @Type(() => Number)
+  lowStockThreshold?: number;
+
   @IsEnum(ProductStatus)
   @IsOptional()
   status?: ProductStatus;

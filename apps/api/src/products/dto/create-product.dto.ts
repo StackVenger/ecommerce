@@ -1,3 +1,4 @@
+import { Type } from 'class-transformer';
 import {
   IsString,
   IsNotEmpty,
@@ -10,7 +11,6 @@ import {
   MaxLength,
   MinLength,
 } from 'class-validator';
-import { Type } from 'class-transformer';
 
 export enum ProductStatus {
   DRAFT = 'DRAFT',
@@ -67,6 +67,12 @@ export class CreateProductDto {
   @Min(0)
   @Type(() => Number)
   quantity?: number;
+
+  @IsNumber()
+  @IsOptional()
+  @Min(0)
+  @Type(() => Number)
+  lowStockThreshold?: number;
 
   @IsEnum(ProductStatus)
   @IsOptional()

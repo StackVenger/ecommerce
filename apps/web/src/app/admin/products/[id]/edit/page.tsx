@@ -248,7 +248,8 @@ export default function AdminProductEditPage() {
               ? Number(product.costPrice)
               : null,
           quantity: product.quantity ?? 0,
-          lowStockThreshold: product.lowStockThreshold ?? 10,
+          lowStockThreshold:
+            product.inventory?.lowStockThreshold ?? product.lowStockThreshold ?? 10,
           weight:
             product.weight !== null && product.weight !== undefined ? Number(product.weight) : null,
           categoryId: product.categoryId ?? product.category?.id ?? '',
@@ -341,6 +342,7 @@ export default function AdminProductEditPage() {
         compareAtPrice: formData.compareAtPrice ?? undefined,
         costPrice: formData.costPrice ?? undefined,
         quantity: formData.quantity,
+        lowStockThreshold: formData.lowStockThreshold,
         weight: formData.weight ?? undefined,
         categoryId: formData.categoryId,
         brandId: formData.brandId || undefined,

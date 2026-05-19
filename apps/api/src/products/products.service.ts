@@ -188,6 +188,15 @@ export class ProductsService {
         isDigital: dto.isDigital ?? false,
         metaTitle: dto.metaTitle,
         metaDescription: dto.metaDescription,
+        // lowStockThreshold lives on the Inventory row, not Product. Create
+        // the inventory siblings so the admin's low-stock alert threshold
+        // sticks instead of silently falling back to the schema default.
+        inventory: {
+          create: {
+            quantity: dto.quantity ?? 0,
+            lowStockThreshold: dto.lowStockThreshold ?? 10,
+          },
+        },
       },
       include: {
         category: {
@@ -197,6 +206,7 @@ export class ProductsService {
           select: { id: true, name: true, slug: true },
         },
         images: true,
+        inventory: { select: { lowStockThreshold: true, quantity: true } },
       },
     });
 
@@ -354,6 +364,7 @@ export class ProductsService {
       include: {
         category: { select: { id: true, name: true, slug: true } },
         brand: { select: { id: true, name: true, slug: true } },
+        inventory: { select: { lowStockThreshold: true, quantity: true } },
         images: {
           orderBy: { sortOrder: 'asc' },
           select: {
@@ -636,6 +647,20 @@ export class ProductsService {
       }
     }
 
+    // lowStockThreshold lives on the Inventory row; upsert it alongside the
+    // Product update so the admin's edit-form value actually persists.
+    if (dto.lowStockThreshold !== undefined) {
+      await this.prisma.inventory.upsert({
+        where: { productId: id },
+        update: { lowStockThreshold: dto.lowStockThreshold },
+        create: {
+          productId: id,
+          lowStockThreshold: dto.lowStockThreshold,
+          quantity: dto.quantity ?? 0,
+        },
+      });
+    }
+
     const product = await this.prisma.product.update({
       where: { id },
       data: updateData,
@@ -649,6 +674,7 @@ export class ProductsService {
         images: {
           orderBy: { sortOrder: 'asc' },
         },
+        inventory: { select: { lowStockThreshold: true, quantity: true } },
         _count: {
           select: { reviews: true, variants: true },
         },
