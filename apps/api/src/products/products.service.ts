@@ -659,40 +659,70 @@ export class ProductsService {
     return product;
   }
 
+  /**
+   * Default single-product delete: mirror bulkDelete's semantics so the admin
+   * UI behaves consistently. Products with no order history are hard-deleted
+   * (and their Cloudinary assets cleaned up); products that have order items
+   * are archived instead so historical orders stay intact.
+   */
   async archive(id: string) {
-    this.logger.log(`Archiving product: ${id}`);
+    this.logger.log(`Delete-or-archive product: ${id}`);
 
     const product = await this.prisma.product.findUnique({
       where: { id },
-      select: { id: true, status: true },
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        status: true,
+        _count: { select: { orderItems: true } },
+      },
     });
 
     if (!product) {
       throw new NotFoundException(`Product with ID "${id}" not found`);
     }
 
-    if (product.status === 'ARCHIVED') {
-      this.logger.warn(`Product ${id} is already archived`);
-      return this.prisma.product.findUnique({
-        where: { id },
-        include: {
-          category: { select: { id: true, name: true, slug: true } },
-          brand: { select: { id: true, name: true, slug: true } },
-        },
+    if (product._count.orderItems === 0) {
+      const productImages = await this.prisma.productImage.findMany({
+        where: { productId: id },
+        select: { url: true },
       });
+
+      await this.prisma.product.delete({ where: { id } });
+
+      if (productImages.length > 0) {
+        await this.uploadService.deleteByUrls(productImages.map((i) => i.url));
+      }
+
+      this.logger.log(`Product hard-deleted: ${id} (${product.slug})`);
+      return { deleted: true, archived: false, id, name: product.name };
     }
 
-    const archived = await this.prisma.product.update({
+    if (product.status === 'ARCHIVED') {
+      this.logger.warn(`Product ${id} is already archived`);
+      return {
+        deleted: false,
+        archived: true,
+        id,
+        name: product.name,
+        reason: 'has order history',
+      };
+    }
+
+    await this.prisma.product.update({
       where: { id },
       data: { status: 'ARCHIVED' },
-      include: {
-        category: { select: { id: true, name: true, slug: true } },
-        brand: { select: { id: true, name: true, slug: true } },
-      },
     });
 
-    this.logger.log(`Product archived: ${id}`);
-    return archived;
+    this.logger.log(`Product archived (has ${product._count.orderItems} order items): ${id}`);
+    return {
+      deleted: false,
+      archived: true,
+      id,
+      name: product.name,
+      reason: 'has order history',
+    };
   }
 
   async permanentDelete(id: string) {

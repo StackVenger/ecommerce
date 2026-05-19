@@ -196,8 +196,13 @@ export default function AdminProductsPage() {
       return;
     }
     try {
-      await apiClient.delete(`/products/${id}`);
-      toast.success('Product deleted');
+      const { data } = await apiClient.delete(`/products/${id}`);
+      const result = data?.data ?? data ?? {};
+      if (result.archived) {
+        toast.success(`"${name}" archived — kept because it has order history`);
+      } else {
+        toast.success(`"${name}" deleted`);
+      }
       fetchProducts();
     } catch (err) {
       console.error('Delete failed:', err);
