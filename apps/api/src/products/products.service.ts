@@ -29,6 +29,28 @@ function isAdminActor(role?: string | null): boolean {
   return role === 'ADMIN' || role === 'SUPER_ADMIN';
 }
 
+/**
+ * Map a free-form attribute name to the AttributeType enum so the storefront
+ * can render colour-aware swatches without falling back to name matching.
+ * Unknown names land in CUSTOM, preserving the previous default.
+ */
+function inferAttributeType(name: string): 'COLOR' | 'SIZE' | 'MATERIAL' | 'STYLE' | 'CUSTOM' {
+  const trimmed = name.trim().toLowerCase();
+  if (trimmed === 'color' || trimmed === 'colour') {
+    return 'COLOR';
+  }
+  if (trimmed === 'size') {
+    return 'SIZE';
+  }
+  if (trimmed === 'material') {
+    return 'MATERIAL';
+  }
+  if (trimmed === 'style') {
+    return 'STYLE';
+  }
+  return 'CUSTOM';
+}
+
 @Injectable()
 export class ProductsService {
   private readonly logger = new Logger(ProductsService.name);
@@ -1070,7 +1092,7 @@ export class ProductsService {
               productId,
               name,
               values: Array.from(values).sort(),
-              type: 'CUSTOM',
+              type: inferAttributeType(name),
             },
             select: { id: true },
           });

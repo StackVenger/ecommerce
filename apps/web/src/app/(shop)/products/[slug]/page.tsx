@@ -250,6 +250,30 @@ export default function ProductPage() {
     });
   };
 
+  /**
+   * Treat an attribute as "colour-like" when the DB type is COLOR or its
+   * name matches color/colour case-insensitively (handles attributes
+   * created before the API started inferring types from the name).
+   */
+  const isColorAttribute = (attr: { name: string; type: string }): boolean =>
+    attr.type === 'COLOR' || /^(color|colour)$/i.test(attr.name.trim());
+
+  /**
+   * Find the variant image to use as the swatch for a given colour value
+   * (Daraz-style "Color Family" tile). Picks the first variant that
+   * carries this value and returns its first image; falls back to the
+   * product's primary image when no variant-scoped image is set.
+   */
+  const swatchImageForValue = (attrName: string, value: string): string | null => {
+    if (!product) {
+      return null;
+    }
+    const match = product.variants.find((v) =>
+      v.attributeValues.some((av) => av.attribute.name === attrName && av.value === value),
+    );
+    return match?.images?.[0]?.url ?? product.images?.[0]?.url ?? null;
+  };
+
   const handleSelectOption = (attrName: string, value: string) => {
     setSelectedOptions((prev) => ({ ...prev, [attrName]: value }));
     setQuantity(1);
@@ -518,42 +542,89 @@ export default function ProductPage() {
 
             {/* Variant attribute picker */}
             {variantsActive && product.attributes.length > 0 && (
-              <div className="mb-6 space-y-4">
+              <div className="mb-6 space-y-5">
                 {product.attributes.map((attr) => {
                   const current = selectedOptions[attr.name];
                   const values = Array.isArray(attr.values) ? attr.values : [];
+                  const isColor = isColorAttribute(attr);
+                  const heading = isColor ? 'Color Family' : attr.name;
+
                   return (
-                    <div key={attr.id}>
-                      <h3 className="mb-2 text-sm font-medium text-gray-700">
-                        {attr.name}
+                    <div key={attr.id} className="flex flex-col gap-2 sm:flex-row sm:items-start">
+                      <div className="flex min-w-[7rem] items-center gap-2 pt-2 sm:w-32 sm:flex-shrink-0">
+                        <span className="text-sm font-medium text-gray-500">{heading}</span>
                         {current && (
-                          <span className="ml-2 font-normal text-gray-500">: {current}</span>
+                          <span className="text-sm font-medium text-gray-900">{current}</span>
                         )}
-                      </h3>
-                      <div className="flex flex-wrap gap-2">
+                      </div>
+                      <div className="flex flex-1 flex-wrap gap-2">
                         {values.map((val: string) => {
                           const selected = current === val;
                           const reachable = isValueReachable(attr.name, val);
                           const inStockCombo = isValueInStock(attr.name, val);
+                          const swatchUrl = isColor ? swatchImageForValue(attr.name, val) : null;
+                          const title = !reachable
+                            ? 'Not available with the current selection'
+                            : !inStockCombo
+                              ? 'Out of stock'
+                              : val;
+
+                          // Daraz-style colour swatch: image-only tile with a
+                          // coloured border on the selected one.
+                          if (isColor) {
+                            return (
+                              <button
+                                key={val}
+                                type="button"
+                                onClick={() => handleSelectOption(attr.name, val)}
+                                disabled={!reachable}
+                                title={title}
+                                aria-label={val}
+                                aria-pressed={selected}
+                                className={`relative h-14 w-14 overflow-hidden rounded-md border-2 transition-colors ${
+                                  selected
+                                    ? 'border-primary'
+                                    : reachable
+                                      ? 'border-gray-200 hover:border-primary/60'
+                                      : 'cursor-not-allowed border-gray-100'
+                                } ${!reachable || !inStockCombo ? 'opacity-50' : ''}`}
+                              >
+                                {swatchUrl ? (
+                                  <img
+                                    src={swatchUrl}
+                                    alt={val}
+                                    className="h-full w-full object-cover"
+                                  />
+                                ) : (
+                                  <span className="flex h-full w-full items-center justify-center bg-gray-50 px-1 text-center text-[10px] font-medium uppercase text-gray-600">
+                                    {val}
+                                  </span>
+                                )}
+                                {!inStockCombo && reachable && (
+                                  <span className="pointer-events-none absolute inset-0 flex items-center justify-center bg-white/50 text-[10px] font-semibold uppercase text-gray-700">
+                                    out
+                                  </span>
+                                )}
+                              </button>
+                            );
+                          }
+
+                          // Other attributes (Size, Material, etc.) — Daraz-style
+                          // rectangular outline buttons.
                           return (
                             <button
                               key={val}
                               type="button"
                               onClick={() => handleSelectOption(attr.name, val)}
                               disabled={!reachable}
-                              title={
-                                !reachable
-                                  ? 'Not available with the current selection'
-                                  : !inStockCombo
-                                    ? 'Out of stock'
-                                    : undefined
-                              }
-                              className={`rounded-lg border px-3 py-1.5 text-sm transition-colors ${
+                              title={title}
+                              aria-pressed={selected}
+                              className={`min-w-[3rem] rounded-md border-2 px-4 py-2 text-sm font-medium transition-colors ${
                                 selected
-                                  ? 'border-primary bg-primary text-white'
+                                  ? 'border-primary text-primary'
                                   : reachable
-                                    ? 'border-gray-200 bg-white text-gray-700 hover:border-primary'
-                                    : 'cursor-not-allowed border-gray-100 bg-gray-50 text-gray-300 line-through'
+                                    ? 'border-gray-200 bg-white text-gray-700 hover:border-primary/60'
+                                    : 'cursor-not-allowed border-gray-100 text-gray-300 line-through'
                               } ${reachable && !inStockCombo ? 'opacity-60' : ''}`}
                             >
                               {val}

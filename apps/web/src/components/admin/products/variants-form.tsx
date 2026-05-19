@@ -527,9 +527,17 @@ export function VariantsForm({
       <div className="flex gap-3 rounded-lg border border-blue-200 bg-blue-50 p-4 text-sm text-blue-900">
         <Info className="mt-0.5 h-4 w-4 flex-shrink-0 text-blue-500" />
         <div>
-          Variants let you sell a product in several versions — like Small / Medium / Large or Red /
-          Blue. Add the options first, then generate the variant grid and set a price and stock for
-          each combination.
+          <p>
+            Variants let you sell a product in several versions — like Small / Medium / Large or Red
+            / Blue. Add the options first, then generate the variant grid and set a price and stock
+            for each combination.
+          </p>
+          <p className="mt-2 text-blue-800">
+            <strong>Tip:</strong> name a Colour option exactly <code>Color</code> (or{' '}
+            <code>Colour</code>) — the storefront renders that attribute as image swatches. Each
+            row&apos;s image becomes the swatch for that colour, so put the same image on every row
+            that shares a colour value.
+          </p>
         </div>
       </div>
 
