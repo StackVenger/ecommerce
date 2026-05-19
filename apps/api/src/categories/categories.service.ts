@@ -273,6 +273,8 @@ export class CategoriesService {
         description: dto.description,
         metaTitle: dto.metaTitle || dto.name,
         metaDescription: dto.metaDescription || dto.description,
+        ...(dto.isActive !== undefined && { isActive: dto.isActive }),
+        ...(dto.sortOrder !== undefined && { sortOrder: dto.sortOrder }),
       },
       include: {
         parent: {

@@ -1,9 +1,13 @@
+import { Type } from 'class-transformer';
 import {
   IsString,
   IsNotEmpty,
   IsOptional,
+  IsBoolean,
+  IsNumber,
   MaxLength,
   MinLength,
+  Min,
   Matches,
 } from 'class-validator';
 
@@ -55,4 +59,14 @@ export class CreateCategoryDto {
   @IsOptional()
   @MaxLength(500)
   metaDescription?: string;
+
+  @IsBoolean()
+  @IsOptional()
+  isActive?: boolean;
+
+  @IsNumber()
+  @IsOptional()
+  @Min(0)
+  @Type(() => Number)
+  sortOrder?: number;
 }
