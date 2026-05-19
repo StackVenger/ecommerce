@@ -238,6 +238,38 @@ export default function AdminProductCreatePage() {
         );
       }
 
+      // Sync variants if the user defined any. Mirrors the cleaning the edit
+      // page does so the API gets a consistent shape from both flows.
+      const cleanVariants = formData.variants
+        .map((v) => {
+          const cleanOptions: Record<string, string> = {};
+          for (const [k, val] of Object.entries(v.options)) {
+            const key = k.trim();
+            const value = typeof val === 'string' ? val.trim() : '';
+            if (key && value) {
+              cleanOptions[key] = value;
+            }
+          }
+          return {
+            options: cleanOptions,
+            price: v.price,
+            stock: v.stock,
+            sku: v.sku.trim() || undefined,
+            isActive: v.isActive,
+            imageUrl: v.imageUrl ?? null,
+          };
+        })
+        .filter((v) => Object.keys(v.options).length > 0);
+
+      if (cleanVariants.length > 0) {
+        await apiClient
+          .put(`/products/${product.id}/variants/replace`, { variants: cleanVariants })
+          .catch((err) => {
+            console.error('Failed to sync variants:', err);
+            toast.error('Product saved, but variant sync failed — open Edit to retry');
+          });
+      }
+
       toast.success('Product created');
       router.push(`/admin/products/${product.id}/edit`);
     } catch (err) {
