@@ -12,7 +12,7 @@ export class CreateAddressDto {
   phone: string;
 
   @IsString()
-  @Length(5, 255)
+  @Length(2, 255)
   addressLine1: string;
 
   @IsString()
