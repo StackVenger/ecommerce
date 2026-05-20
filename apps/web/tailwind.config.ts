@@ -1,5 +1,7 @@
-import type { Config } from 'tailwindcss';
 import uiPreset from '@ecommerce/ui/tailwind.config';
+import typography from '@tailwindcss/typography';
+
+import type { Config } from 'tailwindcss';
 
 /**
  * Tailwind CSS configuration for the web storefront.
@@ -20,11 +22,7 @@ const config: Config = {
     extend: {
       fontFamily: {
         sans: ['var(--font-inter)', 'Inter', 'system-ui', 'sans-serif'],
-        bengali: [
-          'var(--font-noto-sans-bengali)',
-          'Noto Sans Bengali',
-          'sans-serif',
-        ],
+        bengali: ['var(--font-noto-sans-bengali)', 'Noto Sans Bengali', 'sans-serif'],
       },
       maxWidth: {
         '8xl': '88rem',
@@ -38,12 +36,12 @@ const config: Config = {
         'dashboard-layout': '240px 1fr',
       },
       zIndex: {
-        'header': '40',
-        'sidebar': '30',
-        'overlay': '50',
-        'modal': '60',
-        'toast': '70',
-        'tooltip': '80',
+        header: '40',
+        sidebar: '30',
+        overlay: '50',
+        modal: '60',
+        toast: '70',
+        tooltip: '80',
       },
       transitionDuration: {
         '250': '250ms',
@@ -51,6 +49,7 @@ const config: Config = {
       },
     },
   },
+  plugins: [typography],
 };
 
 export default config;

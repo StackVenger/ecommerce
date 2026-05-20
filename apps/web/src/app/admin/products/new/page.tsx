@@ -10,6 +10,7 @@ import { MediaForm } from '@/components/admin/products/media-form';
 import { PricingForm } from '@/components/admin/products/pricing-form';
 import { SeoForm } from '@/components/admin/products/seo-form';
 import { VariantsForm } from '@/components/admin/products/variants-form';
+import { RichTextEditor } from '@/components/admin/ui/rich-text-editor';
 import { apiClient } from '@/lib/api/client';
 import { cn } from '@/lib/utils';
 
@@ -404,37 +405,25 @@ export default function AdminProductCreatePage() {
 
             {/* Description */}
             <div>
-              <label
-                htmlFor="description"
-                className="mb-1.5 block text-sm font-medium text-gray-700"
-              >
-                Description
-              </label>
-              <textarea
-                id="description"
-                rows={5}
+              <label className="mb-1.5 block text-sm font-medium text-gray-700">Description</label>
+              <RichTextEditor
                 value={formData.description}
-                onChange={(e) => updateField('description', e.target.value)}
+                onChange={(html) => updateField('description', html)}
                 placeholder="Describe the product in detail..."
-                className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
+                ariaLabel="Product description"
               />
             </div>
 
             {/* Description (Bangla) */}
             <div>
-              <label
-                htmlFor="descriptionBn"
-                className="mb-1.5 block text-sm font-medium text-gray-700"
-              >
+              <label className="mb-1.5 block text-sm font-medium text-gray-700">
                 Description (বাংলা)
               </label>
-              <textarea
-                id="descriptionBn"
-                rows={4}
+              <RichTextEditor
                 value={formData.descriptionBn}
-                onChange={(e) => updateField('descriptionBn', e.target.value)}
+                onChange={(html) => updateField('descriptionBn', html)}
                 placeholder="পণ্যের বিস্তারিত বিবরণ..."
-                className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
+                ariaLabel="Product description (Bangla)"
               />
             </div>
 

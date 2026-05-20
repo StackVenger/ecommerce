@@ -3,6 +3,7 @@
 import { X, Upload, ImageIcon, Loader2, FolderTree } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 
+import { RichTextEditor } from '@/components/admin/ui/rich-text-editor';
 import { apiClient } from '@/lib/api/client';
 import { cn } from '@/lib/utils';
 
@@ -340,12 +341,12 @@ export function CategoryFormDialog({
           {/* Description */}
           <div>
             <label className="mb-1.5 block text-sm font-medium text-gray-700">Description</label>
-            <textarea
-              rows={3}
+            <RichTextEditor
               value={description}
-              onChange={(e) => setDescription(e.target.value)}
+              onChange={setDescription}
               placeholder="Brief description of this category..."
-              className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
+              ariaLabel="Category description"
+              minHeight={140}
             />
           </div>
 

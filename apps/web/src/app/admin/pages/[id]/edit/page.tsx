@@ -4,6 +4,7 @@ import { useParams } from 'next/navigation';
 import React, { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 
+import { RichTextEditor } from '@/components/admin/ui/rich-text-editor';
 import { apiClient } from '@/lib/api/client';
 import { getApiErrorMessage } from '@/lib/api/errors';
 
@@ -155,13 +156,12 @@ export default function AdminEditPagePage() {
                       <label className="block text-sm font-medium text-gray-700 mb-1">
                         Content
                       </label>
-                      <textarea
+                      <RichTextEditor
                         value={formData.content}
-                        onChange={(e) =>
-                          setFormData((prev) => ({ ...prev, content: e.target.value }))
-                        }
-                        rows={20}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm font-mono"
+                        onChange={(html) => setFormData((prev) => ({ ...prev, content: html }))}
+                        placeholder="Write your page content here..."
+                        ariaLabel="Page content"
+                        minHeight={360}
                       />
                     </div>
                   </>
@@ -184,13 +184,12 @@ export default function AdminEditPagePage() {
                       <label className="block text-sm font-medium text-gray-700 mb-1">
                         বিষয়বস্তু
                       </label>
-                      <textarea
+                      <RichTextEditor
                         value={formData.contentBn}
-                        onChange={(e) =>
-                          setFormData((prev) => ({ ...prev, contentBn: e.target.value }))
-                        }
-                        rows={20}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                        onChange={(html) => setFormData((prev) => ({ ...prev, contentBn: html }))}
+                        placeholder="এখানে আপনার পৃষ্ঠার বিষয়বস্তু লিখুন..."
+                        ariaLabel="Page content (Bangla)"
+                        minHeight={360}
                       />
                     </div>
                   </>

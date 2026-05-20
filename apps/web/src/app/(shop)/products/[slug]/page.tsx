@@ -17,6 +17,7 @@ import { useEffect, useMemo, useState } from 'react';
 
 import { ReviewForm } from '@/components/reviews/review-form';
 import { ReviewList } from '@/components/reviews/review-list';
+import { RichText } from '@/components/ui/rich-text';
 import { useAuth } from '@/hooks/use-auth';
 import { useCart } from '@/hooks/use-cart';
 import { apiClient } from '@/lib/api/client';
@@ -773,9 +774,7 @@ export default function ProductPage() {
 
           <div className="py-6">
             {activeTab === 'description' && (
-              <div className="prose max-w-none text-gray-700">
-                <p className="whitespace-pre-line">{product.description}</p>
-              </div>
+              <RichText html={product.description} className="text-gray-700" />
             )}
 
             {activeTab === 'specifications' && (

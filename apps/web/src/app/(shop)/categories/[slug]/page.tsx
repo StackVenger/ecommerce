@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 
+import { RichText } from '@/components/ui/rich-text';
 import { useCart } from '@/hooks/use-cart';
 import { useWishlist } from '@/hooks/use-wishlist';
 import { apiClient } from '@/lib/api/client';
@@ -210,7 +211,10 @@ export default function CategoryPage() {
 
           {category?.nameBn && <p className="mt-1 text-teal-100">{category.nameBn}</p>}
           {category?.description && (
-            <p className="mt-2 max-w-2xl text-teal-100">{category.description}</p>
+            <RichText
+              html={category.description}
+              className="mt-2 max-w-2xl text-teal-100 prose-headings:text-white prose-strong:text-white prose-a:text-white"
+            />
           )}
 
           {/* Subcategory chips */}

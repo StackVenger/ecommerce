@@ -22,6 +22,7 @@ import { PricingForm } from '@/components/admin/products/pricing-form';
 import { SeoForm } from '@/components/admin/products/seo-form';
 import { VariantsForm } from '@/components/admin/products/variants-form';
 import { useConfirm } from '@/components/admin/ui/confirm-dialog';
+import { RichTextEditor } from '@/components/admin/ui/rich-text-editor';
 import { apiClient } from '@/lib/api/client';
 import { getApiErrorMessage } from '@/lib/api/errors';
 import { cn } from '@/lib/utils';
@@ -339,6 +340,7 @@ export default function AdminProductEditPage() {
       const payload = {
         name: formData.name.trim(),
         description: formData.description.trim(),
+        descriptionBn: formData.descriptionBn.trim() || undefined,
         slug: formData.slug.trim().toLowerCase() || undefined,
         sku: formData.sku.trim().toUpperCase() || undefined,
         price: formData.price,
@@ -692,18 +694,28 @@ export default function AdminProductEditPage() {
             </div>
 
             <div>
-              <label
-                htmlFor="edit-description"
-                className="mb-1.5 block text-sm font-medium text-gray-700"
-              >
-                Description
-              </label>
-              <textarea
-                id="edit-description"
-                rows={5}
+              <label className="mb-1.5 block text-sm font-medium text-gray-700">Description</label>
+              <RichTextEditor
                 value={formData.description}
-                onChange={(e) => updateField('description', e.target.value)}
-                className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
+                onChange={(html) => updateField('description', html)}
+                placeholder="Describe the product in detail..."
+                ariaLabel="Product description"
+                invalid={Boolean(errors.description)}
+              />
+              {errors.description && (
+                <p className="mt-1 text-sm text-red-600">{errors.description}</p>
+              )}
+            </div>
+
+            <div>
+              <label className="mb-1.5 block text-sm font-medium text-gray-700">
+                Description (বাংলা)
+              </label>
+              <RichTextEditor
+                value={formData.descriptionBn}
+                onChange={(html) => updateField('descriptionBn', html)}
+                placeholder="পণ্যের বিস্তারিত বিবরণ..."
+                ariaLabel="Product description (Bangla)"
               />
             </div>
 

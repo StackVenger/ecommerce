@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 
+import { RichText } from '@/components/ui/rich-text';
 import { apiClient } from '@/lib/api/client';
 
 interface Product {
@@ -165,7 +166,7 @@ export default function CategoryPage() {
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-900">{category?.name ?? 'Category'}</h1>
         {category?.description && (
-          <p className="mt-1 text-sm text-gray-500">{category.description}</p>
+          <RichText html={category.description} className="mt-1 text-sm text-gray-500" />
         )}
         {pagination && <p className="mt-1 text-sm text-gray-400">{pagination.total} products</p>}
       </div>

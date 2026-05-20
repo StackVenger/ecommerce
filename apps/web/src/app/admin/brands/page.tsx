@@ -18,6 +18,7 @@ import { useEffect, useState, useCallback, useRef } from 'react';
 import { toast } from 'sonner';
 
 import { useConfirm } from '@/components/admin/ui/confirm-dialog';
+import { RichTextEditor } from '@/components/admin/ui/rich-text-editor';
 import { apiClient } from '@/lib/api/client';
 import { getApiErrorMessage } from '@/lib/api/errors';
 import { cn } from '@/lib/utils';
@@ -411,11 +412,11 @@ function BrandFormDialog({ isOpen, onClose, onSuccess, editBrand }: BrandFormDia
           {/* Description */}
           <div>
             <label className="mb-1.5 block text-sm font-medium text-gray-700">Description</label>
-            <textarea
-              rows={2}
+            <RichTextEditor
               value={formData.description}
-              onChange={(e) => updateField('description', e.target.value)}
-              className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
+              onChange={(html) => updateField('description', html)}
+              ariaLabel="Brand description"
+              minHeight={140}
             />
           </div>
 
