@@ -501,8 +501,11 @@ export class OrdersService {
   }
 
   async findOrderByNumber(orderNumber: string, userId?: string) {
+    // Tolerate "#ORD-..." pastes from emails / receipts.
+    const cleaned = orderNumber.trim().replace(/^#+/, '').toUpperCase();
+
     const order = await this.prisma.order.findUnique({
-      where: { orderNumber },
+      where: { orderNumber: cleaned },
       include: {
         items: true,
         user: {
@@ -523,11 +526,11 @@ export class OrdersService {
     });
 
     if (!order) {
-      throw new NotFoundException(`Order ${orderNumber} not found`);
+      throw new NotFoundException(`Order ${cleaned} not found`);
     }
 
     if (userId && order.userId !== userId) {
-      throw new NotFoundException(`Order ${orderNumber} not found`);
+      throw new NotFoundException(`Order ${cleaned} not found`);
     }
 
     return order;
@@ -864,8 +867,12 @@ export class OrdersService {
       throw new BadRequestException('Order number and email are required');
     }
 
+    // Accept "#ORD-...", " ORD-... ", or "ord-..." — confirmation pages and
+    // emails sometimes show the # prefix and customers paste it back in.
+    const cleaned = orderNumber.trim().replace(/^#+/, '').toUpperCase();
+
     const order = await this.prisma.order.findUnique({
-      where: { orderNumber },
+      where: { orderNumber: cleaned },
       include: {
         items: true,
         shippingAddress: true,
@@ -874,12 +881,12 @@ export class OrdersService {
     });
 
     if (!order) {
-      throw new NotFoundException(`Order ${orderNumber} not found`);
+      throw new NotFoundException(`Order ${cleaned} not found`);
     }
 
     // Verify guest email matches
     if (order.guestEmail?.toLowerCase() !== email.toLowerCase()) {
-      throw new NotFoundException(`Order ${orderNumber} not found`);
+      throw new NotFoundException(`Order ${cleaned} not found`);
     }
 
     const payment = order.payments[0];
