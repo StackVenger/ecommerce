@@ -20,6 +20,7 @@ import { ReviewList } from '@/components/reviews/review-list';
 import { RichText } from '@/components/ui/rich-text';
 import { useAuth } from '@/hooks/use-auth';
 import { useCart } from '@/hooks/use-cart';
+import { useWishlist } from '@/hooks/use-wishlist';
 import { apiClient } from '@/lib/api/client';
 
 // ──────────────────────────────────────────────────────────
@@ -120,6 +121,7 @@ export default function ProductPage() {
   const { slug } = useParams<{ slug: string }>();
   const { addItem, isUpdating } = useCart();
   const { isAuthenticated } = useAuth();
+  const { wishlist, toggleWishlist } = useWishlist();
 
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
@@ -686,9 +688,24 @@ export default function ProductPage() {
               </button>
 
               {/* Wishlist */}
-              <button className="rounded-lg border border-gray-300 px-4 py-3 text-gray-600 hover:bg-gray-50 transition-colors">
-                <Heart className="h-5 w-5" />
-              </button>
+              {(() => {
+                const inWishlist = product ? wishlist.has(product.id) : false;
+                return (
+                  <button
+                    type="button"
+                    onClick={() => product && toggleWishlist(product.id)}
+                    aria-label={inWishlist ? 'Remove from wishlist' : 'Add to wishlist'}
+                    aria-pressed={inWishlist}
+                    className={`rounded-lg border px-4 py-3 transition-colors ${
+                      inWishlist
+                        ? 'border-red-200 bg-red-50 text-red-600 hover:bg-red-100'
+                        : 'border-gray-300 text-gray-600 hover:bg-gray-50'
+                    }`}
+                  >
+                    <Heart className={`h-5 w-5 ${inWishlist ? 'fill-red-500 text-red-500' : ''}`} />
+                  </button>
+                );
+              })()}
             </div>
 
             {/* Cart error */}
