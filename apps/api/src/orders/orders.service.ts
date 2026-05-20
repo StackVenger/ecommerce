@@ -877,6 +877,7 @@ export class OrdersService {
         items: true,
         shippingAddress: true,
         payments: { orderBy: { createdAt: 'desc' }, take: 1 },
+        user: { select: { email: true } },
       },
     });
 
@@ -884,8 +885,14 @@ export class OrdersService {
       throw new NotFoundException(`Order ${cleaned} not found`);
     }
 
-    // Verify guest email matches
-    if (order.guestEmail?.toLowerCase() !== email.toLowerCase()) {
+    // Match against guestEmail OR the owning user's email. Lets a customer
+    // who later created an account (or pasted their own order number into
+    // the public tracker) still look up that order, as long as they can
+    // prove the email it was placed with.
+    const lookup = email.toLowerCase();
+    const matchesGuest = order.guestEmail?.toLowerCase() === lookup;
+    const matchesUser = order.user?.email?.toLowerCase() === lookup;
+    if (!matchesGuest && !matchesUser) {
       throw new NotFoundException(`Order ${cleaned} not found`);
     }
 
