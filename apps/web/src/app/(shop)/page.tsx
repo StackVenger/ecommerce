@@ -55,15 +55,26 @@ interface Category {
 // ────────────────────────────────────────────────────────────────────────────
 
 function normalizeProduct(raw: any): Product {
+  const defaultVariantImage: string | null = (() => {
+    const v = Array.isArray(raw.variants) ? raw.variants[0] : null;
+    const img = v?.images?.[0];
+    if (!img) {
+      return null;
+    }
+    return typeof img === 'string' ? img : (img.url ?? null);
+  })();
+
+  const rawImages: string[] = Array.isArray(raw.images)
+    ? raw.images.map((img: any) => (typeof img === 'string' ? img : img.url))
+    : [];
+
   return {
     id: raw.id,
     name: raw.name,
     slug: raw.slug,
     price: Number(raw.price),
     compareAtPrice: raw.compareAtPrice ? Number(raw.compareAtPrice) : undefined,
-    images: Array.isArray(raw.images)
-      ? raw.images.map((img: any) => (typeof img === 'string' ? img : img.url))
-      : [],
+    images: defaultVariantImage ? [defaultVariantImage, ...rawImages] : rawImages,
     averageRating: Number(raw.averageRating ?? 0),
     reviewCount: raw._count?.reviews ?? raw.totalReviews ?? 0,
     brandName: raw.brand?.name ?? raw.brandName ?? null,

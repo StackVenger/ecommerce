@@ -39,6 +39,7 @@ interface ProductVariant {
   sku: string;
   price: number;
   quantity: number;
+  isDefault?: boolean;
   images: ProductImage[];
   attributeValues: {
     value: string;
@@ -210,6 +211,23 @@ export default function ProductPage() {
     );
   }, [product, variantsActive, allOptionsSelected, selectedOptions]);
 
+  // The "default variant" is the one the admin flagged as default (or the
+  // first active variant as fallback). On first paint — before the buyer
+  // picks anything — the PDP shows this variant's images and price so
+  // there's a visible cover without forcing an auto-selection that would
+  // hide product-level edits behind a variant override.
+  const defaultVariant = useMemo<ProductVariant | null>(() => {
+    if (!product || !variantsActive) {
+      return null;
+    }
+    return product.variants.find((v) => v.isDefault === true) ?? product.variants[0] ?? null;
+  }, [product, variantsActive]);
+
+  /** Variant whose data drives the hero/price right now: the explicit
+   *  selection if any, otherwise the default — never falls through to
+   *  product-level when variants exist. */
+  const effectiveVariant = selectedVariant ?? defaultVariant;
+
   /**
    * Is `value` for `attrName` reachable — i.e. does at least one variant
    * match the current selection if we replace that attribute's pick with
@@ -340,12 +358,13 @@ export default function ProductPage() {
     );
   }
 
-  // Display fields come from the selected variant when present, otherwise
-  // from the base product. `compareAtPrice` stays product-level since the
-  // admin form doesn't capture a per-variant compare price.
-  const displayPrice = selectedVariant ? Number(selectedVariant.price) : product.price;
+  // Display fields come from the effective variant (selected if any,
+  // otherwise the admin-marked default) when variants exist; from the
+  // base product otherwise. `compareAtPrice` stays product-level since
+  // the admin form doesn't capture a per-variant compare price.
+  const displayPrice = effectiveVariant ? Number(effectiveVariant.price) : product.price;
   const displayStock = selectedVariant ? selectedVariant.quantity : product.quantity;
-  const displaySku = selectedVariant?.sku ?? product.sku;
+  const displaySku = effectiveVariant?.sku ?? product.sku;
 
   const discount =
     product.compareAtPrice && product.compareAtPrice > displayPrice
@@ -359,11 +378,11 @@ export default function ProductPage() {
     : product.quantity > 0;
   const lowStock = inStock && displayStock <= 10;
 
-  // Gallery: when the selected variant has its own image, show it first.
-  // Prepend to product images (deduped by URL) so the admin's chosen image
-  // becomes the hero while existing gallery thumbnails remain accessible.
+  // Gallery: when an effective variant has its own images, those drive
+  // the hero (and the rest of the strip). Product-level images are
+  // appended only as a fallback so the gallery never goes empty.
   const galleryImages: ProductImage[] = (() => {
-    const variantImgs = selectedVariant?.images ?? [];
+    const variantImgs = effectiveVariant?.images ?? [];
     if (variantImgs.length === 0) {
       return product.images;
     }

@@ -357,6 +357,22 @@ export class ProductsService {
               alt: true,
             },
           },
+          // Default-variant cover so listing cards can show the admin's
+          // chosen variant image when one is set. Falls back to product
+          // images on the client when this is empty.
+          variants: {
+            where: { isDefault: true, isActive: true },
+            take: 1,
+            select: {
+              id: true,
+              price: true,
+              images: {
+                orderBy: { sortOrder: 'asc' },
+                take: 1,
+                select: { id: true, url: true, thumbnailUrl: true, alt: true },
+              },
+            },
+          },
           _count: {
             select: { reviews: true, variants: true },
           },
@@ -1066,6 +1082,14 @@ export class ProductsService {
       }),
     );
 
+    // Exactly one variant carries isDefault=true. If the admin marked
+    // multiple, the first one wins; if none, default to index 0 so the
+    // storefront always has something to display.
+    let defaultIdx = dto.variants.findIndex((v) => v.isDefault === true);
+    if (defaultIdx === -1 && dto.variants.length > 0) {
+      defaultIdx = 0;
+    }
+
     // URLs orphaned by the transaction (variant images deleted or swapped).
     // Destroyed on Cloudinary after commit, filtered against current DB state
     // so we never nuke an asset still referenced by another row.
@@ -1169,6 +1193,7 @@ export class ProductsService {
             price,
             quantity: payload.stock,
             isActive: payload.isActive,
+            isDefault: idx === defaultIdx,
           };
           if (desiredSku && desiredSku !== existing.sku) {
             // Check for clash on the new SKU; skip rename silently on conflict.
@@ -1203,6 +1228,7 @@ export class ProductsService {
               price,
               quantity: payload.stock,
               isActive: payload.isActive,
+              isDefault: idx === defaultIdx,
               sortOrder: idx,
             },
             select: { id: true },
@@ -1219,43 +1245,60 @@ export class ProductsService {
           variantId = created.id;
         }
 
-        // Reconcile this variant's image. Variant images are ProductImage
+        // Reconcile this variant's images. Variant images are ProductImage
         // rows with `variantId` set; product-level images (variantId=null)
-        // stay untouched. When the URL changes or is cleared, we drop the
-        // previous variant-scoped row and create a fresh one pointing at
-        // the new URL (cloning metadata from the matching product image).
-        const wantUrl = payload.imageUrl?.trim() || null;
-        const currentVariantImage = await tx.productImage.findFirst({
+        // stay untouched. The payload's imageUrls array is the source of
+        // truth — we sync existing rows to that exact ordered set, deleting
+        // any that disappeared and creating any that are new. sortOrder
+        // matches the array index so the gallery preserves admin order.
+        const wantUrls = (payload.imageUrls ?? []).map((u) => u.trim()).filter((u) => u.length > 0);
+        const currentVariantImages = await tx.productImage.findMany({
           where: { productId, variantId },
-          select: { id: true, url: true },
+          select: { id: true, url: true, sortOrder: true },
+          orderBy: { sortOrder: 'asc' },
         });
 
-        if (!wantUrl) {
-          if (currentVariantImage) {
-            orphanedUrls.push(currentVariantImage.url);
-            await tx.productImage.delete({ where: { id: currentVariantImage.id } });
+        const wantSet = new Set(wantUrls);
+        for (const img of currentVariantImages) {
+          if (!wantSet.has(img.url)) {
+            orphanedUrls.push(img.url);
+            await tx.productImage.delete({ where: { id: img.id } });
           }
-        } else if (!currentVariantImage || currentVariantImage.url !== wantUrl) {
-          if (currentVariantImage) {
-            orphanedUrls.push(currentVariantImage.url);
-            await tx.productImage.delete({ where: { id: currentVariantImage.id } });
+        }
+
+        const liveByUrl = new Map<string, { id: string }>();
+        for (const img of currentVariantImages) {
+          if (wantSet.has(img.url) && !liveByUrl.has(img.url)) {
+            liveByUrl.set(img.url, { id: img.id });
+          }
+        }
+
+        for (let i = 0; i < wantUrls.length; i++) {
+          const url = wantUrls[i]!;
+          const live = liveByUrl.get(url);
+          if (live) {
+            await tx.productImage.update({
+              where: { id: live.id },
+              data: { sortOrder: i },
+            });
+            continue;
           }
           const source = await tx.productImage.findFirst({
-            where: { productId, url: wantUrl, variantId: null },
+            where: { productId, url, variantId: null },
             select: { thumbnailUrl: true, alt: true, width: true, height: true, blurHash: true },
           });
           await tx.productImage.create({
             data: {
               productId,
               variantId,
-              url: wantUrl,
+              url,
               thumbnailUrl: source?.thumbnailUrl ?? null,
               alt: source?.alt ?? null,
               width: source?.width ?? null,
               height: source?.height ?? null,
               blurHash: source?.blurHash ?? null,
               isPrimary: false,
-              sortOrder: 0,
+              sortOrder: i,
             },
           });
         }

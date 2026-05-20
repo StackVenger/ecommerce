@@ -240,6 +240,7 @@ model ProductVariant {
   weight         Decimal? @db.Decimal(8, 2)
   weightUnit     String?  @default("kg")
   isActive       Boolean  @default(true)
+  isDefault      Boolean  @default(false)
   sortOrder      Int      @default(0)
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt

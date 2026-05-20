@@ -77,7 +77,8 @@ interface Variant {
   stock: number;
   sku: string;
   isActive: boolean;
-  imageUrl?: string | null;
+  isDefault?: boolean;
+  imageUrls?: string[];
 }
 
 // ──────────────────────────────────────────────────────────
@@ -127,6 +128,7 @@ interface ApiVariant {
   price: number | string | null;
   quantity: number;
   isActive: boolean;
+  isDefault?: boolean;
   attributeValues?: ApiVariantAttributeValue[];
   images?: ApiVariantImage[];
 }
@@ -157,7 +159,8 @@ function hydrateVariants(raw: unknown): { options: OptionType[]; variants: Varia
       stock: v.quantity ?? 0,
       sku: v.sku ?? '',
       isActive: v.isActive ?? true,
-      imageUrl: v.images && v.images.length > 0 ? v.images[0]!.url : null,
+      isDefault: v.isDefault ?? false,
+      imageUrls: Array.isArray(v.images) ? v.images.map((img) => img.url) : [],
     };
   });
 
@@ -440,7 +443,8 @@ export default function AdminProductEditPage() {
             stock: v.stock,
             sku: v.sku.trim() || undefined,
             isActive: v.isActive,
-            imageUrl: v.imageUrl ?? null,
+            isDefault: v.isDefault === true,
+            imageUrls: Array.isArray(v.imageUrls) ? v.imageUrls : [],
           };
         })
         .filter((v) => Object.keys(v.options).length > 0);
@@ -731,6 +735,7 @@ export default function AdminProductEditPage() {
           }}
           onChange={(field, value) => updateField(field as keyof ProductFormData, value as never)}
           errors={errors}
+          hasVariants={formData.variants.length > 0}
         />
       )}
 

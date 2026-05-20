@@ -55,7 +55,8 @@ interface Variant {
   stock: number;
   sku: string;
   isActive: boolean;
-  imageUrl?: string | null;
+  isDefault?: boolean;
+  imageUrls?: string[];
 }
 
 // ──────────────────────────────────────────────────────────
@@ -257,7 +258,8 @@ export default function AdminProductCreatePage() {
             stock: v.stock,
             sku: v.sku.trim() || undefined,
             isActive: v.isActive,
-            imageUrl: v.imageUrl ?? null,
+            isDefault: v.isDefault === true,
+            imageUrls: Array.isArray(v.imageUrls) ? v.imageUrls : [],
           };
         })
         .filter((v) => Object.keys(v.options).length > 0);
@@ -472,6 +474,7 @@ export default function AdminProductCreatePage() {
           }}
           onChange={(field, value) => updateField(field as keyof ProductFormData, value as never)}
           errors={errors}
+          hasVariants={formData.variants.length > 0}
         />
       )}
 

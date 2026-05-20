@@ -37,7 +37,8 @@ interface Variant {
   stock: number;
   sku: string;
   isActive: boolean;
-  imageUrl?: string | null;
+  isDefault?: boolean;
+  imageUrls?: string[];
 }
 
 interface VariantsFormProps {
@@ -117,7 +118,8 @@ function generateVariantMatrix(
       stock: 0,
       sku: `${baseSku}-${Object.values(optionValues).join('-').toUpperCase().replace(/\s+/g, '')}`,
       isActive: true,
-      imageUrl: null,
+      isDefault: false,
+      imageUrls: [],
     };
   });
 }
@@ -127,9 +129,9 @@ function generateVariantMatrix(
 // ──────────────────────────────────────────────────────────
 
 interface VariantImagePickerProps {
-  value: string | null | undefined;
+  value: string[];
   productImages: string[];
-  onChange: (url: string | null) => void;
+  onChange: (urls: string[]) => void;
 }
 
 function VariantImagePicker({ value, productImages, onChange }: VariantImagePickerProps) {
@@ -141,15 +143,14 @@ function VariantImagePicker({ value, productImages, onChange }: VariantImagePick
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   // Position the popover relative to the viewport so it escapes the table's
-  // `overflow-x-auto` ancestor that was clipping the absolutely-positioned
-  // version. Anchored to the trigger's bottom-right, flipped above when
-  // there isn't enough room below.
+  // `overflow-x-auto` ancestor. Anchored to the trigger's bottom-right,
+  // flipped above when there isn't enough room below.
   useLayoutEffect(() => {
     if (!open) {
       return;
     }
-    const POPOVER_W = 256;
-    const POPOVER_H = 280;
+    const POPOVER_W = 288;
+    const POPOVER_H = 360;
     const GAP = 6;
     const rect = triggerRef.current?.getBoundingClientRect();
     if (!rect) {
@@ -196,24 +197,36 @@ function VariantImagePicker({ value, productImages, onChange }: VariantImagePick
     };
   }, [open]);
 
-  const handleFile = async (file: File) => {
-    if (!file.type.startsWith('image/')) {
-      toast.error('Please choose an image file');
+  const handleFiles = async (files: FileList | File[]) => {
+    const valid = Array.from(files).filter((f) => f.type.startsWith('image/'));
+    if (valid.length === 0) {
+      toast.error('Please choose image files');
       return;
     }
     setUploading(true);
     try {
-      const formData = new FormData();
-      formData.append('file', file);
-      const { data } = await apiClient.post('/upload/image', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
-      const result = data.data ?? data;
-      if (result?.url) {
-        onChange(result.url);
-        setOpen(false);
-      } else {
-        toast.error('Upload returned no URL');
+      const uploaded: string[] = [];
+      for (const file of valid) {
+        const formData = new FormData();
+        formData.append('file', file);
+        const { data } = await apiClient.post('/upload/image', formData, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        });
+        const result = data.data ?? data;
+        if (result?.url) {
+          uploaded.push(result.url);
+        }
+      }
+      if (uploaded.length > 0) {
+        const seen = new Set(value);
+        const next = [...value];
+        for (const u of uploaded) {
+          if (!seen.has(u)) {
+            seen.add(u);
+            next.push(u);
+          }
+        }
+        onChange(next);
       }
     } catch (err) {
       console.error('Variant image upload failed:', err);
@@ -226,29 +239,71 @@ function VariantImagePicker({ value, productImages, onChange }: VariantImagePick
     }
   };
 
+  const removeAt = (idx: number) => {
+    onChange(value.filter((_, i) => i !== idx));
+  };
+
+  const togglePick = (url: string) => {
+    if (value.includes(url)) {
+      onChange(value.filter((u) => u !== url));
+    } else {
+      onChange([...value, url]);
+    }
+  };
+
+  const previewUrl = value[0];
+
   const popover =
     open && coords && typeof document !== 'undefined'
       ? createPortal(
           <div
             ref={popoverRef}
-            style={{ position: 'fixed', top: coords.top, left: coords.left, width: 256 }}
+            style={{ position: 'fixed', top: coords.top, left: coords.left, width: 288 }}
             className="z-50 rounded-lg border border-gray-200 bg-white p-3 shadow-xl"
           >
             <div className="mb-2 flex items-center justify-between">
-              <span className="text-xs font-medium text-gray-700">Variant image</span>
-              {value && (
+              <span className="text-xs font-medium text-gray-700">
+                Variant images ({value.length})
+              </span>
+              {value.length > 0 && (
                 <button
                   type="button"
-                  onClick={() => {
-                    onChange(null);
-                    setOpen(false);
-                  }}
+                  onClick={() => onChange([])}
                   className="text-xs font-medium text-red-600 hover:underline"
                 >
-                  Remove
+                  Clear all
                 </button>
               )}
             </div>
+
+            {value.length > 0 && (
+              <div className="mb-2 grid grid-cols-4 gap-1.5">
+                {value.map((url, i) => (
+                  <div
+                    key={`${url}-${i}`}
+                    className="group relative aspect-square overflow-hidden rounded-md border border-gray-200 bg-gray-50"
+                  >
+                    <img src={url} alt="" className="h-full w-full object-cover" />
+                    {i === 0 && (
+                      <span className="absolute left-0.5 top-0.5 rounded-sm bg-teal-600 px-1 text-[9px] font-medium text-white">
+                        1st
+                      </span>
+                    )}
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        removeAt(i);
+                      }}
+                      className="absolute right-0.5 top-0.5 rounded-full bg-white/90 p-0.5 text-red-600 opacity-0 transition-opacity group-hover:opacity-100"
+                      title="Remove"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
 
             <button
               type="button"
@@ -262,7 +317,7 @@ function VariantImagePicker({ value, productImages, onChange }: VariantImagePick
                 </>
               ) : (
                 <>
-                  <Upload className="h-3.5 w-3.5" /> Upload new image
+                  <Upload className="h-3.5 w-3.5" /> Upload images
                 </>
               )}
             </button>
@@ -270,11 +325,11 @@ function VariantImagePicker({ value, productImages, onChange }: VariantImagePick
               ref={fileInputRef}
               type="file"
               accept="image/*"
+              multiple
               className="hidden"
               onChange={(e) => {
-                const file = e.target.files?.[0];
-                if (file) {
-                  handleFile(file);
+                if (e.target.files?.length) {
+                  handleFiles(e.target.files);
                 }
               }}
             />
@@ -282,26 +337,24 @@ function VariantImagePicker({ value, productImages, onChange }: VariantImagePick
             {productImages.length > 0 && (
               <>
                 <p className="mb-1 text-[11px] font-medium uppercase tracking-wide text-gray-500">
-                  Or pick from product images
+                  Or toggle from product images
                 </p>
                 <div className="grid max-h-40 grid-cols-3 gap-2 overflow-y-auto">
-                  {productImages.map((url) => (
-                    <button
-                      key={url}
-                      type="button"
-                      onClick={() => {
-                        onChange(url);
-                        setOpen(false);
-                      }}
-                      className={`aspect-square overflow-hidden rounded-md border-2 ${
-                        url === value
-                          ? 'border-teal-500'
-                          : 'border-transparent hover:border-gray-300'
-                      }`}
-                    >
-                      <img src={url} alt="" className="h-full w-full object-cover" />
-                    </button>
-                  ))}
+                  {productImages.map((url) => {
+                    const picked = value.includes(url);
+                    return (
+                      <button
+                        key={url}
+                        type="button"
+                        onClick={() => togglePick(url)}
+                        className={`aspect-square overflow-hidden rounded-md border-2 ${
+                          picked ? 'border-teal-500' : 'border-transparent hover:border-gray-300'
+                        }`}
+                      >
+                        <img src={url} alt="" className="h-full w-full object-cover" />
+                      </button>
+                    );
+                  })}
                 </div>
               </>
             )}
@@ -316,11 +369,22 @@ function VariantImagePicker({ value, productImages, onChange }: VariantImagePick
         ref={triggerRef}
         type="button"
         onClick={() => setOpen((o) => !o)}
-        title={value ? 'Change variant image' : 'Assign an image to this variant'}
-        className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-md border border-gray-200 bg-gray-50 hover:border-teal-400"
+        title={
+          value.length > 0
+            ? `${value.length} image${value.length !== 1 ? 's' : ''} — click to manage`
+            : 'Assign images to this variant'
+        }
+        className="relative flex h-10 w-10 items-center justify-center overflow-hidden rounded-md border border-gray-200 bg-gray-50 hover:border-teal-400"
       >
-        {value ? (
-          <img src={value} alt="Variant" className="h-full w-full object-cover" />
+        {previewUrl ? (
+          <>
+            <img src={previewUrl} alt="Variant" className="h-full w-full object-cover" />
+            {value.length > 1 && (
+              <span className="absolute -bottom-0.5 -right-0.5 rounded-full bg-teal-600 px-1.5 text-[9px] font-medium text-white">
+                +{value.length - 1}
+              </span>
+            )}
+          </>
         ) : (
           <ImageIcon className="h-4 w-4 text-gray-400" />
         )}
@@ -535,19 +599,29 @@ export function VariantsForm({
     });
   }
 
-  /** Apply an image URL to every variant row sharing a colour value, so the
-   *  saved data stays internally consistent regardless of which combination
-   *  the customer ends up selecting. */
-  const setImageForColor = (colorValue: string, url: string | null) => {
+  /** Apply an image URL list to every variant row sharing a colour value,
+   *  so the saved data stays internally consistent regardless of which
+   *  combination the customer ends up selecting. */
+  const setImagesForColor = (colorValue: string, urls: string[]) => {
     if (!colorOptionName) {
       return;
     }
     onVariantsChange(
       variants.map((v) =>
-        v.options[colorOptionName] === colorValue ? { ...v, imageUrl: url } : v,
+        v.options[colorOptionName] === colorValue ? { ...v, imageUrls: urls } : v,
       ),
     );
   };
+
+  /** Mark a single variant as the default. Clears the flag on all others
+   *  so the invariant (at most one default per product) holds locally. */
+  const setDefaultVariant = (index: number) => {
+    onVariantsChange(variants.map((v, i) => ({ ...v, isDefault: i === index })));
+  };
+
+  // Surface the "Default" radio only when there's more than one variant.
+  // With a single variant it's effectively the default already.
+  const showDefaultColumn = variants.length > 1;
 
   return (
     <div className="space-y-6">
@@ -564,9 +638,9 @@ export function VariantsForm({
           </p>
           <p className="mt-2 text-blue-800">
             <strong>Tip:</strong> name a Colour option exactly <code>Color</code> (or{' '}
-            <code>Colour</code>) — the storefront renders that attribute as image swatches. Each
-            row&apos;s image becomes the swatch for that colour, so put the same image on every row
-            that shares a colour value.
+            <code>Colour</code>) — the storefront renders it as image swatches and you can attach
+            multiple images per colour. Mark one variant as <em>Default</em> to control which image
+            and price the product details page shows on first load.
           </p>
         </div>
       </div>
@@ -694,6 +768,14 @@ export function VariantsForm({
                   <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider text-gray-500">
                     Active
                   </th>
+                  {showDefaultColumn && (
+                    <th
+                      className="w-16 px-4 py-3 text-center text-xs font-medium uppercase tracking-wider text-gray-500"
+                      title="Storefront shows this variant's image and price on initial load"
+                    >
+                      Default
+                    </th>
+                  )}
                   <th className="w-10 px-2 py-3" />
                 </tr>
               </thead>
@@ -702,8 +784,10 @@ export function VariantsForm({
                   const colorValue = colorOptionName ? variant.options[colorOptionName] : undefined;
                   const ownerIdx = colorValue ? colorOwnerIndex[colorValue] : undefined;
                   const isImageOwner = ownerIdx === index;
-                  const inheritedUrl =
-                    colorValue && ownerIdx !== undefined ? variants[ownerIdx]?.imageUrl : null;
+                  const inheritedUrls =
+                    colorValue && ownerIdx !== undefined
+                      ? (variants[ownerIdx]?.imageUrls ?? [])
+                      : [];
 
                   return (
                     <tr key={variant.id} className="hover:bg-gray-50">
@@ -711,25 +795,30 @@ export function VariantsForm({
                         <td className="px-4 py-2">
                           {isImageOwner && colorValue ? (
                             <VariantImagePicker
-                              value={variant.imageUrl}
+                              value={variant.imageUrls ?? []}
                               productImages={productImages}
-                              onChange={(url) => setImageForColor(colorValue, url)}
+                              onChange={(urls) => setImagesForColor(colorValue, urls)}
                             />
-                          ) : inheritedUrl ? (
+                          ) : inheritedUrls.length > 0 ? (
                             <div
-                              className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-md border border-gray-200 bg-gray-50 opacity-70"
-                              title={`Image inherited from the ${colorValue} colour`}
+                              className="relative flex h-10 w-10 items-center justify-center overflow-hidden rounded-md border border-gray-200 bg-gray-50 opacity-70"
+                              title={`Images inherited from the ${colorValue} colour (${inheritedUrls.length})`}
                             >
                               <img
-                                src={inheritedUrl}
+                                src={inheritedUrls[0]}
                                 alt={`${colorValue} variant`}
                                 className="h-full w-full object-cover"
                               />
+                              {inheritedUrls.length > 1 && (
+                                <span className="absolute -bottom-0.5 -right-0.5 rounded-full bg-gray-500 px-1.5 text-[9px] font-medium text-white">
+                                  +{inheritedUrls.length - 1}
+                                </span>
+                              )}
                             </div>
                           ) : (
                             <div
                               className="flex h-10 w-10 items-center justify-center rounded-md border border-dashed border-gray-200 bg-gray-50 text-[10px] text-gray-400"
-                              title={`Set an image on the first ${colorValue ?? 'colour'} row`}
+                              title={`Set images on the first ${colorValue ?? 'colour'} row`}
                             >
                               —
                             </div>
@@ -796,6 +885,18 @@ export function VariantsForm({
                           className="h-4 w-4 rounded border-gray-300 text-teal-600 focus:ring-teal-500"
                         />
                       </td>
+                      {showDefaultColumn && (
+                        <td className="px-4 py-2 text-center">
+                          <input
+                            type="radio"
+                            name="variant-default"
+                            checked={variant.isDefault === true}
+                            onChange={() => setDefaultVariant(index)}
+                            className="h-4 w-4 border-gray-300 text-teal-600 focus:ring-teal-500"
+                            title="Show this variant's image and price on initial PDP load"
+                          />
+                        </td>
+                      )}
                       <td className="px-2 py-2 text-center">
                         <button
                           onClick={() => deleteVariant(index)}

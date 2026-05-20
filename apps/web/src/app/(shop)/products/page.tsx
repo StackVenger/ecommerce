@@ -48,6 +48,25 @@ interface Pagination {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function normalizeProduct(raw: any): Product {
+  // When the product has a default variant with images, surface that
+  // image as the cover so listing cards mirror the storefront PDP's
+  // "default variant wins" rule. The API already filters `variants` to
+  // just the default + active one when serving lists.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const defaultVariantImage: string | null = (() => {
+    const v = Array.isArray(raw.variants) ? raw.variants[0] : null;
+    const img = v?.images?.[0];
+    if (!img) {
+      return null;
+    }
+    return typeof img === 'string' ? img : (img.url ?? null);
+  })();
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const rawImages: string[] = Array.isArray(raw.images)
+    ? raw.images.map((img: any) => (typeof img === 'string' ? img : img.url))
+    : [];
+
   return {
     id: raw.id,
     name: raw.name,
@@ -55,9 +74,7 @@ function normalizeProduct(raw: any): Product {
     price: Number(raw.price),
     compareAtPrice: raw.compareAtPrice ? Number(raw.compareAtPrice) : undefined,
     salePrice: raw.compareAtPrice ? Number(raw.price) : null,
-    images: Array.isArray(raw.images)
-      ? raw.images.map((img: any) => (typeof img === 'string' ? img : img.url))
-      : [],
+    images: defaultVariantImage ? [defaultVariantImage, ...rawImages] : rawImages,
     averageRating: Number(raw.averageRating ?? 0),
     reviewCount: raw._count?.reviews ?? raw.totalReviews ?? 0,
     categoryName: raw.category?.name ?? raw.categoryName ?? null,

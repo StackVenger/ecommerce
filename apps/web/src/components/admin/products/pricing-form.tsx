@@ -19,11 +19,11 @@ interface PricingFormData {
 
 interface PricingFormProps {
   data: PricingFormData;
-  onChange: <K extends keyof PricingFormData>(
-    field: K,
-    value: PricingFormData[K],
-  ) => void;
+  onChange: <K extends keyof PricingFormData>(field: K, value: PricingFormData[K]) => void;
   errors?: Record<string, string>;
+  /** When true the product is sold by variants — base stock fields are
+   *  hidden because stock is tracked per-variant in the Variants tab. */
+  hasVariants?: boolean;
 }
 
 // ──────────────────────────────────────────────────────────
@@ -53,10 +53,7 @@ function CurrencyInput({
 }: CurrencyInputProps) {
   return (
     <div>
-      <label
-        htmlFor={id}
-        className="mb-1.5 block text-sm font-medium text-gray-700"
-      >
+      <label htmlFor={id} className="mb-1.5 block text-sm font-medium text-gray-700">
         {label}
         {required && <span className="text-red-500"> *</span>}
       </label>
@@ -86,9 +83,7 @@ function CurrencyInput({
         />
       </div>
       {error && <p className="mt-1 text-sm text-red-600">{error}</p>}
-      {helperText && !error && (
-        <p className="mt-1 text-xs text-gray-500">{helperText}</p>
-      )}
+      {helperText && !error && <p className="mt-1 text-xs text-gray-500">{helperText}</p>}
     </div>
   );
 }
@@ -103,7 +98,12 @@ function CurrencyInput({
  * All prices are in BDT (৳). Includes selling price, compare-at price,
  * cost price, stock quantity, and low stock threshold.
  */
-export function PricingForm({ data, onChange, errors = {} }: PricingFormProps) {
+export function PricingForm({
+  data,
+  onChange,
+  errors = {},
+  hasVariants = false,
+}: PricingFormProps) {
   // Calculate profit margin
   const margin =
     data.price && data.costPrice
@@ -116,9 +116,7 @@ export function PricingForm({ data, onChange, errors = {} }: PricingFormProps) {
       <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
         <div className="mb-6 flex items-center gap-2">
           <DollarSign className="h-5 w-5 text-gray-400" />
-          <h2 className="text-lg font-semibold text-gray-900">
-            Pricing (BDT ৳)
-          </h2>
+          <h2 className="text-lg font-semibold text-gray-900">Pricing (BDT ৳)</h2>
         </div>
 
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -201,57 +199,64 @@ export function PricingForm({ data, onChange, errors = {} }: PricingFormProps) {
           <h2 className="text-lg font-semibold text-gray-900">Inventory</h2>
         </div>
 
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {/* Stock Quantity */}
-          <div>
-            <label
-              htmlFor="quantity"
-              className="mb-1.5 block text-sm font-medium text-gray-700"
-            >
-              Stock Quantity <span className="text-red-500">*</span>
-            </label>
-            <input
-              id="quantity"
-              type="number"
-              min="0"
-              value={data.quantity}
-              onChange={(e) => onChange('quantity', parseInt(e.target.value, 10) || 0)}
-              className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
-            />
-            {errors.quantity && (
-              <p className="mt-1 text-sm text-red-600">{errors.quantity}</p>
-            )}
-          </div>
-
-          {/* Low Stock Threshold */}
-          <div>
-            <label
-              htmlFor="lowStockThreshold"
-              className="mb-1.5 block text-sm font-medium text-gray-700"
-            >
-              Low Stock Threshold
-            </label>
-            <input
-              id="lowStockThreshold"
-              type="number"
-              min="0"
-              value={data.lowStockThreshold}
-              onChange={(e) =>
-                onChange('lowStockThreshold', parseInt(e.target.value, 10) || 0)
-              }
-              className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
-            />
-            <p className="mt-1 text-xs text-gray-500">
-              Alert when stock drops below this number
+        {hasVariants && (
+          <div className="mb-4 flex items-start gap-2 rounded-lg bg-blue-50 px-4 py-3 text-sm text-blue-800">
+            <Info className="mt-0.5 h-4 w-4 flex-shrink-0 text-blue-500" />
+            <p>
+              Stock is managed per variant in the <strong>Variants</strong> tab. The base Stock
+              Quantity is ignored when variants exist.
             </p>
           </div>
+        )}
+
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {!hasVariants && (
+            <>
+              {/* Stock Quantity */}
+              <div>
+                <label
+                  htmlFor="quantity"
+                  className="mb-1.5 block text-sm font-medium text-gray-700"
+                >
+                  Stock Quantity <span className="text-red-500">*</span>
+                </label>
+                <input
+                  id="quantity"
+                  type="number"
+                  min="0"
+                  value={data.quantity}
+                  onChange={(e) => onChange('quantity', parseInt(e.target.value, 10) || 0)}
+                  className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
+                />
+                {errors.quantity && <p className="mt-1 text-sm text-red-600">{errors.quantity}</p>}
+              </div>
+
+              {/* Low Stock Threshold */}
+              <div>
+                <label
+                  htmlFor="lowStockThreshold"
+                  className="mb-1.5 block text-sm font-medium text-gray-700"
+                >
+                  Low Stock Threshold
+                </label>
+                <input
+                  id="lowStockThreshold"
+                  type="number"
+                  min="0"
+                  value={data.lowStockThreshold}
+                  onChange={(e) => onChange('lowStockThreshold', parseInt(e.target.value, 10) || 0)}
+                  className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
+                />
+                <p className="mt-1 text-xs text-gray-500">
+                  Alert when stock drops below this number
+                </p>
+              </div>
+            </>
+          )}
 
           {/* Weight */}
           <div>
-            <label
-              htmlFor="weight"
-              className="mb-1.5 block text-sm font-medium text-gray-700"
-            >
+            <label htmlFor="weight" className="mb-1.5 block text-sm font-medium text-gray-700">
               Weight (grams)
             </label>
             <input
@@ -266,19 +271,17 @@ export function PricingForm({ data, onChange, errors = {} }: PricingFormProps) {
               placeholder="e.g., 500"
               className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
             />
-            <p className="mt-1 text-xs text-gray-500">
-              Used for shipping cost calculation
-            </p>
+            <p className="mt-1 text-xs text-gray-500">Used for shipping cost calculation</p>
           </div>
         </div>
 
         {/* Stock Warning */}
-        {data.quantity > 0 && data.quantity <= data.lowStockThreshold && (
+        {!hasVariants && data.quantity > 0 && data.quantity <= data.lowStockThreshold && (
           <div className="mt-4 flex items-center gap-2 rounded-lg bg-orange-50 px-4 py-3">
             <AlertTriangle className="h-4 w-4 text-orange-600" />
             <p className="text-sm text-orange-700">
-              Current stock ({data.quantity}) is at or below the low stock
-              threshold ({data.lowStockThreshold}).
+              Current stock ({data.quantity}) is at or below the low stock threshold (
+              {data.lowStockThreshold}).
             </p>
           </div>
         )}

@@ -40,9 +40,13 @@ export class ReplaceVariantItemDto {
   isActive: boolean;
 
   @IsOptional()
-  @IsString()
-  @MaxLength(2048)
-  imageUrl?: string;
+  @IsBoolean()
+  isDefault?: boolean;
+
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  imageUrls?: string[];
 }
 
 export class ReplaceVariantsDto {
