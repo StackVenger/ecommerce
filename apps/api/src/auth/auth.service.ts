@@ -492,8 +492,13 @@ export class AuthService {
 
     this.logger.log(`Password reset requested for: ${user.email}`);
 
-    const webUrl = this.configService.get<string>('WEB_URL', 'http://localhost:3000');
-    const resetUrl = `${webUrl}/reset-password?token=${resetToken}`;
+    // Customer-facing — use FRONTEND_URL (public). WEB_URL is internal
+    // docker DNS (http://web:3000) and would 404 in an inbox.
+    const publicUrl = this.configService.get<string>(
+      'FRONTEND_URL',
+      this.configService.get<string>('WEB_URL', 'http://localhost:3000'),
+    );
+    const resetUrl = `${publicUrl}/reset-password?token=${resetToken}`;
 
     await this.deliverPasswordResetEmail(
       user.email,

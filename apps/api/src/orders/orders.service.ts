@@ -433,10 +433,17 @@ export class OrdersService {
     }
 
     if (customerEmail) {
-      const webUrl = this.configService.get<string>('WEB_URL', 'http://localhost:3000');
+      // FRONTEND_URL is the public URL customers see in emails.
+      // WEB_URL is internal docker DNS for the revalidate hook only —
+      // it'd render as http://web:3000 in a customer inbox, which is
+      // unreachable outside the docker network.
+      const publicUrl = this.configService.get<string>(
+        'FRONTEND_URL',
+        this.configService.get<string>('WEB_URL', 'http://localhost:3000'),
+      );
       const trackingUrl = isGuest
-        ? `${webUrl}/orders/track?orderNumber=${orderNumber}&email=${encodeURIComponent(customerEmail)}`
-        : `${webUrl}/account/orders/${orderNumber}`;
+        ? `${publicUrl}/orders/track?orderNumber=${orderNumber}&email=${encodeURIComponent(customerEmail)}`
+        : `${publicUrl}/account/orders/${orderNumber}`;
 
       this.eventEmitter.emit('order.confirmed', {
         orderId: order.id,
@@ -1047,8 +1054,13 @@ export class OrdersService {
         ? `${order.user.firstName} ${order.user.lastName}`.trim()
         : (order.guestFullName ?? 'Customer');
 
-      const webUrl = this.configService.get<string>('WEB_URL', 'http://localhost:3000');
-      const orderUrl = `${webUrl}/account/orders/${orderId}`;
+      // Customer-facing email link — use FRONTEND_URL (public), not WEB_URL
+      // which is internal docker DNS.
+      const publicUrl = this.configService.get<string>(
+        'FRONTEND_URL',
+        this.configService.get<string>('WEB_URL', 'http://localhost:3000'),
+      );
+      const orderUrl = `${publicUrl}/account/orders/${orderId}`;
 
       await this.emailService.sendEmail({
         to: recipient,
