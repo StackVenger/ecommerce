@@ -383,6 +383,44 @@ export default function AdminProductEditPage() {
         ),
       ]);
 
+      // Persist image order. Diffing by URL above ignores positional changes,
+      // so the server keeps its original sortOrder unless we PATCH explicitly.
+      let postMutationImages: ProductImage[] = existingImages;
+      if (toAdd.length > 0 || toRemove.length > 0) {
+        const { data: postMutation } = await apiClient.get(`/products/by-id/${productId}`);
+        const postProduct = postMutation?.data ?? postMutation;
+        postMutationImages = Array.isArray(postProduct?.images) ? postProduct.images : [];
+      }
+
+      const idsByUrl = new Map<string, string[]>();
+      for (const img of postMutationImages) {
+        if (!idsByUrl.has(img.url)) {
+          idsByUrl.set(img.url, []);
+        }
+        idsByUrl.get(img.url)!.push(img.id);
+      }
+      const desiredIds: string[] = [];
+      for (const url of formData.images) {
+        const queue = idsByUrl.get(url);
+        if (queue && queue.length > 0) {
+          desiredIds.push(queue.shift()!);
+        }
+      }
+      const currentIds = [...postMutationImages]
+        .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
+        .map((img) => img.id);
+      const orderChanged =
+        desiredIds.length === currentIds.length && desiredIds.some((id, i) => id !== currentIds[i]);
+
+      if (orderChanged) {
+        await apiClient
+          .patch(`/products/${productId}/images/reorder`, { imageIds: desiredIds })
+          .catch((err) => {
+            console.error('Failed to reorder images:', err);
+            toast.error('Image reorder failed — other changes were saved');
+          });
+      }
+
       // Bulk-replace variants. The API matches existing rows by option-tuple
       // fingerprint, so we just send the cleaned current list and skip any
       // half-entered rows whose options map is empty.
