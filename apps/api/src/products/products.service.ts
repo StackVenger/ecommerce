@@ -261,6 +261,8 @@ export class ProductsService {
       status,
       tag,
       isFeatured,
+      lowStock,
+      outOfStock,
     } = filters;
 
     const skip = (page - 1) * limit;
@@ -269,6 +271,16 @@ export class ProductsService {
 
     if (status) {
       where.status = status;
+    }
+
+    // Inventory-condition filters. lowStock uses a fixed threshold of 10
+    // (the default Inventory.lowStockThreshold) — matching the per-product
+    // threshold would require a raw SQL join, which isn't worth the
+    // complexity for an admin filter UI.
+    if (outOfStock) {
+      where.quantity = { lte: 0 };
+    } else if (lowStock) {
+      where.quantity = { gt: 0, lte: 10 };
     }
 
     if (categoryId) {

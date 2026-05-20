@@ -134,7 +134,14 @@ export default function AdminProductsPage() {
       if (searchQuery) {
         params.set('search', searchQuery);
       }
-      if (statusFilter !== 'all') {
+      // "low-stock" and "out-of-stock" are inventory conditions, not enum
+      // values. Route them to the dedicated boolean filters; leave the
+      // status enum for actual statuses (active, draft, archived).
+      if (statusFilter === 'low-stock') {
+        params.set('lowStock', 'true');
+      } else if (statusFilter === 'out-of-stock') {
+        params.set('outOfStock', 'true');
+      } else if (statusFilter !== 'all') {
         params.set('status', statusFilter.toUpperCase());
       }
       params.set('sortBy', sortBy);

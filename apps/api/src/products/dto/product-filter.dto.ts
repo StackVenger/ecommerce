@@ -1,12 +1,5 @@
-import {
-  IsString,
-  IsOptional,
-  IsEnum,
-  IsNumber,
-  Min,
-  Max,
-} from 'class-validator';
-import { Type } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
+import { IsString, IsOptional, IsEnum, IsNumber, IsBoolean, Min, Max } from 'class-validator';
 
 export enum ProductSortBy {
   CREATED_AT = 'createdAt',
@@ -94,4 +87,16 @@ export class ProductFilterDto {
   @IsOptional()
   @Type(() => Boolean)
   isFeatured?: boolean;
+
+  // Inventory-condition filters, kept separate from `status` since they're
+  // computed from stock levels rather than the admin-managed status enum.
+  @IsOptional()
+  @IsBoolean()
+  @Transform(({ value }) => value === true || value === 'true' || value === '1')
+  lowStock?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  @Transform(({ value }) => value === true || value === 'true' || value === '1')
+  outOfStock?: boolean;
 }
