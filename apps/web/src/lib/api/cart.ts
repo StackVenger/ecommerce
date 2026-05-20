@@ -70,6 +70,25 @@ export interface ApplyCouponPayload {
 const SESSION_ID_KEY = 'cart_session_id';
 
 /**
+ * RFC 4122 v4 UUID with a graceful fallback for insecure origins.
+ *
+ * Browsers only expose `crypto.randomUUID` on secure contexts (HTTPS or
+ * localhost). On bare-IP HTTP deploys (e.g. http://103.187.23.21) it's
+ * undefined, so we generate via `Math.random` — uniqueness is enough for
+ * a guest cart session ID; we don't need cryptographic strength here.
+ */
+function generateSessionId(): string {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID();
+  }
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0;
+    const v = c === 'x' ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
+}
+
+/**
  * Get or create a persistent session ID for guest cart tracking.
  */
 export function getSessionId(): string {
@@ -80,7 +99,7 @@ export function getSessionId(): string {
   let sessionId = localStorage.getItem(SESSION_ID_KEY);
 
   if (!sessionId) {
-    sessionId = crypto.randomUUID();
+    sessionId = generateSessionId();
     localStorage.setItem(SESSION_ID_KEY, sessionId);
   }
 
