@@ -154,19 +154,6 @@ export default function ProductPage() {
             : [],
         };
         setProduct(normalised);
-
-        // Pre-select the first in-stock variant, or the first variant if none
-        // are in stock, so the PDP opens in a working state.
-        if (normalised.variants.length > 0) {
-          const initial = normalised.variants.find((v) => v.quantity > 0) ?? normalised.variants[0];
-          if (initial) {
-            const opts: Record<string, string> = {};
-            for (const av of initial.attributeValues) {
-              opts[av.attribute.name] = av.value;
-            }
-            setSelectedOptions(opts);
-          }
-        }
       } catch {
         setError('Product not found');
       } finally {
