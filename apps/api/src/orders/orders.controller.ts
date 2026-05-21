@@ -234,13 +234,21 @@ export class OrdersController {
     @Query('paymentStatus') paymentStatus: string | undefined,
     @Query('dateFrom') dateFrom: string | undefined,
     @Query('dateTo') dateTo: string | undefined,
+    @Query('ids') ids: string | undefined,
     @Res() res: Response,
   ) {
+    const idList = ids
+      ? ids
+          .split(',')
+          .map((s) => s.trim())
+          .filter(Boolean)
+      : undefined;
     const csv = await this.ordersService.exportOrdersCsv({
       status,
       paymentStatus,
       dateFrom,
       dateTo,
+      ids: idList,
     });
     const today = new Date().toISOString().slice(0, 10);
     res.setHeader('Content-Type', 'text/csv; charset=utf-8');

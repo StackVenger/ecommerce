@@ -744,11 +744,18 @@ export class OrdersService {
     paymentStatus?: string;
     dateFrom?: string;
     dateTo?: string;
+    ids?: string[];
   }): Promise<string> {
     const where: Record<string, unknown> = {};
 
     if (filters.status) {
       where.status = filters.status;
+    }
+
+    // When a specific id list is passed, restrict to those — useful for
+    // the "Export Selected" bulk action on the admin list view.
+    if (filters.ids && filters.ids.length > 0) {
+      where.id = { in: filters.ids };
     }
 
     const createdAt: { gte?: Date; lte?: Date } = {};

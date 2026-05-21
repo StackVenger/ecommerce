@@ -254,6 +254,65 @@ export default function AdminOrdersPage() {
     setPagination((prev) => ({ ...prev, page: newPage }));
   };
 
+  // Bulk: export only the selected rows. Reuses the same export endpoint
+  // by passing a comma-separated id list — when set, the server restricts
+  // the CSV to those rows regardless of any other filter the page holds.
+  const handleExportSelected = async () => {
+    if (selectedOrders.size === 0) {
+      return;
+    }
+    try {
+      const params = new URLSearchParams();
+      params.set('ids', Array.from(selectedOrders).join(','));
+      const { data } = await apiClient.get(`/admin/orders/export?${params.toString()}`, {
+        responseType: 'blob',
+      });
+      const blob = new Blob([data], { type: 'text/csv' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `orders-selected-${new Date().toISOString().split('T')[0]}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast.success(`Exported ${selectedOrders.size} order(s)`);
+    } catch (error) {
+      toast.error(getApiErrorMessage(error, 'Failed to export selected orders'));
+    }
+  };
+
+  // Bulk: apply a new status to every selected order. Status transitions
+  // are server-validated so some rows may legitimately be rejected (e.g.
+  // setting DELIVERED on a PENDING order) — report aggregate counts and
+  // refresh the list so the UI reflects what actually changed.
+  const [bulkStatusOpen, setBulkStatusOpen] = useState(false);
+  const [bulkStatusValue, setBulkStatusValue] = useState<OrderStatus>('CONFIRMED');
+  const [bulkStatusBusy, setBulkStatusBusy] = useState(false);
+
+  const handleBulkUpdateStatus = async () => {
+    if (selectedOrders.size === 0) {
+      return;
+    }
+    setBulkStatusBusy(true);
+    const ids = Array.from(selectedOrders);
+    const results = await Promise.allSettled(
+      ids.map((id) => apiClient.patch(`/admin/orders/${id}/status`, { status: bulkStatusValue })),
+    );
+    const succeeded = results.filter((r) => r.status === 'fulfilled').length;
+    const failed = results.length - succeeded;
+    setBulkStatusBusy(false);
+    setBulkStatusOpen(false);
+    if (succeeded > 0) {
+      toast.success(
+        `Updated ${succeeded} order(s) to ${bulkStatusValue}` +
+          (failed > 0 ? ` (${failed} skipped — invalid transition)` : ''),
+      );
+    } else if (failed > 0) {
+      toast.error(`No orders updated — ${failed} skipped (invalid status transition)`);
+    }
+    setSelectedOrders(new Set());
+    fetchOrders();
+  };
+
   const resetFilters = () => {
     setFilters({
       search: '',
@@ -584,20 +643,87 @@ export default function AdminOrdersPage() {
 
       {/* Bulk Actions */}
       {selectedOrders.size > 0 && (
-        <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white px-6 py-3 rounded-lg shadow-xl flex items-center gap-4">
+        <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white px-6 py-3 rounded-lg shadow-xl flex items-center gap-4 z-40">
           <span className="text-sm">{selectedOrders.size} order(s) selected</span>
-          <button className="px-3 py-1 bg-teal-600 rounded text-sm hover:bg-teal-700">
+          <button
+            type="button"
+            onClick={() => setBulkStatusOpen(true)}
+            className="px-3 py-1 bg-teal-600 rounded text-sm hover:bg-teal-700"
+          >
             Update Status
           </button>
-          <button className="px-3 py-1 bg-green-600 rounded text-sm hover:bg-green-700">
+          <button
+            type="button"
+            onClick={handleExportSelected}
+            className="px-3 py-1 bg-green-600 rounded text-sm hover:bg-green-700"
+          >
             Export Selected
           </button>
           <button
+            type="button"
             onClick={() => setSelectedOrders(new Set())}
             className="px-3 py-1 bg-gray-700 rounded text-sm hover:bg-gray-600"
           >
             Clear
           </button>
+        </div>
+      )}
+
+      {/* Bulk status modal */}
+      {bulkStatusOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+          role="dialog"
+          aria-modal="true"
+        >
+          <button
+            type="button"
+            aria-label="Close dialog"
+            onClick={() => !bulkStatusBusy && setBulkStatusOpen(false)}
+            className="absolute inset-0 h-full w-full cursor-default bg-transparent"
+          />
+          <div className="relative z-10 w-full max-w-md rounded-xl bg-white p-6 shadow-xl">
+            <h3 className="text-lg font-semibold text-gray-900">
+              Update status for {selectedOrders.size} order(s)
+            </h3>
+            <p className="mt-1 text-sm text-gray-500">
+              Orders that can&apos;t legally transition to the new status will be skipped.
+            </p>
+            <label className="mt-4 block text-sm font-medium text-gray-700" htmlFor="bulk-status">
+              New status
+            </label>
+            <select
+              id="bulk-status"
+              value={bulkStatusValue}
+              onChange={(e) => setBulkStatusValue(e.target.value as OrderStatus)}
+              disabled={bulkStatusBusy}
+              className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-teal-500 focus:ring-1 focus:ring-teal-500"
+            >
+              {Object.entries(STATUS_BADGES).map(([key, val]) => (
+                <option key={key} value={key}>
+                  {val.label}
+                </option>
+              ))}
+            </select>
+            <div className="mt-6 flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setBulkStatusOpen(false)}
+                disabled={bulkStatusBusy}
+                className="rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleBulkUpdateStatus}
+                disabled={bulkStatusBusy}
+                className="rounded-lg bg-teal-600 px-4 py-2 text-sm font-medium text-white hover:bg-teal-700 disabled:opacity-50"
+              >
+                {bulkStatusBusy ? 'Updating…' : 'Apply'}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
