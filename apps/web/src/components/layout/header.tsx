@@ -270,7 +270,7 @@ interface HeaderProps {
  * `siteName` and `logoUrl` come from the server-side site config so the
  * storefront reflects admin-edited branding without a rebuild.
  */
-export function Header({ siteName = 'ShopBD', logoUrl, menu }: HeaderProps = {}) {
+export function Header({ siteName = 'Store', logoUrl, menu }: HeaderProps = {}) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const navItems = (() => {

@@ -1,5 +1,7 @@
 import type { Metadata } from 'next';
 
+import { getSiteConfig } from '@/lib/config/site-config';
+
 export const metadata: Metadata = {
   title: 'Checkout',
   description: 'Complete your order — secure checkout with multiple payment options.',
@@ -11,7 +13,10 @@ export const metadata: Metadata = {
  * Provides a clean, distraction-free layout for the checkout flow.
  * Removes the standard shop navigation to keep focus on completing the order.
  */
-export default function CheckoutLayout({ children }: { children: React.ReactNode }) {
+export default async function CheckoutLayout({ children }: { children: React.ReactNode }) {
+  const { settings } = await getSiteConfig();
+  const siteName = settings.general.site_name;
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Minimal header */}
@@ -19,7 +24,7 @@ export default function CheckoutLayout({ children }: { children: React.ReactNode
         <div className="site-container px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 items-center justify-between">
             <a href="/" className="text-xl font-bold text-gray-900">
-              Ecommerce
+              {siteName}
             </a>
 
             <div className="flex items-center gap-2 text-sm text-gray-500">

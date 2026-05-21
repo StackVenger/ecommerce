@@ -143,7 +143,7 @@ function paymentMethodsText(payments?: FooterProps['payments']): string {
 }
 
 export function Footer({
-  siteName = 'ShopBD',
+  siteName = 'Store',
   tagline = 'Your trusted online shopping destination.',
   taglineBn,
   phone,
