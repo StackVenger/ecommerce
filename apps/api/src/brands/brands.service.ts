@@ -75,7 +75,9 @@ export class BrandsService {
         orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
         include: {
           _count: {
-            select: { products: true },
+            // Match the storefront brand sidebar — only count products that
+            // are actually purchasable (ACTIVE), not DRAFT/ARCHIVED.
+            select: { products: { where: { status: 'ACTIVE' } } },
           },
         },
       }),
@@ -109,7 +111,7 @@ export class BrandsService {
       where: { slug },
       include: {
         _count: {
-          select: { products: true },
+          select: { products: { where: { status: 'ACTIVE' } } },
         },
       },
     });

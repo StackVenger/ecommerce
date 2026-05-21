@@ -64,7 +64,10 @@ export class CategoriesService {
       orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
       include: {
         _count: {
-          select: { products: true },
+          // Sidebar counts must match what's actually shoppable — DRAFT and
+          // ARCHIVED products are hidden from /products listings, so they
+          // shouldn't inflate the per-category number either.
+          select: { products: { where: { status: 'ACTIVE' } } },
         },
       },
     });
@@ -222,7 +225,7 @@ export class CategoriesService {
           },
         },
         _count: {
-          select: { products: true },
+          select: { products: { where: { status: 'ACTIVE' } } },
         },
       },
     });
