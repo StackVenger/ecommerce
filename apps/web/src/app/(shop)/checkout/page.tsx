@@ -4,9 +4,15 @@ import { useRouter } from 'next/navigation';
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { toast } from 'sonner';
 
+import { AddressForm } from '@/components/account/address-form';
 import { useAuth } from '@/hooks/use-auth';
 import { useCart } from '@/hooks/use-cart';
-import { getAddresses, type Address } from '@/lib/api/addresses';
+import {
+  getAddresses,
+  createAddress,
+  type Address,
+  type CreateAddressData,
+} from '@/lib/api/addresses';
 import { getSessionId } from '@/lib/api/cart';
 import { getApiErrorMessage } from '@/lib/api/errors';
 import {
@@ -630,9 +636,14 @@ function AddressCard({ address, isSelected, onSelect }: AddressCardProps) {
         isSelected ? 'border-primary bg-teal-50' : 'border-gray-200 hover:border-gray-300 bg-white'
       }`}
     >
-      <div className="flex items-start justify-between">
-        <div>
-          <p className="font-medium text-gray-900">{address.fullName}</p>
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-semibold text-gray-700">
+              {address.label || 'Home'}
+            </span>
+            <p className="font-medium text-gray-900">{address.fullName}</p>
+          </div>
           <p className="mt-1 text-sm text-gray-600">{address.phone}</p>
           <p className="mt-1 text-sm text-gray-500">
             {address.addressLine1}
@@ -645,7 +656,7 @@ function AddressCard({ address, isSelected, onSelect }: AddressCardProps) {
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-shrink-0">
           {address.isDefault && (
             <span className="rounded-full bg-teal-100 px-2.5 py-0.5 text-xs font-medium text-primary">
               Default
@@ -771,6 +782,8 @@ export default function CheckoutPage() {
   // Saved addresses (authenticated users)
   const [savedAddresses, setSavedAddresses] = useState<Address[]>([]);
   const [addressesLoading, setAddressesLoading] = useState(false);
+  const [showAddAddress, setShowAddAddress] = useState(false);
+  const [savingAddress, setSavingAddress] = useState(false);
 
   // Shipping methods
   const [shippingMethods, setShippingMethods] = useState<ShippingMethod[]>([]);
@@ -913,6 +926,24 @@ export default function CheckoutPage() {
 
   const handleStepClick = (stepId: StepId) => {
     setCurrentStep(stepId);
+  };
+
+  // Save a new address from the inline form on the checkout address step.
+  // The new address is appended to the saved list and auto-selected — users
+  // can manage (rename, delete, set default) it later from /account/addresses.
+  const handleCreateAddress = async (data: CreateAddressData) => {
+    setSavingAddress(true);
+    try {
+      const created = await createAddress(data);
+      setSavedAddresses((prev) => [created, ...prev]);
+      setCheckoutData((prev) => ({ ...prev, addressId: created.id }));
+      setShowAddAddress(false);
+      toast.success('Address saved');
+    } catch (err) {
+      toast.error(getApiErrorMessage(err, 'Failed to save address'));
+    } finally {
+      setSavingAddress(false);
+    }
   };
 
   // Handle address continue - load shipping
@@ -1063,29 +1094,43 @@ export default function CheckoutPage() {
                   <div className="flex items-center justify-center py-12">
                     <div className="h-8 w-8 animate-spin rounded-full border-2 border-gray-200 border-t-teal-600" />
                   </div>
-                ) : savedAddresses.length > 0 ? (
-                  <div className="space-y-3 mb-6">
-                    {savedAddresses.map((address) => (
-                      <AddressCard
-                        key={address.id}
-                        address={address}
-                        isSelected={checkoutData.addressId === address.id}
-                        onSelect={() =>
-                          setCheckoutData((prev) => ({ ...prev, addressId: address.id }))
-                        }
-                      />
-                    ))}
-                  </div>
                 ) : (
-                  <div className="rounded-xl border-2 border-dashed border-gray-200 p-8 text-center mb-6">
-                    <p className="text-gray-500 mb-2">No saved addresses found.</p>
-                    <a
-                      href="/account/addresses"
-                      className="text-sm font-medium text-primary hover:text-teal-800"
-                    >
-                      Add an address in your account settings
-                    </a>
-                  </div>
+                  <>
+                    {savedAddresses.length > 0 && (
+                      <div className="space-y-3 mb-4">
+                        {savedAddresses.map((address) => (
+                          <AddressCard
+                            key={address.id}
+                            address={address}
+                            isSelected={checkoutData.addressId === address.id}
+                            onSelect={() =>
+                              setCheckoutData((prev) => ({ ...prev, addressId: address.id }))
+                            }
+                          />
+                        ))}
+                      </div>
+                    )}
+
+                    {showAddAddress ? (
+                      <div className="mb-6">
+                        <AddressForm
+                          onSubmit={handleCreateAddress}
+                          onCancel={() => setShowAddAddress(false)}
+                          isLoading={savingAddress}
+                        />
+                      </div>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => setShowAddAddress(true)}
+                        className="w-full mb-6 rounded-xl border-2 border-dashed border-gray-300 px-4 py-4 text-sm font-medium text-gray-600 hover:border-primary hover:text-primary transition-colors"
+                      >
+                        {savedAddresses.length > 0
+                          ? '+ Deliver to a different address'
+                          : '+ Add a delivery address'}
+                      </button>
+                    )}
+                  </>
                 )}
               </>
             )}
