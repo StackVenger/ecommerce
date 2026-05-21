@@ -1,3 +1,4 @@
+import { Transform } from 'class-transformer';
 import {
   IsOptional,
   IsString,
@@ -7,7 +8,6 @@ import {
   IsDateString,
   IsIn,
 } from 'class-validator';
-import { Transform } from 'class-transformer';
 
 export class UpdateProfileDto {
   @IsOptional()
@@ -26,8 +26,11 @@ export class UpdateProfileDto {
 
   @IsOptional()
   @IsString()
-  @Matches(/^\+?[1-9]\d{1,14}$/, {
-    message: 'Please provide a valid phone number in E.164 format',
+  // Match the address DTO: accept either +8801XXXXXXXXX or the
+  // local 01XXXXXXXXX form so users can paste from either context.
+  @Matches(/^(\+880|0)[0-9]{10}$/, {
+    message:
+      'Phone number must be a valid Bangladeshi number (e.g., +8801XXXXXXXXX or 01XXXXXXXXX)',
   })
   phone?: string;
 
