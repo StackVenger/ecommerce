@@ -15,6 +15,7 @@ import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 
+import { ProductQuestions } from '@/components/products/product-questions';
 import { ReviewForm } from '@/components/reviews/review-form';
 import { ReviewList } from '@/components/reviews/review-list';
 import { RichText } from '@/components/ui/rich-text';
@@ -885,6 +886,12 @@ export default function ProductPage() {
               </div>
             )}
           </div>
+        </div>
+
+        {/* Q&A — always rendered alongside the tabs so customers can ask
+            or browse questions without switching into a tab. */}
+        <div className="mt-10">
+          <ProductQuestions productId={product.id} productSlug={product.slug} />
         </div>
       </div>
     </div>

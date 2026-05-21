@@ -68,6 +68,7 @@ const navigation: NavItem[] = [
     children: [
       { label: 'All Customers', href: '/admin/customers' },
       { label: 'Reviews', href: '/admin/reviews' },
+      { label: 'Questions', href: '/admin/questions' },
     ],
   },
   {

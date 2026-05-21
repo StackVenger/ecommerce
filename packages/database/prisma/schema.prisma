@@ -63,6 +63,8 @@ model User {
   orders        Order[]
   reviews       Review[]
   reviewHelpfuls ReviewHelpful[]
+  askedQuestions    ProductQuestion[] @relation("AskedQuestions")
+  answeredQuestions ProductQuestion[] @relation("AnsweredQuestions")
   wishlists     Wishlist[]
   notifications Notification[]
   auditLogs     AuditLog[]
@@ -217,6 +219,7 @@ model Product {
   cartItems   CartItem[]
   orderItems  OrderItem[]
   reviews     Review[]
+  questions   ProductQuestion[]
   wishlists   Wishlist[]
   viewEvents  ProductViewEvent[]
 
@@ -624,6 +627,27 @@ model ReviewHelpful {
   @@unique([reviewId, userId])
   @@index([reviewId])
   @@map("review_helpful")
+}
+
+model ProductQuestion {
+  id         String    @id @default(cuid())
+  productId  String
+  userId     String?
+  question   String
+  answer     String?
+  answeredBy String?
+  answeredAt DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  product  Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  user     User?   @relation("AskedQuestions", fields: [userId], references: [id], onDelete: SetNull)
+  answerer User?   @relation("AnsweredQuestions", fields: [answeredBy], references: [id], onDelete: SetNull)
+
+  @@index([productId])
+  @@index([userId])
+  @@index([answeredBy])
+  @@map("product_questions")
 }
 
 // ─── Wishlist ────────────────────────────────────────────────────────────────

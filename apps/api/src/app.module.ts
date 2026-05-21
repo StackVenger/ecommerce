@@ -28,6 +28,7 @@ import { OrdersModule } from './orders/orders.module';
 import { PagesModule } from './pages/pages.module';
 import { PaymentModule } from './payment/payment.module';
 import { PrismaModule } from './prisma/prisma.module';
+import { ProductQuestionsModule } from './product-questions/product-questions.module';
 import { ProductsModule } from './products/products.module';
 import { ReviewsModule } from './reviews/reviews.module';
 import { SearchModule } from './search/search.module';
@@ -86,6 +87,7 @@ import { WishlistModule } from './wishlist/wishlist.module';
     PagesModule,
     PaymentModule,
     ProductsModule,
+    ProductQuestionsModule,
     ReviewsModule,
     SearchModule,
     SettingsModule,
