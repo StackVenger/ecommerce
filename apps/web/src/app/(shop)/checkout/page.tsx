@@ -238,9 +238,19 @@ interface OrderSummaryProps {
   shippingCost: number | null;
   total: number;
   itemCount: number;
+  /** Rate-card cost before free-shipping kicks in; used for the strike-through. */
+  shippingBaseCost?: number | null;
 }
 
-function OrderSummary({ subtotal, discount, shippingCost, total, itemCount }: OrderSummaryProps) {
+function OrderSummary({
+  subtotal,
+  discount,
+  shippingCost,
+  shippingBaseCost,
+  total,
+  itemCount,
+}: OrderSummaryProps) {
+  const isFreeShipping = shippingCost === 0 && (shippingBaseCost ?? 0) > 0;
   return (
     <div className="rounded-2xl bg-white border border-gray-200 p-6 sticky top-8">
       <h2 className="text-lg font-semibold text-gray-900 mb-6">Order Summary</h2>
@@ -262,15 +272,20 @@ function OrderSummary({ subtotal, discount, shippingCost, total, itemCount }: Or
 
         <div className="flex justify-between text-gray-600">
           <span>Shipping</span>
-          <span
-            className={shippingCost !== null ? 'font-medium text-gray-900' : 'text-gray-400 italic'}
-          >
-            {shippingCost !== null
-              ? shippingCost === 0
-                ? 'Free'
-                : formatPrice(shippingCost)
-              : 'Calculated next'}
-          </span>
+          {shippingCost === null ? (
+            <span className="text-gray-400 italic">Calculated next</span>
+          ) : isFreeShipping ? (
+            <span className="flex items-baseline gap-2 font-medium">
+              <span className="text-gray-400 line-through">
+                {formatPrice(shippingBaseCost ?? 0)}
+              </span>
+              <span className="text-green-600">Free</span>
+            </span>
+          ) : shippingCost === 0 ? (
+            <span className="font-medium text-green-600">Free</span>
+          ) : (
+            <span className="font-medium text-gray-900">{formatPrice(shippingCost)}</span>
+          )}
         </div>
       </div>
 
@@ -724,7 +739,12 @@ function ShippingMethodCard({ method, isSelected, onSelect }: ShippingMethodCard
 
         <div className="text-right">
           {method.isFree ? (
-            <span className="text-lg font-bold text-green-600">Free</span>
+            <div className="flex items-baseline justify-end gap-2">
+              <span className="text-sm text-gray-400 line-through">
+                {formatPrice(method.baseCost)}
+              </span>
+              <span className="text-lg font-bold text-green-600">Free</span>
+            </div>
           ) : (
             <span className="text-lg font-bold text-gray-900">{formatPrice(method.cost)}</span>
           )}
@@ -834,7 +854,7 @@ export default function CheckoutPage() {
   const loadShipping = useCallback(async () => {
     setShippingLoading(true);
     try {
-      const params: { addressId?: string; division?: string } = {};
+      const params: { addressId?: string; division?: string; subtotal?: number } = {};
       if (isGuest && checkoutData.guestAddress.district) {
         params.division = checkoutData.guestAddress.district;
       } else if (checkoutData.addressId) {
@@ -842,6 +862,9 @@ export default function CheckoutPage() {
       } else {
         setShippingLoading(false);
         return;
+      }
+      if (cart?.subtotal !== undefined && cart.subtotal !== null) {
+        params.subtotal = cart.subtotal;
       }
       const result = await calculateShipping(params);
       setShippingMethods(result.methods);
@@ -853,6 +876,7 @@ export default function CheckoutPage() {
           id: 'standard',
           name: 'Standard Delivery',
           zone: 'INSIDE_DHAKA',
+          baseCost: 60,
           cost: 60,
           estimatedDays: '1-2 days',
           freeAbove: 2000,
@@ -862,6 +886,7 @@ export default function CheckoutPage() {
           id: 'express',
           name: 'Express Delivery',
           zone: 'INSIDE_DHAKA',
+          baseCost: 120,
           cost: 120,
           estimatedDays: 'Same day',
           freeAbove: 0,
@@ -871,7 +896,7 @@ export default function CheckoutPage() {
     } finally {
       setShippingLoading(false);
     }
-  }, [isGuest, checkoutData.addressId, checkoutData.guestAddress.district]);
+  }, [isGuest, checkoutData.addressId, checkoutData.guestAddress.district, cart?.subtotal]);
 
   // Cart-derived values
   const subtotal = cart?.subtotal ?? 0;
@@ -882,8 +907,25 @@ export default function CheckoutPage() {
   const orderSummary = useMemo(() => {
     const shipping = checkoutData.shippingMethodId ? checkoutData.shippingCost : null;
     const total = subtotal - discount + (shipping ?? 0);
-    return { subtotal, discount, shippingCost: shipping, total, itemCount };
-  }, [subtotal, discount, checkoutData.shippingMethodId, checkoutData.shippingCost, itemCount]);
+    const chosen = checkoutData.shippingMethodId
+      ? shippingMethods.find((m) => m.id === checkoutData.shippingMethodId)
+      : undefined;
+    return {
+      subtotal,
+      discount,
+      shippingCost: shipping,
+      shippingBaseCost: chosen?.baseCost ?? null,
+      total,
+      itemCount,
+    };
+  }, [
+    subtotal,
+    discount,
+    checkoutData.shippingMethodId,
+    checkoutData.shippingCost,
+    itemCount,
+    shippingMethods,
+  ]);
 
   // Validation for each step
   const isGuestInfoValid =
@@ -1423,13 +1465,18 @@ export default function CheckoutPage() {
                 <div className="rounded-xl border border-gray-200 bg-white p-4 text-sm">
                   <div className="flex items-center justify-between">
                     <span className="font-medium text-gray-900">{selectedShippingMethod.name}</span>
-                    <span className="font-semibold text-gray-900">
-                      {selectedShippingMethod.cost === 0 ? (
+                    {selectedShippingMethod.isFree ? (
+                      <span className="flex items-baseline gap-2 font-semibold">
+                        <span className="text-sm text-gray-400 line-through">
+                          {formatPrice(selectedShippingMethod.baseCost)}
+                        </span>
                         <span className="text-green-600">Free</span>
-                      ) : (
-                        formatPrice(selectedShippingMethod.cost)
-                      )}
-                    </span>
+                      </span>
+                    ) : (
+                      <span className="font-semibold text-gray-900">
+                        {formatPrice(selectedShippingMethod.cost)}
+                      </span>
+                    )}
                   </div>
                 </div>
               </div>
@@ -1478,13 +1525,20 @@ export default function CheckoutPage() {
                   )}
                   <div className="flex justify-between text-gray-600">
                     <span>Shipping</span>
-                    <span className="font-medium text-gray-900">
-                      {checkoutData.shippingCost === 0 ? (
+                    {selectedShippingMethod?.isFree ? (
+                      <span className="flex items-baseline gap-2 font-medium">
+                        <span className="text-gray-400 line-through">
+                          {formatPrice(selectedShippingMethod.baseCost)}
+                        </span>
                         <span className="text-green-600">Free</span>
-                      ) : (
-                        formatPrice(checkoutData.shippingCost)
-                      )}
-                    </span>
+                      </span>
+                    ) : checkoutData.shippingCost === 0 ? (
+                      <span className="font-medium text-green-600">Free</span>
+                    ) : (
+                      <span className="font-medium text-gray-900">
+                        {formatPrice(checkoutData.shippingCost)}
+                      </span>
+                    )}
                   </div>
                   <div className="border-t border-gray-200 my-2" />
                   <div className="flex justify-between items-baseline">

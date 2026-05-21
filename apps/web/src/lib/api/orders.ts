@@ -270,6 +270,9 @@ export interface ShippingMethod {
   id: string;
   name: string;
   zone: 'INSIDE_DHAKA' | 'OUTSIDE_DHAKA';
+  /** Rate-card cost before any free-shipping discount. */
+  baseCost: number;
+  /** Effective cost the customer pays (0 when isFree). */
   cost: number;
   estimatedDays: string;
   freeAbove: number;
@@ -281,14 +284,18 @@ export interface ShippingCalculation {
   methods: ShippingMethod[];
   subtotal: number;
   qualifiesForFreeShipping: boolean;
+  freeShippingThreshold: number;
 }
 
 /**
  * Calculate shipping options for a saved address or by division.
+ * Passing `subtotal` lets the API apply the admin free-shipping
+ * threshold against the same number the cart sidebar displays.
  */
 export async function calculateShipping(params: {
   addressId?: string;
   division?: string;
+  subtotal?: number;
 }): Promise<ShippingCalculation> {
   const searchParams = new URLSearchParams();
   if (params.addressId) {
@@ -296,6 +303,9 @@ export async function calculateShipping(params: {
   }
   if (params.division) {
     searchParams.set('division', params.division);
+  }
+  if (params.subtotal !== undefined && Number.isFinite(params.subtotal)) {
+    searchParams.set('subtotal', String(params.subtotal));
   }
 
   const response = await apiClient.get<{

@@ -235,11 +235,19 @@ export class OrdersService {
     let shippingCost = 0;
     if (dto.shippingMethodId) {
       try {
+        // Reuse the validated cart subtotal so the shipping service applies
+        // the same free-shipping threshold the buyer saw at checkout.
         const calc =
           !isGuest && dto.addressId
-            ? await this.shippingService.calculateShipping(dto.addressId, userId)
-            : this.shippingService.calculateShippingByDivision(
+            ? await this.shippingService.calculateShipping(
+                dto.addressId,
+                userId,
+                subtotal,
+                sessionId,
+              )
+            : await this.shippingService.calculateShippingByDivision(
                 dto.shippingDivision || dto.shippingDistrict || 'Dhaka',
+                { subtotal, sessionId, userId },
               );
 
         const chosen = calc.methods.find((m) => m.id === dto.shippingMethodId);

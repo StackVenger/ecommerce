@@ -152,12 +152,29 @@ export class OrdersController {
   async calculateShipping(
     @Query('addressId') addressId?: string,
     @Query('division') division?: string,
+    @Query('subtotal') subtotal?: string,
+    @Headers('x-session-id') sessionId?: string,
     @CurrentUser() user?: AuthenticatedUser | null,
   ) {
+    const parsedSubtotal = subtotal !== undefined ? Number(subtotal) : undefined;
+    const providedSubtotal =
+      parsedSubtotal !== undefined && Number.isFinite(parsedSubtotal) && parsedSubtotal >= 0
+        ? parsedSubtotal
+        : undefined;
+
     if (addressId) {
-      return this.shippingService.calculateShipping(addressId, user?.id);
+      return this.shippingService.calculateShipping(
+        addressId,
+        user?.id,
+        providedSubtotal,
+        sessionId,
+      );
     }
-    return this.shippingService.calculateShippingByDivision(division || 'Dhaka');
+    return this.shippingService.calculateShippingByDivision(division || 'Dhaka', {
+      subtotal: providedSubtotal,
+      sessionId,
+      userId: user?.id,
+    });
   }
 
   // ─── Admin: Order Management ──────────────────────────────────────────────────
