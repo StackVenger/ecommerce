@@ -191,8 +191,32 @@ export class OrdersController {
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
     @Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit: number,
     @Query('status') status?: string,
+    @Query('paymentStatus') paymentStatus?: string,
+    @Query('search') search?: string,
+    @Query('dateFrom') dateFrom?: string,
+    @Query('dateTo') dateTo?: string,
+    @Query('minAmount') minAmount?: string,
+    @Query('maxAmount') maxAmount?: string,
+    @Query('sortBy') sortBy?: string,
+    @Query('sortOrder') sortOrder?: string,
   ) {
-    return this.ordersService.findAllOrders({ page, limit, status });
+    const minAmountNum =
+      minAmount !== undefined && minAmount !== '' ? Number(minAmount) : undefined;
+    const maxAmountNum =
+      maxAmount !== undefined && maxAmount !== '' ? Number(maxAmount) : undefined;
+    return this.ordersService.findAllOrders({
+      page,
+      limit,
+      status,
+      paymentStatus,
+      search,
+      dateFrom,
+      dateTo,
+      minAmount: Number.isFinite(minAmountNum) ? minAmountNum : undefined,
+      maxAmount: Number.isFinite(maxAmountNum) ? maxAmountNum : undefined,
+      sortBy,
+      sortOrder: sortOrder === 'asc' ? 'asc' : 'desc',
+    });
   }
 
   /**

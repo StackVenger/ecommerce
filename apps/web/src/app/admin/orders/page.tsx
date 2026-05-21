@@ -189,7 +189,7 @@ export default function AdminOrdersPage() {
       }));
     } catch (error) {
       console.error('Error fetching orders:', error);
-      toast.error(getApiErrorMessage(err, 'Failed to load orders'));
+      toast.error(getApiErrorMessage(error, 'Failed to load orders'));
     } finally {
       setLoading(false);
     }
@@ -246,7 +246,7 @@ export default function AdminOrdersPage() {
       toast.success('Orders exported');
     } catch (error) {
       console.error('Export error:', error);
-      toast.error(getApiErrorMessage(err, 'Failed to export orders'));
+      toast.error(getApiErrorMessage(error, 'Failed to export orders'));
     }
   };
 

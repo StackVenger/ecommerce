@@ -551,14 +551,100 @@ export class OrdersService {
     return order;
   }
 
-  async findAllOrders(options: PaginationOptions & { status?: string }) {
-    const { page, limit, status } = options;
+  async findAllOrders(
+    options: PaginationOptions & {
+      status?: string;
+      paymentStatus?: string;
+      search?: string;
+      dateFrom?: string;
+      dateTo?: string;
+      minAmount?: number;
+      maxAmount?: number;
+      sortBy?: string;
+      sortOrder?: 'asc' | 'desc';
+    },
+  ) {
+    const {
+      page,
+      limit,
+      status,
+      paymentStatus,
+      search,
+      dateFrom,
+      dateTo,
+      minAmount,
+      maxAmount,
+      sortBy = 'createdAt',
+      sortOrder = 'desc',
+    } = options;
     const skip = (page - 1) * limit;
 
     const where: Record<string, unknown> = {};
     if (status) {
       where.status = status;
     }
+
+    // Date range — inclusive on both ends; `dateTo` is interpreted as
+    // end-of-day so that "to: 2026-05-21" still matches orders placed
+    // later that same day.
+    if (dateFrom || dateTo) {
+      const createdAt: { gte?: Date; lte?: Date } = {};
+      if (dateFrom) {
+        createdAt.gte = new Date(dateFrom);
+      }
+      if (dateTo) {
+        const end = new Date(dateTo);
+        end.setHours(23, 59, 59, 999);
+        createdAt.lte = end;
+      }
+      where.createdAt = createdAt;
+    }
+
+    if (minAmount !== undefined || maxAmount !== undefined) {
+      const totalAmount: { gte?: number; lte?: number } = {};
+      if (minAmount !== undefined) {
+        totalAmount.gte = minAmount;
+      }
+      if (maxAmount !== undefined) {
+        totalAmount.lte = maxAmount;
+      }
+      where.totalAmount = totalAmount;
+    }
+
+    if (search?.trim()) {
+      const term = search.trim();
+      const stripped = term.replace(/^#/, '');
+      where.OR = [
+        { orderNumber: { contains: stripped, mode: 'insensitive' } },
+        { guestEmail: { contains: term, mode: 'insensitive' } },
+        { guestFullName: { contains: term, mode: 'insensitive' } },
+        { guestPhone: { contains: term, mode: 'insensitive' } },
+        { user: { email: { contains: term, mode: 'insensitive' } } },
+        { user: { firstName: { contains: term, mode: 'insensitive' } } },
+        { user: { lastName: { contains: term, mode: 'insensitive' } } },
+        { user: { phone: { contains: term, mode: 'insensitive' } } },
+      ];
+    }
+
+    // Payment status lives on the related Payment rows. Match the latest
+    // payment by filtering the relation — orders without any payment
+    // record are excluded when paymentStatus is set.
+    if (paymentStatus) {
+      where.payments = { some: { status: paymentStatus } };
+    }
+
+    // Only allow whitelisted sort columns so a malformed query can't
+    // crash Prisma or be used to probe arbitrary fields.
+    const allowedSortBy = new Set([
+      'createdAt',
+      'updatedAt',
+      'totalAmount',
+      'orderNumber',
+      'status',
+    ]);
+    const orderBy: Record<string, 'asc' | 'desc'> = {
+      [allowedSortBy.has(sortBy) ? sortBy : 'createdAt']: sortOrder === 'asc' ? 'asc' : 'desc',
+    };
 
     const [orders, total] = await Promise.all([
       this.prisma.order.findMany({
@@ -594,7 +680,7 @@ export class OrdersService {
           },
           _count: { select: { items: true } },
         },
-        orderBy: { createdAt: 'desc' },
+        orderBy,
         skip,
         take: limit,
       }),
