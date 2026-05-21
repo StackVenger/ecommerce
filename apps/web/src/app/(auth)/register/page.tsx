@@ -12,7 +12,7 @@ import {
   FormMessage,
 } from '@ecommerce/ui';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, Check, X } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState, Suspense } from 'react';
@@ -95,6 +95,45 @@ function getPasswordStrength(password: string): {
     return { score, label: 'Fair', color: 'bg-yellow-500' };
   }
   return { score, label: 'Strong', color: 'bg-green-500' };
+}
+
+// ──────────────────────────────────────────────────────────
+// Password requirements checklist
+// ──────────────────────────────────────────────────────────
+
+// Keep this list in lockstep with the zod `registerSchema` password rules
+// above — the checklist would mislead users if the two ever diverged.
+const PASSWORD_RULES: Array<{ label: string; test: (pw: string) => boolean }> = [
+  { label: 'At least 8 characters', test: (pw) => pw.length >= 8 },
+  { label: 'One uppercase letter (A-Z)', test: (pw) => /[A-Z]/.test(pw) },
+  { label: 'One lowercase letter (a-z)', test: (pw) => /[a-z]/.test(pw) },
+  { label: 'One number (0-9)', test: (pw) => /[0-9]/.test(pw) },
+  { label: 'One special character (!@#$…)', test: (pw) => /[^A-Za-z0-9]/.test(pw) },
+];
+
+function PasswordRequirements({ password }: { password: string }) {
+  return (
+    <ul className="space-y-1 pt-1">
+      {PASSWORD_RULES.map((rule) => {
+        const passed = rule.test(password);
+        return (
+          <li
+            key={rule.label}
+            className={`flex items-center gap-1.5 text-xs transition-colors ${
+              passed ? 'text-green-600' : 'text-muted-foreground'
+            }`}
+          >
+            {passed ? (
+              <Check className="h-3.5 w-3.5 flex-shrink-0" />
+            ) : (
+              <X className="h-3.5 w-3.5 flex-shrink-0 text-gray-400" />
+            )}
+            <span>{rule.label}</span>
+          </li>
+        );
+      })}
+    </ul>
+  );
 }
 
 // ──────────────────────────────────────────────────────────
@@ -277,6 +316,10 @@ function RegisterContent() {
                     </p>
                   </div>
                 )}
+
+                {/* Live requirements checklist — always shown so users know
+                    what's expected before they start typing. */}
+                <PasswordRequirements password={watchedPassword || ''} />
 
                 <FormMessage />
               </FormItem>
