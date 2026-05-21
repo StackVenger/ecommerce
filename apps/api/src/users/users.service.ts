@@ -164,9 +164,30 @@ export class UsersService {
   async deleteAddress(userId: string, addressId: string) {
     const address = await this.getAddressById(userId, addressId);
 
-    await this.prisma.address.delete({
-      where: { id: addressId },
+    // Address may be referenced by Order.shippingAddressId or
+    // billingAddressId (both NO ACTION). Hard-deleting in that case
+    // throws a FK violation, which renders as a generic 500 to the
+    // customer. Detect referenced rows up front and orphan them
+    // (userId=null) so they disappear from the user's list but the
+    // historical orders still resolve their address.
+    const referenceCount = await this.prisma.order.count({
+      where: {
+        OR: [{ shippingAddressId: addressId }, { billingAddressId: addressId }],
+      },
     });
+
+    let archived = false;
+    if (referenceCount > 0) {
+      await this.prisma.address.update({
+        where: { id: addressId },
+        data: { userId: null, isDefault: false },
+      });
+      archived = true;
+    } else {
+      await this.prisma.address.delete({
+        where: { id: addressId },
+      });
+    }
 
     if (address.isDefault) {
       const nextDefault = await this.prisma.address.findFirst({
@@ -182,9 +203,12 @@ export class UsersService {
       }
     }
 
-    this.logger.log(`Address ${addressId} deleted for user ${userId}`);
+    this.logger.log(
+      `Address ${addressId} ${archived ? 'orphaned' : 'deleted'} for user ${userId}` +
+        (archived ? ` (referenced by ${referenceCount} order(s))` : ''),
+    );
 
-    return { deleted: true, id: addressId };
+    return { deleted: !archived, archived, id: addressId };
   }
 
   async setDefaultAddress(userId: string, addressId: string) {

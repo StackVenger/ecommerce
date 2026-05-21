@@ -2,8 +2,10 @@
 
 import { MapPin, Plus, Edit2, Trash2, Star, Phone, Home, Briefcase } from 'lucide-react';
 import { useEffect, useState, useCallback } from 'react';
+import { toast } from 'sonner';
 
 import { AddressForm } from '@/components/account/address-form';
+import { useConfirm } from '@/components/admin/ui/confirm-dialog';
 import {
   getAddresses,
   createAddress,
@@ -13,6 +15,7 @@ import {
   type Address,
   type CreateAddressData,
 } from '@/lib/api/addresses';
+import { getApiErrorMessage } from '@/lib/api/errors';
 
 const labelIcons: Record<string, typeof Home> = {
   Home: Home,
@@ -26,6 +29,7 @@ export default function AddressesPage() {
   const [showForm, setShowForm] = useState(false);
   const [editingAddress, setEditingAddress] = useState<Address | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const { confirm, dialog: confirmDialog } = useConfirm();
 
   const fetchAddresses = useCallback(async () => {
     try {
@@ -72,15 +76,23 @@ export default function AddressesPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!window.confirm('Are you sure you want to delete this address?')) {
+    const ok = await confirm({
+      title: 'Delete this address?',
+      description:
+        'You can always add it again later. Past orders that used this address will keep their delivery details.',
+      confirmLabel: 'Delete',
+      tone: 'danger',
+    });
+    if (!ok) {
       return;
     }
 
     try {
       await deleteAddress(id);
       await fetchAddresses();
+      toast.success('Address deleted');
     } catch (error) {
-      console.error('Failed to delete address:', error);
+      toast.error(getApiErrorMessage(error, 'Failed to delete address'));
     }
   };
 
@@ -109,6 +121,7 @@ export default function AddressesPage() {
 
   return (
     <div className="space-y-6">
+      {confirmDialog}
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
