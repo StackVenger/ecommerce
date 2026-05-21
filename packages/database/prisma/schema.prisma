@@ -62,6 +62,7 @@ model User {
   carts         Cart[]
   orders        Order[]
   reviews       Review[]
+  reviewHelpfuls ReviewHelpful[]
   wishlists     Wishlist[]
   notifications Notification[]
   auditLogs     AuditLog[]
@@ -586,27 +587,43 @@ enum ReviewStatus {
 }
 
 model Review {
-  id         String       @id @default(cuid())
-  productId  String
-  userId     String
-  rating     Int
-  title      String?
-  comment    String?
-  images     String[]     @default([])
-  status     ReviewStatus @default(PENDING)
-  isVerified Boolean      @default(false)
-  adminReply String?
-  repliedAt  DateTime?
-  createdAt  DateTime     @default(now())
-  updatedAt  DateTime     @updatedAt
+  id           String       @id @default(cuid())
+  productId    String
+  userId       String
+  rating       Int
+  title        String?
+  comment      String?
+  images       String[]     @default([])
+  status       ReviewStatus @default(PENDING)
+  isVerified   Boolean      @default(false)
+  adminReply   String?
+  repliedAt    DateTime?
+  helpfulCount Int          @default(0)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
 
-  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
-  user    User    @relation(fields: [userId], references: [id])
+  product      Product         @relation(fields: [productId], references: [id], onDelete: Cascade)
+  user         User            @relation(fields: [userId], references: [id])
+  helpfulVotes ReviewHelpful[]
 
   @@unique([productId, userId])
   @@index([productId])
   @@index([status])
   @@map("reviews")
+}
+
+model ReviewHelpful {
+  id        String   @id @default(cuid())
+  reviewId  String
+  userId    String
+  createdAt DateTime @default(now())
+
+  review Review @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([reviewId, userId])
+  @@index([reviewId])
+  @@map("review_helpful")
 }
 
 // ─── Wishlist ────────────────────────────────────────────────────────────────

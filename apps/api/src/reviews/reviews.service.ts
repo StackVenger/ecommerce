@@ -46,6 +46,9 @@ export class ReviewsService {
         comment: dto.comment,
         images: dto.images ?? [],
         status: 'PENDING',
+        // hasPurchased was just confirmed above — flag the review so the
+        // storefront can show the "Verified Purchase" chip.
+        isVerified: true,
       },
       include: {
         user: { select: { id: true, firstName: true, lastName: true } },
@@ -109,9 +112,11 @@ export class ReviewsService {
       page?: number;
       limit?: number;
       sortBy?: 'newest' | 'highest' | 'lowest' | 'helpful';
+      rating?: number;
+      currentUserId?: string;
     },
   ) {
-    const { page = 1, limit = 10, sortBy = 'newest' } = params;
+    const { page = 1, limit = 10, sortBy = 'newest', rating, currentUserId } = params;
     const skip = (page - 1) * limit;
 
     const orderBy: Record<string, unknown> =
@@ -123,7 +128,10 @@ export class ReviewsService {
             ? { rating: 'asc' }
             : { helpfulCount: 'desc' };
 
-    const where = { productId, status: 'APPROVED' };
+    const where: Record<string, unknown> = { productId, status: 'APPROVED' };
+    if (rating && rating >= 1 && rating <= 5) {
+      where.rating = rating;
+    }
 
     const [reviews, total] = await Promise.all([
       this.prisma.review.findMany({
@@ -133,15 +141,81 @@ export class ReviewsService {
         take: limit,
         include: {
           user: { select: { id: true, firstName: true, lastName: true } },
+          // When a viewer is signed in, surface whether they've already
+          // upvoted each review so the UI can render the thumb as filled.
+          ...(currentUserId
+            ? {
+                helpfulVotes: {
+                  where: { userId: currentUserId },
+                  select: { id: true },
+                },
+              }
+            : {}),
         },
       }),
       this.prisma.review.count({ where }),
     ]);
 
+    const enriched = reviews.map((r) => {
+      const { helpfulVotes, ...rest } = r as typeof r & { helpfulVotes?: { id: string }[] };
+      return {
+        ...rest,
+        viewerHasMarkedHelpful: Array.isArray(helpfulVotes) && helpfulVotes.length > 0,
+      };
+    });
+
     return {
-      reviews,
+      reviews: enriched,
       pagination: { total, page, limit, pages: Math.ceil(total / limit) },
     };
+  }
+
+  /**
+   * Toggle the "helpful" vote for the given review on behalf of the user.
+   * The join row enforces one vote per (reviewId, userId) pair, and the
+   * counter on the review is kept in sync inside a transaction.
+   */
+  async toggleHelpful(reviewId: string, userId: string) {
+    const review = await this.prisma.review.findUnique({
+      where: { id: reviewId },
+      select: { id: true, status: true, userId: true },
+    });
+
+    if (!review) {
+      throw new NotFoundException('Review not found');
+    }
+    if (review.status !== 'APPROVED') {
+      throw new BadRequestException('Review is not available');
+    }
+    if (review.userId === userId) {
+      throw new BadRequestException('You cannot mark your own review as helpful');
+    }
+
+    const existing = await this.prisma.reviewHelpful.findUnique({
+      where: { reviewId_userId: { reviewId, userId } },
+    });
+
+    if (existing) {
+      const result = await this.prisma.$transaction([
+        this.prisma.reviewHelpful.delete({ where: { id: existing.id } }),
+        this.prisma.review.update({
+          where: { id: reviewId },
+          data: { helpfulCount: { decrement: 1 } },
+          select: { helpfulCount: true },
+        }),
+      ]);
+      return { marked: false, helpfulCount: Math.max(0, result[1].helpfulCount) };
+    }
+
+    const result = await this.prisma.$transaction([
+      this.prisma.reviewHelpful.create({ data: { reviewId, userId } }),
+      this.prisma.review.update({
+        where: { id: reviewId },
+        data: { helpfulCount: { increment: 1 } },
+        select: { helpfulCount: true },
+      }),
+    ]);
+    return { marked: true, helpfulCount: result[1].helpfulCount };
   }
 
   /** Get aggregate review statistics for a product. */
