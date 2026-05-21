@@ -10,13 +10,17 @@ import {
   ChevronLeft,
   ChevronRight,
   ShoppingBag,
+  Copy,
+  Check,
 } from 'lucide-react';
 import Link from 'next/link';
 import { useEffect, useState, useCallback } from 'react';
+import { toast } from 'sonner';
 
 import { PaymentBadge } from '@/components/payment/payment-badge';
 import { PaymentMethodIcon } from '@/components/payment/payment-method-icon';
 import { getOrderHistory, type Order, type OrderPagination } from '@/lib/api/orders';
+import { copyTextToClipboard } from '@/lib/clipboard';
 
 const statusTabs = [
   { key: '', label: 'All', icon: Package },
@@ -27,6 +31,37 @@ const statusTabs = [
   { key: 'DELIVERED', label: 'Delivered', icon: CheckCircle },
   { key: 'CANCELLED', label: 'Cancelled', icon: XCircle },
 ];
+
+// Lives inside the order-card <Link>, so the click handler must stop
+// navigation while still copying the order number to the clipboard.
+function CopyOrderNumberButton({ orderNumber }: { orderNumber: string }) {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const ok = await copyTextToClipboard(orderNumber);
+    if (!ok) {
+      toast.error('Could not copy order ID');
+      return;
+    }
+    setCopied(true);
+    toast.success(`Copied ${orderNumber}`);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  return (
+    <button
+      type="button"
+      onClick={handleCopy}
+      className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-700 transition-colors"
+      title="Copy order ID"
+      aria-label={`Copy order ID ${orderNumber}`}
+    >
+      {copied ? <Check className="w-3.5 h-3.5 text-green-600" /> : <Copy className="w-3.5 h-3.5" />}
+    </button>
+  );
+}
 
 export default function OrderHistoryPage() {
   const [orders, setOrders] = useState<Order[]>([]);
@@ -137,8 +172,9 @@ export default function OrderHistoryPage() {
             >
               {/* Order Header */}
               <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2">
                   <p className="text-sm font-semibold text-gray-900">Order #{order.orderNumber}</p>
+                  <CopyOrderNumberButton orderNumber={order.orderNumber} />
                   <PaymentBadge status={order.status} size="sm" />
                 </div>
                 <p className="text-lg font-bold text-gray-900">{order.totalFormatted}</p>
