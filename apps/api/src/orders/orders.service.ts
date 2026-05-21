@@ -613,17 +613,27 @@ export class OrdersService {
 
     if (search?.trim()) {
       const term = search.trim();
-      const stripped = term.replace(/^#/, '');
-      where.OR = [
-        { orderNumber: { contains: stripped, mode: 'insensitive' } },
-        { guestEmail: { contains: term, mode: 'insensitive' } },
-        { guestFullName: { contains: term, mode: 'insensitive' } },
-        { guestPhone: { contains: term, mode: 'insensitive' } },
-        { user: { email: { contains: term, mode: 'insensitive' } } },
-        { user: { firstName: { contains: term, mode: 'insensitive' } } },
-        { user: { lastName: { contains: term, mode: 'insensitive' } } },
-        { user: { phone: { contains: term, mode: 'insensitive' } } },
-      ];
+      // Tokenize on whitespace so a query like "rizwan suvo" matches a
+      // user with firstName=rizwan AND lastName=suvo — each token can hit
+      // a different searchable field, and AND'ing the per-token OR
+      // clauses ensures all tokens must match the same row.
+      const tokens = term.split(/\s+/).filter(Boolean);
+      const tokenClauses = tokens.map((rawToken) => {
+        const tokenStripped = rawToken.replace(/^#/, '');
+        return {
+          OR: [
+            { orderNumber: { contains: tokenStripped, mode: 'insensitive' as const } },
+            { guestEmail: { contains: rawToken, mode: 'insensitive' as const } },
+            { guestFullName: { contains: rawToken, mode: 'insensitive' as const } },
+            { guestPhone: { contains: rawToken, mode: 'insensitive' as const } },
+            { user: { email: { contains: rawToken, mode: 'insensitive' as const } } },
+            { user: { firstName: { contains: rawToken, mode: 'insensitive' as const } } },
+            { user: { lastName: { contains: rawToken, mode: 'insensitive' as const } } },
+            { user: { phone: { contains: rawToken, mode: 'insensitive' as const } } },
+          ],
+        };
+      });
+      where.AND = tokenClauses;
     }
 
     // Payment status lives on the related Payment rows. Match the latest
