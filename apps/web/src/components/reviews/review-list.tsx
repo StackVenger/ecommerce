@@ -11,7 +11,10 @@ interface Review {
   comment: string | null;
   images: string[];
   createdAt: string;
-  adminResponse: string | null;
+  // The API mirrors the DB column name. Older code referenced
+  // `adminResponse` which never matched — the block stayed hidden.
+  adminReply: string | null;
+  repliedAt: string | null;
   user: { id: string; firstName: string; lastName: string };
 }
 
@@ -30,10 +33,7 @@ function StarRating({ rating, size = 'sm' }: { rating: number; size?: 'sm' | 'lg
   return (
     <div className={`flex gap-0.5 ${sizeClass}`}>
       {[1, 2, 3, 4, 5].map((star) => (
-        <span
-          key={star}
-          className={star <= rating ? 'text-yellow-400' : 'text-gray-300'}
-        >
+        <span key={star} className={star <= rating ? 'text-yellow-400' : 'text-gray-300'}>
           ★
         </span>
       ))}
@@ -91,13 +91,9 @@ export function ReviewList({ productId }: Props) {
       {stats && (
         <div className="flex flex-col gap-6 rounded-lg border p-6 md:flex-row">
           <div className="flex flex-col items-center justify-center">
-            <span className="text-4xl font-bold text-gray-900">
-              {stats.averageRating}
-            </span>
+            <span className="text-4xl font-bold text-gray-900">{stats.averageRating}</span>
             <StarRating rating={Math.round(stats.averageRating)} size="lg" />
-            <span className="mt-1 text-sm text-gray-500">
-              {stats.totalReviews} reviews
-            </span>
+            <span className="mt-1 text-sm text-gray-500">{stats.totalReviews} reviews</span>
           </div>
           <div className="flex-1 space-y-1">
             {[5, 4, 3, 2, 1].map((rating) => (
@@ -117,7 +113,10 @@ export function ReviewList({ productId }: Props) {
         <h3 className="text-lg font-semibold text-gray-900">Customer Reviews</h3>
         <select
           value={sortBy}
-          onChange={(e) => { setSortBy(e.target.value as typeof sortBy); setPage(1); }}
+          onChange={(e) => {
+            setSortBy(e.target.value as typeof sortBy);
+            setPage(1);
+          }}
           className="rounded-md border-gray-300 text-sm shadow-sm"
         >
           <option value="newest">Most Recent</option>
@@ -154,9 +153,7 @@ export function ReviewList({ productId }: Props) {
                 </span>
               </div>
 
-              {review.comment && (
-                <p className="mt-2 text-sm text-gray-600">{review.comment}</p>
-              )}
+              {review.comment && <p className="mt-2 text-sm text-gray-600">{review.comment}</p>}
 
               {review.images.length > 0 && (
                 <div className="mt-3 flex gap-2">
@@ -175,10 +172,17 @@ export function ReviewList({ productId }: Props) {
                 By {review.user.firstName} {review.user.lastName}
               </p>
 
-              {review.adminResponse && (
+              {review.adminReply && (
                 <div className="mt-3 rounded-md bg-blue-50 p-3">
-                  <p className="text-xs font-medium text-blue-700">Store Response</p>
-                  <p className="mt-1 text-sm text-blue-600">{review.adminResponse}</p>
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs font-medium text-blue-700">Store Response</p>
+                    {review.repliedAt && (
+                      <span className="text-xs text-blue-500">
+                        {new Date(review.repliedAt).toLocaleDateString()}
+                      </span>
+                    )}
+                  </div>
+                  <p className="mt-1 text-sm text-blue-600">{review.adminReply}</p>
                 </div>
               )}
             </div>
