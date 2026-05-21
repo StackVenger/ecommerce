@@ -184,16 +184,28 @@ function VariantImagePicker({ value, productImages, onChange }: VariantImagePick
         setOpen(false);
       }
     };
-    const handleReposition = () => setOpen(false);
+    // Outer scroll/resize moves the trigger, so the fixed-positioned
+    // popover would drift. Close in that case — but ignore scrolls that
+    // originate inside the popover itself (e.g. scrolling the product-
+    // images grid), otherwise the popover dismisses the moment the user
+    // touches its scrollbar.
+    const handleOuterScroll = (e: Event) => {
+      const target = e.target as Node | null;
+      if (target && popoverRef.current?.contains(target)) {
+        return;
+      }
+      setOpen(false);
+    };
+    const handleResize = () => setOpen(false);
     document.addEventListener('mousedown', handleClick);
     document.addEventListener('keydown', handleEsc);
-    window.addEventListener('scroll', handleReposition, true);
-    window.addEventListener('resize', handleReposition);
+    window.addEventListener('scroll', handleOuterScroll, true);
+    window.addEventListener('resize', handleResize);
     return () => {
       document.removeEventListener('mousedown', handleClick);
       document.removeEventListener('keydown', handleEsc);
-      window.removeEventListener('scroll', handleReposition, true);
-      window.removeEventListener('resize', handleReposition);
+      window.removeEventListener('scroll', handleOuterScroll, true);
+      window.removeEventListener('resize', handleResize);
     };
   }, [open]);
 
