@@ -300,6 +300,7 @@ export default function AdminProductsPage() {
               <option value="all">All Status</option>
               <option value="active">Active</option>
               <option value="draft">Draft</option>
+              <option value="archived">Archived</option>
               <option value="low-stock">Low Stock</option>
               <option value="out-of-stock">Out of Stock</option>
             </select>

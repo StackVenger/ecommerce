@@ -271,6 +271,10 @@ export class ProductsService {
 
     if (status) {
       where.status = status;
+    } else if (!isAdminActor(actorRole)) {
+      // Storefront listings hide DRAFT and ARCHIVED — only ACTIVE products are
+      // ever sold to customers. Admins still see everything by default.
+      where.status = 'ACTIVE';
     }
 
     // Inventory-condition filters. lowStock uses a fixed threshold of 10
@@ -527,6 +531,12 @@ export class ProductsService {
     });
 
     if (!product) {
+      throw new NotFoundException(`Product with slug "${slug}" not found`);
+    }
+
+    // Hide DRAFT/ARCHIVED products from the storefront — direct-link access
+    // to an archived slug should 404, not surface the old PDP.
+    if (product.status !== 'ACTIVE' && !isAdminActor(actorRole)) {
       throw new NotFoundException(`Product with slug "${slug}" not found`);
     }
 
