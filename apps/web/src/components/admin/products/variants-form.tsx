@@ -19,6 +19,7 @@ import { toast } from 'sonner';
 
 import { useConfirm } from '@/components/admin/ui/confirm-dialog';
 import { apiClient } from '@/lib/api/client';
+import { cn } from '@/lib/utils';
 
 // ──────────────────────────────────────────────────────────
 // Types
@@ -138,9 +139,25 @@ function VariantImagePicker({ value, productImages, onChange }: VariantImagePick
   const [open, setOpen] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [coords, setCoords] = useState<{ top: number; left: number } | null>(null);
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
   const triggerRef = useRef<HTMLButtonElement | null>(null);
   const popoverRef = useRef<HTMLDivElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  const handleReorderDrop = (targetIndex: number) => {
+    if (draggedIndex === null || draggedIndex === targetIndex) {
+      setDraggedIndex(null);
+      setDragOverIndex(null);
+      return;
+    }
+    const reordered = [...value];
+    const [moved] = reordered.splice(draggedIndex, 1);
+    reordered.splice(targetIndex, 0, moved ?? '');
+    onChange(reordered);
+    setDraggedIndex(null);
+    setDragOverIndex(null);
+  };
 
   // Position the popover relative to the viewport so it escapes the table's
   // `overflow-x-auto` ancestor. Anchored to the trigger's bottom-right,
@@ -276,6 +293,9 @@ function VariantImagePicker({ value, productImages, onChange }: VariantImagePick
             <div className="mb-2 flex items-center justify-between">
               <span className="text-xs font-medium text-gray-700">
                 Variant images ({value.length})
+                {value.length >= 2 && (
+                  <span className="text-gray-400 font-normal"> — drag to reorder</span>
+                )}
               </span>
               {value.length > 0 && (
                 <button
@@ -293,7 +313,22 @@ function VariantImagePicker({ value, productImages, onChange }: VariantImagePick
                 {value.map((url, i) => (
                   <div
                     key={`${url}-${i}`}
-                    className="group relative aspect-square overflow-hidden rounded-md border border-gray-200 bg-gray-50"
+                    draggable
+                    onDragStart={() => setDraggedIndex(i)}
+                    onDragOver={(e) => {
+                      e.preventDefault();
+                      setDragOverIndex(i);
+                    }}
+                    onDrop={() => handleReorderDrop(i)}
+                    onDragEnd={() => {
+                      setDraggedIndex(null);
+                      setDragOverIndex(null);
+                    }}
+                    className={cn(
+                      'group relative aspect-square overflow-hidden rounded-md border bg-gray-50 transition-all cursor-move',
+                      dragOverIndex === i ? 'border-teal-400 scale-105' : 'border-gray-200',
+                      draggedIndex === i && 'opacity-50',
+                    )}
                   >
                     <img src={url} alt="" className="h-full w-full object-cover" />
                     {i === 0 && (
@@ -303,6 +338,7 @@ function VariantImagePicker({ value, productImages, onChange }: VariantImagePick
                     )}
                     <button
                       type="button"
+                      draggable={false}
                       onClick={(e) => {
                         e.stopPropagation();
                         removeAt(i);

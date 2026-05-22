@@ -1,17 +1,25 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe, Logger, VersioningType } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { NestExpressApplication } from '@nestjs/platform-express';
+import { join } from 'path';
 
 import { AppModule } from './app.module';
 import { setupSwagger } from './common/swagger/swagger.config';
 
 async function bootstrap(): Promise<void> {
   const logger = new Logger('Bootstrap');
-  const app = await NestFactory.create(AppModule, {
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, {
     logger: ['log', 'error', 'warn', 'debug', 'verbose'],
   });
 
   const configService = app.get(ConfigService);
+
+  // Serve static uploads
+  const uploadDir = configService.get<string>('UPLOAD_DIR', join(process.cwd(), 'uploads'));
+  app.useStaticAssets(uploadDir, {
+    prefix: '/uploads',
+  });
 
   // Global prefix
   app.setGlobalPrefix('api');
