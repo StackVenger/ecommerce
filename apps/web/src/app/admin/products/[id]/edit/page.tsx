@@ -727,7 +727,8 @@ export default function AdminProductEditPage() {
                 id="edit-sku"
                 type="text"
                 value={formData.sku}
-                onChange={(e) => updateField('sku', e.target.value.toUpperCase())}
+                onChange={(e) => updateField('sku', e.target.value)}
+                onBlur={(e) => updateField('sku', e.target.value.toUpperCase())}
                 className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm uppercase focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
               />
             </div>

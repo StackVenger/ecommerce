@@ -436,7 +436,8 @@ export default function AdminProductCreatePage() {
                 id="sku"
                 type="text"
                 value={formData.sku}
-                onChange={(e) => updateField('sku', e.target.value.toUpperCase())}
+                onChange={(e) => updateField('sku', e.target.value)}
+                onBlur={(e) => updateField('sku', e.target.value.toUpperCase())}
                 placeholder="e.g., RICE-BAS-001"
                 className={cn(
                   'w-full rounded-lg border px-4 py-2.5 text-sm uppercase focus:outline-none focus:ring-1',
