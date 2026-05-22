@@ -53,6 +53,8 @@ export interface CartContextValue {
   refreshCart: () => Promise<void>;
   /** Merge guest cart after login */
   mergeGuestCart: () => Promise<void>;
+  /** Set ephemeral/temporary item quantity for dynamic UI calculations */
+  setTempQuantity: (itemId: string, quantity: number | null) => void;
 }
 
 // ──────────────────────────────────────────────────────────
@@ -106,6 +108,41 @@ export function CartProvider({ children }: CartProviderProps) {
   const [isUpdating, setIsUpdating] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const previousCartRef = useRef<Cart | null>(null);
+
+  const [tempQuantities, setTempQuantities] = useState<Record<string, number>>({});
+
+  const setTempQuantity = useCallback((itemId: string, quantity: number | null) => {
+    setTempQuantities((prev) => {
+      const next = { ...prev };
+      if (quantity === null || isNaN(quantity)) {
+        delete next[itemId];
+      } else {
+        next[itemId] = quantity;
+      }
+      return next;
+    });
+  }, []);
+
+  const derivedCart = useMemo(() => {
+    if (!cart) {
+      return null;
+    }
+    if (Object.keys(tempQuantities).length === 0) {
+      return cart;
+    }
+    const updatedItems = cart.items.map((item) => {
+      const override = tempQuantities[item.id];
+      if (override !== undefined && override !== null) {
+        return {
+          ...item,
+          quantity: override,
+          lineTotal: item.price * override,
+        };
+      }
+      return item;
+    });
+    return recalculateCart({ ...cart, items: updatedItems });
+  }, [cart, tempQuantities]);
 
   // ── Initial fetch ──────────────────────────────────────
 
@@ -355,10 +392,10 @@ export function CartProvider({ children }: CartProviderProps) {
 
   const value = useMemo<CartContextValue>(
     () => ({
-      cart,
+      cart: derivedCart,
       isLoading,
       isUpdating,
-      itemCount: cart?.itemCount ?? 0,
+      itemCount: derivedCart?.itemCount ?? 0,
       isOpen,
       openCart,
       closeCart,
@@ -371,9 +408,10 @@ export function CartProvider({ children }: CartProviderProps) {
       removeCoupon: removeCouponAction,
       refreshCart,
       mergeGuestCart,
+      setTempQuantity,
     }),
     [
-      cart,
+      derivedCart,
       isLoading,
       isUpdating,
       isOpen,
@@ -388,6 +426,7 @@ export function CartProvider({ children }: CartProviderProps) {
       removeCouponAction,
       refreshCart,
       mergeGuestCart,
+      setTempQuantity,
     ],
   );
 
