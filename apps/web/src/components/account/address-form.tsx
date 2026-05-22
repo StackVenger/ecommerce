@@ -45,20 +45,49 @@ export function AddressForm({ address, onSubmit, onCancel, isLoading = false }: 
   const validate = (): boolean => {
     const newErrors: Record<string, string> = {};
 
-    if (!formData.fullName.trim()) {
+    const name = formData.fullName.trim();
+    if (!name) {
       newErrors.fullName = 'Full name is required';
+    } else if (name.length < 3) {
+      newErrors.fullName = 'Name must be at least 3 characters';
+    } else if (!/^[a-zA-Z\s.]+$/.test(name)) {
+      newErrors.fullName = 'Name can only contain letters, spaces, or dots';
     }
-    if (!formData.phone.trim()) {
+
+    const phone = formData.phone.trim();
+    if (!phone) {
       newErrors.phone = 'Phone number is required';
+    } else {
+      const cleanPhone = phone.replace(/[\s-]/g, '');
+      if (!/^(?:\+?88)?01[3-9]\d{8}$/.test(cleanPhone)) {
+        newErrors.phone = 'Please enter a valid 11-digit Bangladeshi mobile number';
+      }
     }
-    if (!formData.addressLine1.trim()) {
+
+    const addr1 = formData.addressLine1.trim();
+    if (!addr1) {
       newErrors.addressLine1 = 'Address is required';
+    } else if (addr1.length < 6) {
+      newErrors.addressLine1 = 'Please enter a detailed street address (minimum 6 characters)';
     }
-    if (!formData.city.trim()) {
+
+    const city = formData.city.trim();
+    if (!city) {
       newErrors.city = 'City is required';
+    } else if (city.length < 3) {
+      newErrors.city = 'City must be at least 3 characters';
     }
-    if (!formData.district.trim()) {
+
+    const district = formData.district.trim();
+    if (!district) {
       newErrors.district = 'District is required';
+    } else if (district.length < 3) {
+      newErrors.district = 'District must be at least 3 characters';
+    }
+
+    const postalCode = formData.postalCode.trim();
+    if (postalCode && !/^\d{4}$/.test(postalCode)) {
+      newErrors.postalCode = 'Postal code in Bangladesh must be exactly 4 digits (e.g., 1209)';
     }
 
     setErrors(newErrors);
@@ -235,8 +264,11 @@ export function AddressForm({ address, onSubmit, onCancel, isLoading = false }: 
               value={formData.postalCode}
               onChange={(e) => updateField('postalCode', e.target.value)}
               placeholder="e.g. 1205"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-primary"
+              className={`w-full px-3 py-2 border rounded-lg text-sm ${
+                errors.postalCode ? 'border-red-300' : 'border-gray-300'
+              } focus:ring-2 focus:ring-primary focus:border-primary`}
             />
+            {errors.postalCode && <p className="text-xs text-red-500 mt-1">{errors.postalCode}</p>}
           </div>
 
           <div>

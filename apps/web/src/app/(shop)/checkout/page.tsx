@@ -404,9 +404,10 @@ function CheckoutCouponInput() {
 interface GuestInfoFormProps {
   guestInfo: GuestInfo;
   onChange: (info: GuestInfo) => void;
+  errors?: Record<string, string>;
 }
 
-function GuestInfoForm({ guestInfo, onChange }: GuestInfoFormProps) {
+function GuestInfoForm({ guestInfo, onChange, errors }: GuestInfoFormProps) {
   return (
     <div className="rounded-xl bg-amber-50 border border-amber-200 p-6 mb-6">
       <div className="flex items-center gap-2 mb-4">
@@ -442,9 +443,14 @@ function GuestInfoForm({ guestInfo, onChange }: GuestInfoFormProps) {
             required
             value={guestInfo.fullName}
             onChange={(e) => onChange({ ...guestInfo, fullName: e.target.value })}
-            className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
+            className={`w-full rounded-lg border px-4 py-2.5 text-sm focus:ring-1 outline-none ${
+              errors?.fullName
+                ? 'border-red-500 focus:border-red-500 focus:ring-red-500 text-red-900 bg-red-50/10'
+                : 'border-gray-300 focus:border-primary focus:ring-primary'
+            }`}
             placeholder="Your full name"
           />
+          {errors?.fullName && <p className="mt-1.5 text-xs text-red-500">{errors.fullName}</p>}
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -458,9 +464,14 @@ function GuestInfoForm({ guestInfo, onChange }: GuestInfoFormProps) {
               required
               value={guestInfo.email}
               onChange={(e) => onChange({ ...guestInfo, email: e.target.value })}
-              className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
+              className={`w-full rounded-lg border px-4 py-2.5 text-sm focus:ring-1 outline-none ${
+                errors?.email
+                  ? 'border-red-500 focus:border-red-500 focus:ring-red-500 text-red-900 bg-red-50/10'
+                  : 'border-gray-300 focus:border-primary focus:ring-primary'
+              }`}
               placeholder="you@example.com"
             />
+            {errors?.email && <p className="mt-1.5 text-xs text-red-500">{errors.email}</p>}
           </div>
           <div>
             <label htmlFor="guestPhone" className="block text-sm font-medium text-gray-700 mb-1">
@@ -472,9 +483,14 @@ function GuestInfoForm({ guestInfo, onChange }: GuestInfoFormProps) {
               required
               value={guestInfo.phone}
               onChange={(e) => onChange({ ...guestInfo, phone: e.target.value })}
-              className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
+              className={`w-full rounded-lg border px-4 py-2.5 text-sm focus:ring-1 outline-none ${
+                errors?.phone
+                  ? 'border-red-500 focus:border-red-500 focus:ring-red-500 text-red-900 bg-red-50/10'
+                  : 'border-gray-300 focus:border-primary focus:ring-primary'
+              }`}
               placeholder="+880 1XXX-XXXXXX"
             />
+            {errors?.phone && <p className="mt-1.5 text-xs text-red-500">{errors.phone}</p>}
           </div>
         </div>
       </div>
@@ -489,9 +505,10 @@ function GuestInfoForm({ guestInfo, onChange }: GuestInfoFormProps) {
 interface GuestAddressFormProps {
   address: GuestAddress;
   onChange: (address: GuestAddress) => void;
+  errors?: Record<string, string>;
 }
 
-function GuestAddressForm({ address, onChange }: GuestAddressFormProps) {
+function GuestAddressForm({ address, onChange, errors }: GuestAddressFormProps) {
   const districts = address.division ? BD_DIVISIONS[address.division] || [] : [];
 
   return (
@@ -507,9 +524,16 @@ function GuestAddressForm({ address, onChange }: GuestAddressFormProps) {
             required
             value={address.fullName}
             onChange={(e) => onChange({ ...address, fullName: e.target.value })}
-            className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
+            className={`w-full rounded-lg border px-4 py-2.5 text-sm focus:ring-1 outline-none ${
+              errors?.addressFullName
+                ? 'border-red-500 focus:border-red-500 focus:ring-red-500 text-red-900 bg-red-50/10'
+                : 'border-gray-300 focus:border-primary focus:ring-primary'
+            }`}
             placeholder="Recipient full name"
           />
+          {errors?.addressFullName && (
+            <p className="mt-1.5 text-xs text-red-500">{errors.addressFullName}</p>
+          )}
         </div>
         <div>
           <label htmlFor="shipPhone" className="block text-sm font-medium text-gray-700 mb-1">
@@ -521,9 +545,16 @@ function GuestAddressForm({ address, onChange }: GuestAddressFormProps) {
             required
             value={address.phone}
             onChange={(e) => onChange({ ...address, phone: e.target.value })}
-            className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
+            className={`w-full rounded-lg border px-4 py-2.5 text-sm focus:ring-1 outline-none ${
+              errors?.addressPhone
+                ? 'border-red-500 focus:border-red-500 focus:ring-red-500 text-red-900 bg-red-50/10'
+                : 'border-gray-300 focus:border-primary focus:ring-primary'
+            }`}
             placeholder="+880 1XXX-XXXXXX"
           />
+          {errors?.addressPhone && (
+            <p className="mt-1.5 text-xs text-red-500">{errors.addressPhone}</p>
+          )}
         </div>
       </div>
 
@@ -537,9 +568,16 @@ function GuestAddressForm({ address, onChange }: GuestAddressFormProps) {
           required
           value={address.addressLine1}
           onChange={(e) => onChange({ ...address, addressLine1: e.target.value })}
-          className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
+          className={`w-full rounded-lg border px-4 py-2.5 text-sm focus:ring-1 outline-none ${
+            errors?.addressLine1
+              ? 'border-red-500 focus:border-red-500 focus:ring-red-500 text-red-900 bg-red-50/10'
+              : 'border-gray-300 focus:border-primary focus:ring-primary'
+          }`}
           placeholder="House no., road, area"
         />
+        {errors?.addressLine1 && (
+          <p className="mt-1.5 text-xs text-red-500">{errors.addressLine1}</p>
+        )}
       </div>
 
       <div>
@@ -566,7 +604,11 @@ function GuestAddressForm({ address, onChange }: GuestAddressFormProps) {
             required
             value={address.division}
             onChange={(e) => onChange({ ...address, division: e.target.value, district: '' })}
-            className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none bg-white"
+            className={`w-full rounded-lg border px-4 py-2.5 text-sm focus:ring-1 outline-none bg-white ${
+              errors?.division
+                ? 'border-red-500 focus:border-red-500 focus:ring-red-500 text-red-900 bg-red-50/10'
+                : 'border-gray-300 focus:border-primary focus:ring-primary'
+            }`}
           >
             <option value="">Select Division</option>
             {Object.keys(BD_DIVISIONS).map((div) => (
@@ -575,6 +617,7 @@ function GuestAddressForm({ address, onChange }: GuestAddressFormProps) {
               </option>
             ))}
           </select>
+          {errors?.division && <p className="mt-1.5 text-xs text-red-500">{errors.division}</p>}
         </div>
         <div>
           <label htmlFor="shipDistrict" className="block text-sm font-medium text-gray-700 mb-1">
@@ -586,7 +629,11 @@ function GuestAddressForm({ address, onChange }: GuestAddressFormProps) {
             value={address.district}
             onChange={(e) => onChange({ ...address, district: e.target.value })}
             disabled={!address.division}
-            className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none bg-white disabled:bg-gray-100 disabled:cursor-not-allowed"
+            className={`w-full rounded-lg border px-4 py-2.5 text-sm focus:ring-1 outline-none bg-white disabled:bg-gray-100 disabled:cursor-not-allowed ${
+              errors?.district
+                ? 'border-red-500 focus:border-red-500 focus:ring-red-500 text-red-900 bg-red-50/10'
+                : 'border-gray-300 focus:border-primary focus:ring-primary'
+            }`}
           >
             <option value="">Select District</option>
             {districts.map((dist) => (
@@ -595,6 +642,7 @@ function GuestAddressForm({ address, onChange }: GuestAddressFormProps) {
               </option>
             ))}
           </select>
+          {errors?.district && <p className="mt-1.5 text-xs text-red-500">{errors.district}</p>}
         </div>
       </div>
 
@@ -609,9 +657,14 @@ function GuestAddressForm({ address, onChange }: GuestAddressFormProps) {
             required
             value={address.area}
             onChange={(e) => onChange({ ...address, area: e.target.value })}
-            className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
+            className={`w-full rounded-lg border px-4 py-2.5 text-sm focus:ring-1 outline-none ${
+              errors?.area
+                ? 'border-red-500 focus:border-red-500 focus:ring-red-500 text-red-900 bg-red-50/10'
+                : 'border-gray-300 focus:border-primary focus:ring-primary'
+            }`}
             placeholder="Area or town"
           />
+          {errors?.area && <p className="mt-1.5 text-xs text-red-500">{errors.area}</p>}
         </div>
         <div>
           <label htmlFor="shipPostal" className="block text-sm font-medium text-gray-700 mb-1">
@@ -623,9 +676,14 @@ function GuestAddressForm({ address, onChange }: GuestAddressFormProps) {
             required
             value={address.postalCode}
             onChange={(e) => onChange({ ...address, postalCode: e.target.value })}
-            className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
+            className={`w-full rounded-lg border px-4 py-2.5 text-sm focus:ring-1 outline-none ${
+              errors?.postalCode
+                ? 'border-red-500 focus:border-red-500 focus:ring-red-500 text-red-900 bg-red-50/10'
+                : 'border-gray-300 focus:border-primary focus:ring-primary'
+            }`}
             placeholder="1000"
           />
+          {errors?.postalCode && <p className="mt-1.5 text-xs text-red-500">{errors.postalCode}</p>}
         </div>
       </div>
     </div>
@@ -798,6 +856,33 @@ export default function CheckoutPage() {
   const [completedSteps, setCompletedSteps] = useState<StepId[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
+  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+
+  const handleGuestInfoChange = (info: GuestInfo) => {
+    setCheckoutData((prev) => ({ ...prev, guestInfo: info }));
+    setValidationErrors((prev) => {
+      const next = { ...prev };
+      if (info.fullName !== checkoutData.guestInfo.fullName) delete next.fullName;
+      if (info.email !== checkoutData.guestInfo.email) delete next.email;
+      if (info.phone !== checkoutData.guestInfo.phone) delete next.phone;
+      return next;
+    });
+  };
+
+  const handleGuestAddressChange = (addr: GuestAddress) => {
+    setCheckoutData((prev) => ({ ...prev, guestAddress: addr }));
+    setValidationErrors((prev) => {
+      const next = { ...prev };
+      if (addr.fullName !== checkoutData.guestAddress.fullName) delete next.addressFullName;
+      if (addr.phone !== checkoutData.guestAddress.phone) delete next.addressPhone;
+      if (addr.addressLine1 !== checkoutData.guestAddress.addressLine1) delete next.addressLine1;
+      if (addr.division !== checkoutData.guestAddress.division) delete next.division;
+      if (addr.district !== checkoutData.guestAddress.district) delete next.district;
+      if (addr.area !== checkoutData.guestAddress.area) delete next.area;
+      if (addr.postalCode !== checkoutData.guestAddress.postalCode) delete next.postalCode;
+      return next;
+    });
+  };
 
   // Saved addresses (authenticated users)
   const [savedAddresses, setSavedAddresses] = useState<Address[]>([]);
@@ -927,7 +1012,97 @@ export default function CheckoutPage() {
     shippingMethods,
   ]);
 
-  // Validation for each step
+  // Validation for each step (Bangladeshi perspective)
+
+  const validateAddressStep = (): boolean => {
+    const newErrors: Record<string, string> = {};
+
+    if (isGuest) {
+      // 1. Guest Info Validation
+      const guestName = checkoutData.guestInfo.fullName.trim();
+      if (!guestName) {
+        newErrors.fullName = 'Full name is required';
+      } else if (guestName.length < 3) {
+        newErrors.fullName = 'Name must be at least 3 characters long';
+      } else if (!/^[a-zA-Z\s.]+$/.test(guestName)) {
+        newErrors.fullName = 'Name can only contain letters, spaces, and periods (.)';
+      }
+
+      const guestEmail = checkoutData.guestInfo.email.trim();
+      if (!guestEmail) {
+        newErrors.email = 'Email address is required';
+      } else if (!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(guestEmail)) {
+        newErrors.email = 'Please enter a valid email address';
+      }
+
+      const guestPhone = checkoutData.guestInfo.phone.trim();
+      if (!guestPhone) {
+        newErrors.phone = 'Phone number is required';
+      } else {
+        const cleanPhone = guestPhone.replace(/[\s-]/g, '');
+        if (!/^(?:\+?88)?01[3-9]\d{8}$/.test(cleanPhone)) {
+          newErrors.phone = 'Please enter a valid 11-digit Bangladeshi mobile number (e.g., 017XXXXXXXX)';
+        }
+      }
+
+      // 2. Guest Address Validation
+      const addressName = checkoutData.guestAddress.fullName.trim();
+      if (!addressName) {
+        newErrors.addressFullName = 'Recipient name is required';
+      } else if (addressName.length < 3) {
+        newErrors.addressFullName = 'Recipient name must be at least 3 characters long';
+      } else if (!/^[a-zA-Z\s.]+$/.test(addressName)) {
+        newErrors.addressFullName = 'Recipient name can only contain letters, spaces, and periods (.)';
+      }
+
+      const addressPhone = checkoutData.guestAddress.phone.trim();
+      if (!addressPhone) {
+        newErrors.addressPhone = 'Recipient phone number is required';
+      } else {
+        const cleanAddrPhone = addressPhone.replace(/[\s-]/g, '');
+        if (!/^(?:\+?88)?01[3-9]\d{8}$/.test(cleanAddrPhone)) {
+          newErrors.addressPhone = 'Please enter a valid 11-digit Bangladeshi mobile number (e.g., 017XXXXXXXX)';
+        }
+      }
+
+      const addressLine1 = checkoutData.guestAddress.addressLine1.trim();
+      if (!addressLine1) {
+        newErrors.addressLine1 = 'Street address is required';
+      } else if (addressLine1.length < 6) {
+        newErrors.addressLine1 = 'Please enter a detailed street address (minimum 6 characters)';
+      }
+
+      if (!checkoutData.guestAddress.division) {
+        newErrors.division = 'Division is required';
+      }
+
+      if (!checkoutData.guestAddress.district) {
+        newErrors.district = 'District is required';
+      }
+
+      const area = checkoutData.guestAddress.area.trim();
+      if (!area) {
+        newErrors.area = 'Area/town is required';
+      } else if (area.length < 3) {
+        newErrors.area = 'Area/town must be at least 3 characters long';
+      }
+
+      const postalCode = checkoutData.guestAddress.postalCode.trim();
+      if (!postalCode) {
+        newErrors.postalCode = 'Postal code is required';
+      } else if (!/^\d{4}$/.test(postalCode)) {
+        newErrors.postalCode = 'Postal code in Bangladesh must be exactly 4 digits (e.g., 1209)';
+      }
+    } else {
+      if (!checkoutData.addressId) {
+        newErrors.addressId = 'Please select a shipping address';
+      }
+    }
+
+    setValidationErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const isGuestInfoValid =
     checkoutData.guestInfo.fullName.trim() !== '' &&
     checkoutData.guestInfo.email.trim() !== '' &&
@@ -990,10 +1165,8 @@ export default function CheckoutPage() {
 
   // Handle address continue - load shipping
   const handleAddressContinue = async () => {
-    if (!isAddressStepValid) {
-      toast.error(
-        isGuest ? 'Please fill in all required fields' : 'Please select a shipping address',
-      );
+    if (!validateAddressStep()) {
+      toast.error('Please correct the validation errors before continuing');
       return;
     }
     await loadShipping();
@@ -1114,7 +1287,8 @@ export default function CheckoutPage() {
             {isGuest && (
               <GuestInfoForm
                 guestInfo={checkoutData.guestInfo}
-                onChange={(info) => setCheckoutData((prev) => ({ ...prev, guestInfo: info }))}
+                onChange={handleGuestInfoChange}
+                errors={validationErrors}
               />
             )}
 
@@ -1124,7 +1298,8 @@ export default function CheckoutPage() {
                 <h3 className="text-base font-semibold text-gray-900 mb-4">Delivery Address</h3>
                 <GuestAddressForm
                   address={checkoutData.guestAddress}
-                  onChange={(addr) => setCheckoutData((prev) => ({ ...prev, guestAddress: addr }))}
+                  onChange={handleGuestAddressChange}
+                  errors={validationErrors}
                 />
               </div>
             )}
@@ -1181,7 +1356,7 @@ export default function CheckoutPage() {
               <button
                 type="button"
                 onClick={handleAddressContinue}
-                disabled={!isAddressStepValid}
+                disabled={shippingLoading || isSubmitting}
                 className="rounded-xl bg-primary px-8 py-3 text-sm font-semibold text-white hover:bg-primary/90 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
               >
                 Continue to Shipping
