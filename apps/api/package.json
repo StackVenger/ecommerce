@@ -16,7 +16,8 @@
     "type-check": "tsc --noEmit",
     "clean": "rm -rf dist .turbo node_modules",
     "vercel-build": "prisma generate && nest build",
-    "migrate:images": "tsx scripts/migrate-images-to-cloudinary.ts"
+    "migrate:images": "tsx scripts/migrate-images-to-cloudinary.ts",
+    "promote:images": "tsx scripts/promote-variant-images.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.990.0",

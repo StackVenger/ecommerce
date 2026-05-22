@@ -432,6 +432,7 @@ export class ProductsService {
         brand: { select: { id: true, name: true, slug: true } },
         inventory: { select: { lowStockThreshold: true, quantity: true } },
         images: {
+          where: { variantId: null },
           orderBy: { sortOrder: 'asc' },
           select: {
             id: true,
@@ -514,6 +515,7 @@ export class ProductsService {
           },
         },
         images: {
+          where: { variantId: null },
           orderBy: { sortOrder: 'asc' },
           select: {
             id: true,
@@ -748,6 +750,7 @@ export class ProductsService {
           select: { id: true, name: true, slug: true },
         },
         images: {
+          where: { variantId: null },
           orderBy: { sortOrder: 'asc' },
         },
         inventory: { select: { lowStockThreshold: true, quantity: true } },
@@ -1274,6 +1277,36 @@ export class ProductsService {
         // any that disappeared and creating any that are new. sortOrder
         // matches the array index so the gallery preserves admin order.
         const wantUrls = (payload.imageUrls ?? []).map((u) => u.trim()).filter((u) => u.length > 0);
+
+        // Mirror every variant URL into the product gallery (variantId = NULL) if
+        // it isn't there yet. The Media tab reads only product-level rows; without
+        // this, a URL that was first introduced through VariantImagePicker would
+        // never appear in the gallery, even though the user thinks of it as one of
+        // the product's images.
+        for (const url of wantUrls) {
+          const galleryRow = await tx.productImage.findFirst({
+            where: { productId, url, variantId: null },
+            select: { id: true },
+          });
+          if (galleryRow) {
+            continue;
+          }
+          const lastGallery = await tx.productImage.findFirst({
+            where: { productId, variantId: null },
+            orderBy: { sortOrder: 'desc' },
+            select: { sortOrder: true },
+          });
+          await tx.productImage.create({
+            data: {
+              productId,
+              variantId: null,
+              url,
+              sortOrder: (lastGallery?.sortOrder ?? -1) + 1,
+              isPrimary: false,
+            },
+          });
+        }
+
         const currentVariantImages = await tx.productImage.findMany({
           where: { productId, variantId },
           select: { id: true, url: true, sortOrder: true },
