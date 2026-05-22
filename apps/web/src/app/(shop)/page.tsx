@@ -300,7 +300,7 @@ export default function HomePage() {
 
   const handleAddToCart = useCallback(
     (product: Product) => {
-      addItem({ productId: product.id, quantity: 1 });
+      addItem({ productId: product.id, quantity: 1 }, { openDrawer: false });
     },
     [addItem],
   );

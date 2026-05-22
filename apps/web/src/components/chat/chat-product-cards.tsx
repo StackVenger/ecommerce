@@ -85,7 +85,7 @@ export function ChatProductCards({ products }: ChatProductCardsProps) {
 
               {product.inStock ? (
                 <button
-                  onClick={() => addItem({ productId: product.id, quantity: 1 })}
+                  onClick={() => addItem({ productId: product.id, quantity: 1 }, { openDrawer: false })}
                   className="flex items-center justify-center gap-1 w-full rounded-lg bg-primary py-1.5 text-[11px] font-medium text-white hover:bg-primary/90 transition-colors"
                 >
                   <ShoppingCart className="w-3 h-3" />

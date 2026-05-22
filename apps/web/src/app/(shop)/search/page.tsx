@@ -119,7 +119,7 @@ export default function SearchPage() {
     if (product.stock <= 0) {
       return;
     }
-    addItem({ productId: product.id, quantity: 1 });
+    addItem({ productId: product.id, quantity: 1 }, { openDrawer: false });
   };
 
   if (!q) {

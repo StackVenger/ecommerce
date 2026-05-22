@@ -38,7 +38,7 @@ export interface CartContextValue {
   /** Toggle the cart drawer */
   toggleCart: () => void;
   /** Add an item to the cart (optimistic) */
-  addItem: (payload: AddCartItemPayload) => Promise<void>;
+  addItem: (payload: AddCartItemPayload, options?: { openDrawer?: boolean }) => Promise<void>;
   /** Update a cart item's quantity (optimistic) */
   updateItemQuantity: (itemId: string, quantity: number) => Promise<void>;
   /** Remove an item from the cart (optimistic) */
@@ -188,7 +188,8 @@ export function CartProvider({ children }: CartProviderProps) {
   // ── Cart mutations ─────────────────────────────────────
 
   const addItem = useCallback(
-    async (payload: AddCartItemPayload) => {
+    async (payload: AddCartItemPayload, options?: { openDrawer?: boolean }) => {
+      const openDrawer = options?.openDrawer ?? true;
       setIsUpdating(true);
       savePreviousCart();
 
@@ -199,20 +200,20 @@ export function CartProvider({ children }: CartProviderProps) {
         }
         const existingIndex = prev.items.findIndex(
           (item) =>
-            item.productId === payload.productId && item.variantId === (payload.variantId || null),
+              item.productId === payload.productId && item.variantId === (payload.variantId || null),
         );
 
         let updatedItems: CartItem[];
 
         if (existingIndex >= 0) {
           updatedItems = prev.items.map((item, i) =>
-            i === existingIndex
-              ? {
-                  ...item,
-                  quantity: item.quantity + payload.quantity,
-                  lineTotal: item.price * (item.quantity + payload.quantity),
-                }
-              : item,
+              i === existingIndex
+                  ? {
+                    ...item,
+                    quantity: item.quantity + payload.quantity,
+                    lineTotal: item.price * (item.quantity + payload.quantity),
+                  }
+                  : item,
           );
         } else {
           // For optimistic add, we don't have full product details yet
@@ -231,7 +232,9 @@ export function CartProvider({ children }: CartProviderProps) {
       try {
         const updatedCart = await cartApi.addCartItem(payload);
         setCart(updatedCart);
-        setIsOpen(true);
+        if (openDrawer) {
+          setIsOpen(true);
+        }
         toast.success('Added to cart');
       } catch (error) {
         rollback();
