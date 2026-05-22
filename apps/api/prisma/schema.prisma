@@ -62,6 +62,9 @@ model User {
   carts         Cart[]
   orders        Order[]
   reviews       Review[]
+  reviewHelpfuls ReviewHelpful[]
+  askedQuestions    ProductQuestion[] @relation("AskedQuestions")
+  answeredQuestions ProductQuestion[] @relation("AnsweredQuestions")
   wishlists     Wishlist[]
   notifications Notification[]
   auditLogs     AuditLog[]
@@ -101,7 +104,7 @@ model Address {
   phone        String
   addressLine1 String
   addressLine2 String?
-  city         String?
+  city         String   @default("")
   division     String
   district     String
   area         String?
@@ -216,6 +219,7 @@ model Product {
   cartItems   CartItem[]
   orderItems  OrderItem[]
   reviews     Review[]
+  questions   ProductQuestion[]
   wishlists   Wishlist[]
   viewEvents  ProductViewEvent[]
 
@@ -240,6 +244,7 @@ model ProductVariant {
   weight         Decimal? @db.Decimal(8, 2)
   weightUnit     String?  @default("kg")
   isActive       Boolean  @default(true)
+  isDefault      Boolean  @default(false)
   sortOrder      Int      @default(0)
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
@@ -585,27 +590,64 @@ enum ReviewStatus {
 }
 
 model Review {
-  id         String       @id @default(cuid())
-  productId  String
-  userId     String
-  rating     Int
-  title      String?
-  comment    String?
-  images     String[]     @default([])
-  status     ReviewStatus @default(PENDING)
-  isVerified Boolean      @default(false)
-  adminReply String?
-  repliedAt  DateTime?
-  createdAt  DateTime     @default(now())
-  updatedAt  DateTime     @updatedAt
+  id           String       @id @default(cuid())
+  productId    String
+  userId       String
+  rating       Int
+  title        String?
+  comment      String?
+  images       String[]     @default([])
+  status       ReviewStatus @default(PENDING)
+  isVerified   Boolean      @default(false)
+  adminReply   String?
+  repliedAt    DateTime?
+  helpfulCount Int          @default(0)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
 
-  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
-  user    User    @relation(fields: [userId], references: [id])
+  product      Product         @relation(fields: [productId], references: [id], onDelete: Cascade)
+  user         User            @relation(fields: [userId], references: [id])
+  helpfulVotes ReviewHelpful[]
 
   @@unique([productId, userId])
   @@index([productId])
   @@index([status])
   @@map("reviews")
+}
+
+model ReviewHelpful {
+  id        String   @id @default(cuid())
+  reviewId  String
+  userId    String
+  createdAt DateTime @default(now())
+
+  review Review @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([reviewId, userId])
+  @@index([reviewId])
+  @@map("review_helpful")
+}
+
+model ProductQuestion {
+  id         String    @id @default(cuid())
+  productId  String
+  userId     String?
+  question   String
+  answer     String?
+  answeredBy String?
+  answeredAt DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  product  Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  user     User?   @relation("AskedQuestions", fields: [userId], references: [id], onDelete: SetNull)
+  answerer User?   @relation("AnsweredQuestions", fields: [answeredBy], references: [id], onDelete: SetNull)
+
+  @@index([productId])
+  @@index([userId])
+  @@index([answeredBy])
+  @@map("product_questions")
 }
 
 // ─── Wishlist ────────────────────────────────────────────────────────────────
@@ -664,6 +706,10 @@ model Banner {
   id          String         @id @default(cuid())
   title       String
   titleBn     String?
+  subtitle    String?
+  subtitleBn  String?
+  ctaText     String?
+  ctaTextBn   String?
   image       String
   mobileImage String?
   link        String?

@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 import type { CartItem } from '@/lib/api/cart';
 
@@ -34,12 +34,46 @@ interface QuantitySelectorProps {
 
 function QuantitySelector({ itemId, quantity, maxStock }: QuantitySelectorProps) {
   const { updateItemQuantity, isUpdating } = useCart();
+  const [inputValue, setInputValue] = useState<string>(quantity.toString());
+
+  useEffect(() => {
+    setInputValue(quantity.toString());
+  }, [quantity]);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setInputValue(val);
+
+    const parsed = parseInt(val, 10);
+    if (!isNaN(parsed) && parsed >= 1 && parsed <= maxStock) {
+      updateItemQuantity(itemId, parsed);
+    }
+  };
+
+  const handleBlur = () => {
+    const parsed = parseInt(inputValue, 10);
+    if (isNaN(parsed) || parsed < 1) {
+      updateItemQuantity(itemId, 1);
+      setInputValue('1');
+    } else if (parsed > maxStock) {
+      updateItemQuantity(itemId, maxStock);
+      setInputValue(maxStock.toString());
+    } else {
+      setInputValue(parsed.toString());
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      (e.target as HTMLInputElement).blur();
+    }
+  };
 
   return (
-    <div className="inline-flex items-center rounded-lg border border-gray-300">
+    <div className="inline-flex items-center rounded-lg border border-gray-300 overflow-hidden bg-white">
       <button
         type="button"
-        className="px-3 py-2 text-gray-600 hover:bg-gray-50 rounded-l-lg disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+        className="px-3 py-2 text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
         disabled={quantity <= 1 || isUpdating}
         onClick={() => updateItemQuantity(itemId, quantity - 1)}
         aria-label="Decrease quantity"
@@ -49,13 +83,22 @@ function QuantitySelector({ itemId, quantity, maxStock }: QuantitySelectorProps)
         </svg>
       </button>
 
-      <span className="min-w-[3rem] text-center text-sm font-medium tabular-nums border-x border-gray-300 py-2">
-        {quantity}
-      </span>
+      <input
+        type="number"
+        min={1}
+        max={maxStock}
+        value={inputValue}
+        onChange={handleInputChange}
+        onBlur={handleBlur}
+        onKeyDown={handleKeyDown}
+        className="w-14 text-center text-sm font-medium focus:outline-none border-x border-gray-300 py-1.5 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+        disabled={isUpdating}
+        aria-label="Quantity"
+      />
 
       <button
         type="button"
-        className="px-3 py-2 text-gray-600 hover:bg-gray-50 rounded-r-lg disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+        className="px-3 py-2 text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
         disabled={quantity >= maxStock || isUpdating}
         onClick={() => updateItemQuantity(itemId, quantity + 1)}
         aria-label="Increase quantity"

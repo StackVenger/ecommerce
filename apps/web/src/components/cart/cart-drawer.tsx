@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { Fragment } from 'react';
+import { Fragment, useState, useEffect } from 'react';
 
 import type { CartItem } from '@/lib/api/cart';
 
@@ -30,9 +30,43 @@ interface QuantitySelectorProps {
 
 function QuantitySelector({ itemId, quantity, maxStock }: QuantitySelectorProps) {
   const { updateItemQuantity, isUpdating } = useCart();
+  const [inputValue, setInputValue] = useState<string>(quantity.toString());
+
+  useEffect(() => {
+    setInputValue(quantity.toString());
+  }, [quantity]);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setInputValue(val);
+
+    const parsed = parseInt(val, 10);
+    if (!isNaN(parsed) && parsed >= 1 && parsed <= maxStock) {
+      updateItemQuantity(itemId, parsed);
+    }
+  };
+
+  const handleBlur = () => {
+    const parsed = parseInt(inputValue, 10);
+    if (isNaN(parsed) || parsed < 1) {
+      updateItemQuantity(itemId, 1);
+      setInputValue('1');
+    } else if (parsed > maxStock) {
+      updateItemQuantity(itemId, maxStock);
+      setInputValue(maxStock.toString());
+    } else {
+      setInputValue(parsed.toString());
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      (e.target as HTMLInputElement).blur();
+    }
+  };
 
   return (
-    <div className="flex items-center rounded-lg border border-gray-200">
+    <div className="flex items-center rounded-lg border border-gray-200 overflow-hidden bg-white">
       <button
         type="button"
         className="px-3 py-1 text-gray-600 hover:text-gray-900 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
@@ -45,7 +79,18 @@ function QuantitySelector({ itemId, quantity, maxStock }: QuantitySelectorProps)
         </svg>
       </button>
 
-      <span className="min-w-[2rem] text-center text-sm font-medium tabular-nums">{quantity}</span>
+      <input
+        type="number"
+        min={1}
+        max={maxStock}
+        value={inputValue}
+        onChange={handleInputChange}
+        onBlur={handleBlur}
+        onKeyDown={handleKeyDown}
+        className="w-12 text-center text-sm font-medium focus:outline-none border-x border-gray-100 py-0.5 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+        disabled={isUpdating}
+        aria-label="Quantity"
+      />
 
       <button
         type="button"
