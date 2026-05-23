@@ -161,6 +161,18 @@ export default function ProductPage() {
             : [],
         };
         setProduct(normalised);
+
+        // Pre-select the default variant options on load
+        if (normalised.variants.length > 0) {
+          const defaultVar = normalised.variants.find((v) => v.isDefault === true) ?? normalised.variants[0] ?? null;
+          if (defaultVar) {
+            const initialOpts: Record<string, string> = {};
+            for (const av of defaultVar.attributeValues) {
+              initialOpts[av.attribute.name] = av.value;
+            }
+            setSelectedOptions(initialOpts);
+          }
+        }
       } catch {
         setError('Product not found');
       } finally {
