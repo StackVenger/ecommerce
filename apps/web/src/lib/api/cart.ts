@@ -204,7 +204,7 @@ export async function removeCoupon(): Promise<Cart> {
  * Merge a guest cart into the authenticated user's cart (called after login).
  */
 export async function mergeCart(): Promise<Cart> {
-  const { data } = await apiClient.post<Cart>('/cart/merge', null, {
+  const { data } = await apiClient.post<Cart>('/cart/merge', {}, {
     headers: sessionHeaders(),
   });
   return data;
