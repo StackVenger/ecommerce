@@ -309,11 +309,14 @@ export default function ProductPage() {
     setAddingToCart(true);
     setCartError(null);
     try {
-      await addItem({
-        productId: product.id,
-        variantId: selectedVariant?.id,
-        quantity,
-      });
+      await addItem(
+        {
+          productId: product.id,
+          variantId: selectedVariant?.id,
+          quantity,
+        },
+        { openDrawer: false }
+      );
     } catch (err: any) {
       const msg = err?.response?.data?.message || err?.message || 'Failed to add to cart';
       setCartError(msg);
