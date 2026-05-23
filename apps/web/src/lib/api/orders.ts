@@ -234,7 +234,7 @@ export async function placeOrder(
 export async function validateCheckout(
   payload: PlaceOrderPayload,
   sessionId?: string,
-): Promise<{ valid: boolean; errors?: string[] }> {
+): Promise<{ valid: boolean; errors?: string[]; warnings?: string[] }> {
   const headers: Record<string, string> = {};
   if (sessionId) {
     headers['X-Session-Id'] = sessionId;
@@ -242,7 +242,7 @@ export async function validateCheckout(
 
   const response = await apiClient.post<{
     success: boolean;
-    data: { valid: boolean; errors?: string[] };
+    data: { valid: boolean; errors?: string[]; warnings?: string[] };
   }>('/checkout/validate', payload, { headers });
 
   return response.data.data;

@@ -37,6 +37,8 @@ interface CheckoutValidation {
   shippingCost: number;
   total: number;
   errors: string[];
+  /** Non-blocking notices — e.g. cart snapshot price differs from current live price. */
+  warnings: string[];
 }
 
 /**
@@ -138,12 +140,13 @@ export class OrdersService {
     }
 
     const itemValidations: ItemValidation[] = [];
+    const warnings: string[] = [];
 
     for (const item of cart.items) {
       const product = item.product;
       const variant = item.variant;
-      
-      const inStock = variant 
+
+      const inStock = variant
         ? (variant.quantity >= item.quantity && variant.isActive)
         : (product.quantity >= item.quantity);
 
@@ -165,14 +168,27 @@ export class OrdersService {
         errors.push(`"${product.name}" is no longer available`);
       }
 
+      // Snapshot vs live price comparison. CartItem.price is captured at
+      // add-to-cart time; if the admin has since changed Product/Variant
+      // price, surface a non-blocking warning so the customer can decide
+      // whether to proceed. The cart total stays at the snapshot value.
+      const livePrice = Number(variant?.price ?? product.price);
+      const snapshotPrice = Number(item.price);
+      if (Math.abs(livePrice - snapshotPrice) > 0.005) {
+        const label = variant ? `${product.name} (${variant.name})` : product.name;
+        warnings.push(
+          `The price of ${label} changed since you added it (was ৳${snapshotPrice.toFixed(2)}, now ৳${livePrice.toFixed(2)}).`,
+        );
+      }
+
       itemValidations.push({
         productId: product.id,
         variantId: item.variantId || undefined,
         name: variant ? `${product.name} (${variant.name})` : product.name,
         requestedQuantity: item.quantity,
         availableStock,
-        unitPrice: Number(variant?.price ?? product.price),
-        lineTotal: Number(variant?.price ?? product.price) * item.quantity,
+        unitPrice: snapshotPrice,
+        lineTotal: snapshotPrice * item.quantity,
         inStock,
       });
     }
@@ -279,6 +295,7 @@ export class OrdersService {
       shippingCost,
       total,
       errors,
+      warnings,
     };
   }
 

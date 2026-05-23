@@ -780,7 +780,7 @@ export class ProductsService {
           where: { variantId: null },
           orderBy: { sortOrder: 'asc' },
         },
-        inventory: { select: { lowStockThreshold: true, quantity: true } },
+        inventory: { select: { lowStockThreshold: true } },
         _count: {
           select: { reviews: true, variants: true },
         },

@@ -56,7 +56,7 @@ interface Product {
     quantity: number;
     lowStockThreshold: number;
     price: number;
-    images: { url: string }[];
+    images: { url: string; thumbnailUrl: string | null; alt: string | null }[];
   }[];
   inventory?: {
     lowStockThreshold: number;

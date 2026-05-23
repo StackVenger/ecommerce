@@ -159,8 +159,12 @@ export default function ProductPage() {
                 ...v,
                 price: Number(v.price),
                 quantity: v.quantity ?? 0,
+                lowStockThreshold: v.lowStockThreshold ?? 10,
               }))
             : [],
+          inventory: raw.inventory
+            ? { lowStockThreshold: raw.inventory.lowStockThreshold ?? 10 }
+            : null,
         };
         setProduct(normalised);
 
@@ -416,7 +420,19 @@ export default function ProductPage() {
       ? selectedVariant.quantity > 0
       : product.variants.some((v) => v.quantity > 0)
     : product.quantity > 0;
-  const lowStock = inStock && displayStock <= 10;
+  // Use per-variant threshold when a variant is selected; per-product
+  // Inventory.lowStockThreshold (default 10) for non-variant products.
+  // When variants exist but none is selected, "low" means any single
+  // variant is at/below its own threshold.
+  const lowStock =
+    inStock &&
+    (variantsActive
+      ? selectedVariant
+        ? selectedVariant.quantity <= selectedVariant.lowStockThreshold
+        : product.variants.some(
+            (v) => v.quantity > 0 && v.quantity <= v.lowStockThreshold,
+          )
+      : product.quantity <= (product.inventory?.lowStockThreshold ?? 10));
 
   // Gallery: when an effective variant has its own images, those drive
   // the hero (and the rest of the strip). Product-level images are

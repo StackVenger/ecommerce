@@ -1992,9 +1992,41 @@ export default function CheckoutPage() {
     );
   }
 
+  // Surface cart price changes: CartItem.price is the snapshot at add-to-cart
+  // time; the variant/product carry the live price. If the admin changed the
+  // price since then, the customer's cart total still uses the snapshot —
+  // warn them once so they can review before placing the order.
+  const priceChangeNotices = (cart?.items ?? [])
+    .map((item) => {
+      const livePrice = Number(item.variant?.price ?? item.product.price);
+      const snapshotPrice = Number(item.price);
+      if (Math.abs(livePrice - snapshotPrice) <= 0.005) {
+        return null;
+      }
+      const label = item.variant
+        ? `${item.product.name} (${item.variant.name})`
+        : item.product.name;
+      return `The price of ${label} changed since you added it (was ৳${snapshotPrice.toFixed(2)}, now ৳${livePrice.toFixed(2)}).`;
+    })
+    .filter((m): m is string => m !== null);
+
   return (
     <div className="site-container px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
       <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-8">Checkout</h1>
+
+      {priceChangeNotices.length > 0 && (
+        <div className="mb-6 rounded-lg border border-yellow-200 bg-yellow-50 px-4 py-3">
+          <p className="text-sm font-medium text-yellow-800">Prices have changed</p>
+          <ul className="mt-1 list-disc pl-5 text-sm text-yellow-700">
+            {priceChangeNotices.map((msg) => (
+              <li key={msg}>{msg}</li>
+            ))}
+          </ul>
+          <p className="mt-2 text-xs text-yellow-700">
+            Your cart total still uses the prices at the time you added these items. Remove and re-add the items to use the latest price.
+          </p>
+        </div>
+      )}
 
       <Stepper
         currentStep={currentStep}

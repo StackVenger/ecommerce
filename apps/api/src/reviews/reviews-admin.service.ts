@@ -5,10 +5,14 @@ import {
   AdminReviewQueryDto,
   ModerateReviewDto,
 } from './dto/moderate-review.dto';
+import { ReviewsService } from './reviews.service';
 
 @Injectable()
 export class ReviewsAdminService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly reviewsService: ReviewsService,
+  ) {}
 
   async findAll(query: AdminReviewQueryDto) {
     const { status, productId, page = '1', limit = '20' } = query;
@@ -58,13 +62,19 @@ export class ReviewsAdminService {
     const review = await this.prisma.review.findUnique({ where: { id } });
     if (!review) throw new NotFoundException('Review not found');
 
-    return this.prisma.review.update({
+    const updated = await this.prisma.review.update({
       where: { id },
       data: {
         status: dto.status,
         adminReply: dto.adminNote,
       },
     });
+
+    // Status flip can promote a review into or out of APPROVED; refresh
+    // the product's denormalized rating aggregates either way.
+    await this.reviewsService.recomputeProductRatingStats(review.productId);
+
+    return updated;
   }
 
   async respond(id: string, response: string) {
@@ -82,6 +92,7 @@ export class ReviewsAdminService {
     if (!review) throw new NotFoundException('Review not found');
 
     await this.prisma.review.delete({ where: { id } });
+    await this.reviewsService.recomputeProductRatingStats(review.productId);
     return { deleted: true };
   }
 }
