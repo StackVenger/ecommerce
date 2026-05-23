@@ -124,22 +124,6 @@ export default function ProductPage() {
   const { cart, addItem, isUpdating } = useCart();
   const { isAuthenticated } = useAuth();
 
-  const isAlreadyInCart = useMemo(() => {
-    if (!cart || !product) {
-      return false;
-    }
-    if (variantsActive) {
-      if (!selectedVariant) {
-        return false;
-      }
-      return cart.items.some(
-        (item) => item.productId === product.id && item.variantId === selectedVariant.id
-      );
-    }
-    return cart.items.some(
-      (item) => item.productId === product.id && !item.variantId
-    );
-  }, [cart, product, variantsActive, selectedVariant]);
   const { wishlist, toggleWishlist } = useWishlist();
 
   const [product, setProduct] = useState<Product | null>(null);
@@ -232,6 +216,23 @@ export default function ProductPage() {
       }) ?? null
     );
   }, [product, variantsActive, allOptionsSelected, selectedOptions]);
+
+  const isAlreadyInCart = useMemo(() => {
+    if (!cart || !product) {
+      return false;
+    }
+    if (variantsActive) {
+      if (!selectedVariant) {
+        return false;
+      }
+      return cart.items.some(
+        (item) => item.productId === product.id && item.variantId === selectedVariant.id
+      );
+    }
+    return cart.items.some(
+      (item) => item.productId === product.id && !item.variantId
+    );
+  }, [cart, product, variantsActive, selectedVariant]);
 
   // The "default variant" is the one the admin flagged as default (or the
   // first active variant as fallback). On first paint — before the buyer
