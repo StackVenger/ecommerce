@@ -19,11 +19,12 @@ function formatPrice(price: number) {
 }
 
 export function ChatProductCards({ products }: ChatProductCardsProps) {
-  const { addItem } = useCart();
+  const { cart, addItem } = useCart();
 
   return (
     <div className="flex gap-2 overflow-x-auto pb-2 -mx-1 px-1 scrollbar-hide">
       {products.map((product) => {
+        const isAlreadyInCart = cart?.items?.some((item) => item.productId === product.id);
         const hasDiscount = product.compareAtPrice && product.compareAtPrice > product.price;
         const discountPercent = hasDiscount
           ? Math.round(((product.compareAtPrice! - product.price) / product.compareAtPrice!) * 100)
@@ -86,10 +87,15 @@ export function ChatProductCards({ products }: ChatProductCardsProps) {
               {product.inStock ? (
                 <button
                   onClick={() => addItem({ productId: product.id, quantity: 1 }, { openDrawer: false })}
-                  className="flex items-center justify-center gap-1 w-full rounded-lg bg-primary py-1.5 text-[11px] font-medium text-white hover:bg-primary/90 transition-colors"
+                  disabled={isAlreadyInCart}
+                  className={`flex items-center justify-center gap-1 w-full rounded-lg py-1.5 text-[11px] font-medium text-white transition-colors ${
+                    isAlreadyInCart
+                      ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                      : 'bg-primary hover:bg-primary/90'
+                  }`}
                 >
                   <ShoppingCart className="w-3 h-3" />
-                  Add to Cart
+                  {isAlreadyInCart ? 'Added to Cart' : 'Add to Cart'}
                 </button>
               ) : (
                 <span className="block text-center text-[11px] text-red-500 font-medium py-1.5">

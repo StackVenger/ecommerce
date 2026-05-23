@@ -17,7 +17,7 @@ export default function WishlistPage() {
   const [items, setItems] = useState<WishlistItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [removingIds, setRemovingIds] = useState<Set<string>>(new Set());
-  const { addItem } = useCart();
+  const { cart, addItem } = useCart();
 
   const fetchWishlist = useCallback(async () => {
     try {
@@ -108,6 +108,7 @@ export default function WishlistPage() {
             const { product } = item;
             const discount = getDiscountPercentage(product.price, product.compareAtPrice);
             const isRemoving = removingIds.has(item.productId);
+            const isAlreadyInCart = cart?.items?.some((cartItem) => cartItem.productId === item.productId);
 
             return (
               <div
@@ -184,11 +185,15 @@ export default function WishlistPage() {
                   <div className="flex items-center gap-2 mt-4">
                     <button
                       onClick={() => handleAddToCart(item)}
-                      disabled={!product.inStock}
-                      className="flex-1 flex items-center justify-center gap-1.5 bg-primary text-white py-2 rounded-lg text-sm font-medium hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      disabled={!product.inStock || isAlreadyInCart}
+                      className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-sm font-medium disabled:cursor-not-allowed transition-colors ${
+                        isAlreadyInCart
+                          ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                          : 'bg-primary text-white hover:bg-primary/90 disabled:opacity-50'
+                      }`}
                     >
                       <ShoppingCart className="w-4 h-4" />
-                      Add to Cart
+                      {isAlreadyInCart ? 'Added to Cart' : 'Add to Cart'}
                     </button>
 
                     <button

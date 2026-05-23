@@ -225,7 +225,7 @@ export default function HomePage() {
   const [sidebarBanners, setSidebarBanners] = useState<PromoBanner[]>([]);
   const [heroIndex, setHeroIndex] = useState(0);
   const [loading, setLoading] = useState(true);
-  const { addItem } = useCart();
+  const { cart, addItem } = useCart();
   const { wishlist, toggleWishlist } = useWishlist();
 
   useEffect(() => {
@@ -324,6 +324,7 @@ export default function HomePage() {
   }
 
   function renderProductCard(product: Product) {
+    const isAlreadyInCart = cart?.items?.some((item) => item.productId === product.id);
     const discount = discountPercent(product.price, product.compareAtPrice);
     const imgUrl = product.images[0];
 
@@ -396,10 +397,15 @@ export default function HomePage() {
           {product.stock > 0 ? (
             <button
               onClick={() => handleAddToCart(product)}
-              className="mt-2 flex w-full items-center justify-center gap-1.5 rounded-lg bg-primary px-3 py-2 text-xs font-medium text-white transition-all hover:bg-primary/90"
+              disabled={isAlreadyInCart}
+              className={`mt-2 flex w-full items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-xs font-medium text-white transition-all ${
+                isAlreadyInCart
+                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  : 'bg-primary hover:bg-primary/90'
+              }`}
             >
               <ShoppingCart className="h-3.5 w-3.5" />
-              Add to Cart
+              {isAlreadyInCart ? 'Added to Cart' : 'Add to Cart'}
             </button>
           ) : (
             <p className="mt-2 text-center text-xs font-medium text-red-500">Out of Stock</p>

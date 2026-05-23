@@ -75,7 +75,7 @@ const SORT_OPTIONS = [
 
 export default function CategoryPage() {
   const { slug } = useParams<{ slug: string }>();
-  const { addItem, isUpdating } = useCart();
+  const { cart, addItem, isUpdating } = useCart();
 
   const [category, setCategory] = useState<Category | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
@@ -367,6 +367,7 @@ export default function CategoryPage() {
             ) : (
               <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
                 {products.map((product) => {
+                  const isAlreadyInCart = cart?.items?.some((item) => item.productId === product.id);
                   const effectivePrice = product.salePrice ?? product.price;
                   const hasDiscount = product.salePrice && product.salePrice < product.price;
                   const discountPercent = hasDiscount
@@ -463,11 +464,15 @@ export default function CategoryPage() {
                         {product.stock > 0 ? (
                           <button
                             onClick={(e) => handleQuickAdd(e, product)}
-                            disabled={isUpdating}
-                            className="mt-2 flex w-full items-center justify-center gap-1.5 rounded-lg bg-primary px-3 py-2 text-xs font-medium text-white transition-all hover:bg-primary/90 disabled:opacity-50"
+                            disabled={isUpdating || isAlreadyInCart}
+                            className={`mt-2 flex w-full items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-xs font-medium text-white transition-all ${
+                              isAlreadyInCart
+                                ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                                : 'bg-primary hover:bg-primary/90 disabled:opacity-50'
+                            }`}
                           >
                             <ShoppingCart className="h-3.5 w-3.5" />
-                            Add to Cart
+                            {isAlreadyInCart ? 'Added to Cart' : 'Add to Cart'}
                           </button>
                         ) : (
                           <p className="mt-2 text-center text-xs font-medium text-red-500">

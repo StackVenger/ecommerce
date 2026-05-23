@@ -121,8 +121,25 @@ function formatWeight(grams: number): string {
 
 export default function ProductPage() {
   const { slug } = useParams<{ slug: string }>();
-  const { addItem, isUpdating } = useCart();
+  const { cart, addItem, isUpdating } = useCart();
   const { isAuthenticated } = useAuth();
+
+  const isAlreadyInCart = useMemo(() => {
+    if (!cart || !product) {
+      return false;
+    }
+    if (variantsActive) {
+      if (!selectedVariant) {
+        return false;
+      }
+      return cart.items.some(
+        (item) => item.productId === product.id && item.variantId === selectedVariant.id
+      );
+    }
+    return cart.items.some(
+      (item) => item.productId === product.id && !item.variantId
+    );
+  }, [cart, product, variantsActive, selectedVariant]);
   const { wishlist, toggleWishlist } = useWishlist();
 
   const [product, setProduct] = useState<Product | null>(null);
@@ -681,15 +698,23 @@ export default function ProductPage() {
               {/* Add to Cart */}
               <button
                 onClick={handleAddToCart}
-                disabled={!inStock || addingToCart || isUpdating}
+                disabled={!inStock || addingToCart || isUpdating || isAlreadyInCart}
                 className={`flex-1 flex items-center justify-center gap-2 rounded-lg px-8 py-3 font-semibold text-white transition-colors ${
-                  inStock
-                    ? 'bg-primary hover:bg-primary/90 disabled:opacity-60'
-                    : 'bg-gray-400 cursor-not-allowed'
+                  !inStock
+                    ? 'bg-gray-400 cursor-not-allowed'
+                    : isAlreadyInCart
+                      ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                      : 'bg-primary hover:bg-primary/90 disabled:opacity-60'
                 }`}
               >
                 <ShoppingCart className="h-5 w-5" />
-                {!inStock ? 'Out of Stock' : addingToCart ? 'Adding...' : 'Add to Cart'}
+                {!inStock
+                  ? 'Out of Stock'
+                  : isAlreadyInCart
+                    ? 'Added to Cart'
+                    : addingToCart
+                      ? 'Adding...'
+                      : 'Add to Cart'}
               </button>
 
               {/* Wishlist */}

@@ -60,7 +60,7 @@ const SORT_OPTIONS = [
 export default function SearchPage() {
   const searchParams = useSearchParams();
   const q = searchParams.get('q') ?? '';
-  const { addItem, isUpdating } = useCart();
+  const { cart, addItem, isUpdating } = useCart();
 
   const [products, setProducts] = useState<Product[]>([]);
   const [pagination, setPagination] = useState<Pagination | null>(null);
@@ -198,6 +198,7 @@ export default function SearchPage() {
         ) : (
           <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
             {products.map((product) => {
+              const isAlreadyInCart = cart?.items?.some((item) => item.productId === product.id);
               const hasDiscount = product.compareAtPrice !== null;
               const discountPercent = hasDiscount
                 ? Math.round(
@@ -293,11 +294,15 @@ export default function SearchPage() {
                     {product.stock > 0 ? (
                       <button
                         onClick={(e) => handleQuickAdd(e, product)}
-                        disabled={isUpdating}
-                        className="mt-2 flex w-full items-center justify-center gap-1.5 rounded-lg bg-primary px-3 py-2 text-xs font-medium text-white transition-all hover:bg-primary/90 disabled:opacity-50"
+                        disabled={isUpdating || isAlreadyInCart}
+                        className={`mt-2 flex w-full items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-xs font-medium text-white transition-all ${
+                          isAlreadyInCart
+                            ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                            : 'bg-primary hover:bg-primary/90 disabled:opacity-50'
+                        }`}
                       >
                         <ShoppingCart className="h-3.5 w-3.5" />
-                        Add to Cart
+                        {isAlreadyInCart ? 'Added to Cart' : 'Add to Cart'}
                       </button>
                     ) : (
                       <p className="mt-2 text-center text-xs font-medium text-red-500">

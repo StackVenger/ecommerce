@@ -115,7 +115,7 @@ const SORT_OPTIONS = [
 ];
 
 export default function ProductsPage() {
-  const { addItem, isUpdating } = useCart();
+  const { cart, addItem, isUpdating } = useCart();
 
   const [products, setProducts] = useState<Product[]>([]);
   const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
@@ -462,6 +462,7 @@ export default function ProductsPage() {
   );
 
   const renderProductCard = (product: Product, isFeaturedCard = false) => {
+    const isAlreadyInCart = cart?.items?.some((item) => item.productId === product.id);
     const effectivePrice = product.salePrice ?? product.price;
     const hasDiscount = product.salePrice && product.salePrice < product.price;
     const discountPercent = hasDiscount
@@ -546,11 +547,15 @@ export default function ProductsPage() {
               {product.stock > 0 ? (
                 <button
                   onClick={(e) => handleQuickAdd(e, product)}
-                  disabled={isUpdating}
-                  className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary/90 disabled:opacity-50"
+                  disabled={isUpdating || isAlreadyInCart}
+                  className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium text-white transition-colors ${
+                    isAlreadyInCart
+                      ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                      : 'bg-primary hover:bg-primary/90 disabled:opacity-50'
+                  }`}
                 >
                   <ShoppingCart className="h-4 w-4" />
-                  Add to Cart
+                  {isAlreadyInCart ? 'Added to Cart' : 'Add to Cart'}
                 </button>
               ) : (
                 <span className="rounded-lg bg-gray-100 px-4 py-2 text-sm font-medium text-red-500">
@@ -667,11 +672,15 @@ export default function ProductsPage() {
           {product.stock > 0 ? (
             <button
               onClick={(e) => handleQuickAdd(e, product)}
-              disabled={isUpdating}
-              className="mt-2 flex w-full items-center justify-center gap-1.5 rounded-lg bg-primary px-3 py-2 text-xs font-medium text-white transition-all hover:bg-primary/90 disabled:opacity-50"
+              disabled={isUpdating || isAlreadyInCart}
+              className={`mt-2 flex w-full items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-xs font-medium text-white transition-all ${
+                isAlreadyInCart
+                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  : 'bg-primary hover:bg-primary/90 disabled:opacity-50'
+              }`}
             >
               <ShoppingCart className="h-3.5 w-3.5" />
-              Add to Cart
+              {isAlreadyInCart ? 'Added to Cart' : 'Add to Cart'}
             </button>
           ) : (
             <p className="mt-2 text-center text-xs font-medium text-red-500">Out of Stock</p>
