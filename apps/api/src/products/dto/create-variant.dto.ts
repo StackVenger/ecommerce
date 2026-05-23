@@ -50,6 +50,12 @@ export class CreateVariantDto {
   @Type(() => Number)
   quantity?: number;
 
+  @IsNumber()
+  @IsOptional()
+  @Min(0)
+  @Type(() => Number)
+  lowStockThreshold?: number;
+
   @IsNumber({ maxDecimalPlaces: 2 })
   @IsOptional()
   @Min(0)
@@ -105,6 +111,12 @@ export class UpdateVariantDto {
   @Min(0)
   @Type(() => Number)
   quantity?: number;
+
+  @IsNumber()
+  @IsOptional()
+  @Min(0)
+  @Type(() => Number)
+  lowStockThreshold?: number;
 
   @IsNumber({ maxDecimalPlaces: 2 })
   @IsOptional()

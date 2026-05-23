@@ -76,6 +76,7 @@ interface Variant {
   options: Record<string, string>;
   price: number | null;
   stock: number;
+  lowStockThreshold: number;
   sku: string;
   isActive: boolean;
   isDefault?: boolean;
@@ -128,6 +129,7 @@ interface ApiVariant {
   sku: string;
   price: number | string | null;
   quantity: number;
+  lowStockThreshold?: number;
   isActive: boolean;
   isDefault?: boolean;
   attributeValues?: ApiVariantAttributeValue[];
@@ -158,6 +160,7 @@ function hydrateVariants(raw: unknown): { options: OptionType[]; variants: Varia
       options,
       price: v.price !== null && v.price !== undefined ? Number(v.price) : null,
       stock: v.quantity ?? 0,
+      lowStockThreshold: v.lowStockThreshold ?? 10,
       sku: v.sku ?? '',
       isActive: v.isActive ?? true,
       isDefault: v.isDefault ?? false,
@@ -443,6 +446,7 @@ export default function AdminProductEditPage() {
             options: cleanOptions,
             price: v.price,
             stock: v.stock,
+            lowStockThreshold: v.lowStockThreshold ?? 10,
             sku: v.sku.trim() || undefined,
             isActive: v.isActive,
             isDefault: v.isDefault === true,

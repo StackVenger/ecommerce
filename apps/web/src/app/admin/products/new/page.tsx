@@ -54,6 +54,7 @@ interface Variant {
   options: Record<string, string>;
   price: number | null;
   stock: number;
+  lowStockThreshold: number;
   sku: string;
   isActive: boolean;
   isDefault?: boolean;
@@ -257,6 +258,7 @@ export default function AdminProductCreatePage() {
             options: cleanOptions,
             price: v.price,
             stock: v.stock,
+            lowStockThreshold: v.lowStockThreshold ?? 10,
             sku: v.sku.trim() || undefined,
             isActive: v.isActive,
             isDefault: v.isDefault === true,

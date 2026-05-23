@@ -284,7 +284,10 @@ export class ProductsService {
     if (outOfStock) {
       where.quantity = { lte: 0 };
     } else if (lowStock) {
-      where.quantity = { gt: 0, lte: 10 };
+      where.OR = [
+        { variants: { some: { isActive: true, quantity: { gt: 0, lte: 10 } } } },
+        { variants: { none: { isActive: true } }, quantity: { gt: 0, lte: 10 } },
+      ];
     }
 
     if (categoryId) {
@@ -377,16 +380,24 @@ export class ProductsService {
           // chosen variant image when one is set. Falls back to product
           // images on the client when this is empty.
           variants: {
-            where: { isDefault: true, isActive: true },
-            take: 1,
+            where: { isActive: true },
             select: {
               id: true,
+              isDefault: true,
+              quantity: true,
+              lowStockThreshold: true,
               price: true,
               images: {
                 orderBy: { sortOrder: 'asc' },
                 take: 1,
                 select: { id: true, url: true, thumbnailUrl: true, alt: true },
               },
+            },
+          },
+          inventory: {
+            select: {
+              lowStockThreshold: true,
+              quantity: true,
             },
           },
           _count: {
@@ -908,6 +919,7 @@ export class ProductsService {
         compareAtPrice: dto.compareAtPrice,
         costPrice: dto.costPrice,
         quantity: dto.quantity ?? 0,
+        lowStockThreshold: dto.lowStockThreshold ?? 10,
         weight: dto.weight,
         weightUnit: dto.weightUnit ?? 'kg',
         isActive: dto.isActive ?? true,
@@ -966,6 +978,9 @@ export class ProductsService {
     }
     if (dto.quantity !== undefined) {
       updateData.quantity = dto.quantity;
+    }
+    if (dto.lowStockThreshold !== undefined) {
+      updateData.lowStockThreshold = dto.lowStockThreshold;
     }
     if (dto.weight !== undefined) {
       updateData.weight = dto.weight;
@@ -1217,6 +1232,7 @@ export class ProductsService {
             name,
             price,
             quantity: payload.stock,
+            lowStockThreshold: payload.lowStockThreshold ?? 10,
             isActive: payload.isActive,
             isDefault: idx === defaultIdx,
           };
@@ -1252,6 +1268,7 @@ export class ProductsService {
               sku: desiredSku,
               price,
               quantity: payload.stock,
+              lowStockThreshold: payload.lowStockThreshold ?? 10,
               isActive: payload.isActive,
               isDefault: idx === defaultIdx,
               sortOrder: idx,

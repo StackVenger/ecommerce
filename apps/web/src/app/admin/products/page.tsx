@@ -49,6 +49,23 @@ interface Product {
   category: { name: string } | null;
   brand: { name: string } | null;
   createdAt: string;
+  variants?: {
+    id: string;
+    isActive: boolean;
+    isDefault: boolean;
+    quantity: number;
+    lowStockThreshold: number;
+    price: number;
+    images: { url: string }[];
+  }[];
+  inventory?: {
+    lowStockThreshold: number;
+    quantity: number;
+  } | null;
+  _count?: {
+    variants: number;
+    reviews: number;
+  };
 }
 
 interface PaginationMeta {
@@ -88,19 +105,76 @@ function StatusBadge({ status }: { status: string }) {
 // Stock Badge
 // ──────────────────────────────────────────────────────────
 
-function StockBadge({ stock }: { stock: number }) {
-  let color = 'bg-green-100 text-green-700';
-  if (stock <= 0) {
-    color = 'bg-red-100 text-red-700';
-  } else if (stock <= 10) {
-    color = 'bg-yellow-100 text-yellow-700';
-  }
+function StockBadge({ product }: { product: Product }) {
+  const activeVariants = product.variants ?? [];
+  const hasActiveVariants = activeVariants.length > 0;
 
-  return (
-    <span className={cn('inline-flex rounded-full px-2 py-0.5 text-xs font-medium', color)}>
-      {stock <= 0 ? 'Out of stock' : `${stock} in stock`}
-    </span>
-  );
+  if (hasActiveVariants) {
+    const totalStock = activeVariants.reduce((sum, v) => sum + v.quantity, 0);
+    const lowVariants = activeVariants.filter(
+      (v) => v.quantity > 0 && v.quantity <= v.lowStockThreshold
+    );
+    const outVariants = activeVariants.filter((v) => v.quantity <= 0);
+
+    const allOut = activeVariants.every((v) => v.quantity <= 0);
+    const anyLow = lowVariants.length > 0;
+
+    let color = 'bg-green-100 text-green-700';
+    let text = `${totalStock} in stock`;
+
+    if (allOut) {
+      color = 'bg-red-100 text-red-700';
+      text = 'Out of stock';
+    } else if (anyLow) {
+      color = 'bg-yellow-100 text-yellow-700';
+      text = `Low stock — ${totalStock} left`;
+    }
+
+    // Build subtext
+    const subParts: string[] = [];
+    if (lowVariants.length > 0) {
+      subParts.push(`${lowVariants.length} of ${activeVariants.length} variants low`);
+    }
+    if (outVariants.length > 0) {
+      subParts.push(`${outVariants.length} out`);
+    }
+
+    return (
+      <div className="flex flex-col gap-1">
+        <div>
+          <span className={cn('inline-flex rounded-full px-2 py-0.5 text-xs font-medium', color)}>
+            {text}
+          </span>
+        </div>
+        {subParts.length > 0 && (
+          <span className="text-[11px] text-gray-500 font-normal">
+            {subParts.join(', ')}
+          </span>
+        )}
+      </div>
+    );
+  } else {
+    // Non-variant products: use product.quantity and inventory.lowStockThreshold ?? 10
+    const stock = product.quantity;
+    const threshold = product.inventory?.lowStockThreshold ?? 10;
+
+    let color = 'bg-green-100 text-green-700';
+    let text = `${stock} in stock`;
+
+    if (stock <= 0) {
+      color = 'bg-red-100 text-red-700';
+      text = 'Out of stock';
+    } else if (stock <= threshold) {
+      color = 'bg-yellow-100 text-yellow-700';
+      text = `Low stock — ${stock} left`;
+    }
+
+    return (
+      <span className={cn('inline-flex rounded-full px-2 py-0.5 text-xs font-medium', color)}>
+        {text}
+      </span>
+    );
+  }
 }
 
 // ──────────────────────────────────────────────────────────
@@ -438,7 +512,7 @@ export default function AdminProductsPage() {
                       </div>
                     </td>
                     <td className="whitespace-nowrap px-4 py-3">
-                      <StockBadge stock={product.quantity} />
+                      <StockBadge product={product} />
                     </td>
                     <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-600">
                       {product.category?.name ?? '—'}

@@ -241,6 +241,7 @@ model ProductVariant {
   compareAtPrice Decimal? @db.Decimal(10, 2)
   costPrice      Decimal? @db.Decimal(10, 2)
   quantity       Int      @default(0)
+  lowStockThreshold Int   @default(10)
   weight         Decimal? @db.Decimal(8, 2)
   weightUnit     String?  @default("kg")
   isActive       Boolean  @default(true)

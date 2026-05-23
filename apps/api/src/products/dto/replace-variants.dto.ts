@@ -32,6 +32,12 @@ export class ReplaceVariantItemDto {
   stock: number;
 
   @IsOptional()
+  @IsNumber()
+  @Min(0)
+  @Type(() => Number)
+  lowStockThreshold?: number;
+
+  @IsOptional()
   @IsString()
   @MaxLength(64)
   sku?: string;

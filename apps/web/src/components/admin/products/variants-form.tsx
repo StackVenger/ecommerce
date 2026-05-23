@@ -36,6 +36,7 @@ interface Variant {
   options: Record<string, string>;
   price: number | null;
   stock: number;
+  lowStockThreshold: number;
   sku: string;
   isActive: boolean;
   isDefault?: boolean;
@@ -117,6 +118,7 @@ function generateVariantMatrix(
       options: optionValues,
       price: basePrice || null,
       stock: 0,
+      lowStockThreshold: 10,
       sku: `${baseSku}-${Object.values(optionValues).join('-').toUpperCase().replace(/\s+/g, '')}`,
       isActive: true,
       isDefault: false,
@@ -811,6 +813,9 @@ export function VariantsForm({
                     Stock
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                    Low stock at
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
                     SKU
                   </th>
                   <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider text-gray-500">
@@ -913,6 +918,17 @@ export function VariantsForm({
                           value={variant.stock}
                           onChange={(e) =>
                             updateVariant(index, 'stock', parseInt(e.target.value, 10) || 0)
+                          }
+                          className="w-20 rounded border border-gray-300 px-2 py-1.5 text-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
+                        />
+                      </td>
+                      <td className="px-4 py-2">
+                        <input
+                          type="number"
+                          min="0"
+                          value={variant.lowStockThreshold}
+                          onChange={(e) =>
+                            updateVariant(index, 'lowStockThreshold', parseInt(e.target.value, 10) || 0)
                           }
                           className="w-20 rounded border border-gray-300 px-2 py-1.5 text-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
                         />
