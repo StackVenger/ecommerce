@@ -440,9 +440,7 @@ export class OrdersService {
         'FRONTEND_URL',
         this.configService.get<string>('WEB_URL', 'http://localhost:3000'),
       );
-      const trackingUrl = isGuest
-        ? `${publicUrl}/orders/track?orderNumber=${orderNumber}&email=${encodeURIComponent(customerEmail)}`
-        : `${publicUrl}/account/orders/${orderNumber}`;
+      const trackingUrl = `${publicUrl}/orders/track?orderNumber=${orderNumber}&email=${encodeURIComponent(customerEmail)}`;
 
       this.eventEmitter.emit('order.confirmed', {
         orderId: order.id,
