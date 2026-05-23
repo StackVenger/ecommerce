@@ -457,32 +457,34 @@ export default function AdminProductsPage() {
                   </td>
                 </tr>
               ) : (
-                products.map((product) => (
-                  <tr
-                    key={product.id}
-                    className={cn('hover:bg-gray-50', selectedIds.has(product.id) && 'bg-teal-50')}
-                  >
-                    <td className="px-4 py-3">
-                      <input
-                        type="checkbox"
-                        checked={selectedIds.has(product.id)}
-                        onChange={() => toggleSelect(product.id)}
-                        className="h-4 w-4 rounded border-gray-300 text-teal-600 focus:ring-teal-500"
-                      />
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-3">
-                        <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center overflow-hidden rounded-lg border border-gray-200 bg-gray-50">
-                          {product.images?.[0]?.url ? (
-                            <img
-                              src={product.images[0].url}
-                              alt={product.images[0].alt || product.name}
-                              className="h-full w-full object-cover"
-                            />
-                          ) : (
-                            <ImageIcon className="h-5 w-5 text-gray-300" />
-                          )}
-                        </div>
+                products.map((product) => {
+                  const coverImage = product.variants?.find(v => v.isDefault)?.images?.[0] || product.images?.[0];
+                  return (
+                    <tr
+                      key={product.id}
+                      className={cn('hover:bg-gray-50', selectedIds.has(product.id) && 'bg-teal-50')}
+                    >
+                      <td className="px-4 py-3">
+                        <input
+                          type="checkbox"
+                          checked={selectedIds.has(product.id)}
+                           onChange={() => toggleSelect(product.id)}
+                           className="h-4 w-4 rounded border-gray-300 text-teal-600 focus:ring-teal-500"
+                         />
+                       </td>
+                       <td className="px-4 py-3">
+                         <div className="flex items-center gap-3">
+                           <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center overflow-hidden rounded-lg border border-gray-200 bg-gray-50">
+                             {coverImage?.url ? (
+                               <img
+                                 src={coverImage.url}
+                                 alt={coverImage.alt || product.name}
+                                 className="h-full w-full object-cover"
+                               />
+                             ) : (
+                               <ImageIcon className="h-5 w-5 text-gray-300" />
+                             )}
+                           </div>
                         <div className="min-w-0">
                           <Link
                             href={`/admin/products/${product.id}/edit`}
@@ -547,8 +549,9 @@ export default function AdminProductsPage() {
                       </div>
                     </td>
                   </tr>
-                ))
-              )}
+                );
+              })
+            )}
             </tbody>
           </table>
         </div>

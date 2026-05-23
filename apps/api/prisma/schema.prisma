@@ -322,6 +322,7 @@ model ProductImage {
 model Inventory {
   id               String   @id @default(cuid())
   productId        String   @unique
+  /// @deprecated — superseded by Product.quantity / ProductVariant.quantity
   quantity         Int      @default(0)
   reservedQuantity Int      @default(0)
   lowStockThreshold Int     @default(10)

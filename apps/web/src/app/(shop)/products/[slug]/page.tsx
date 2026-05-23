@@ -43,6 +43,7 @@ interface ProductVariant {
   sku: string;
   price: number;
   quantity: number;
+  lowStockThreshold: number;
   isDefault?: boolean;
   images: ProductImage[];
   attributeValues: {
@@ -80,6 +81,7 @@ interface Product {
   } | null;
   images: ProductImage[];
   variants: ProductVariant[];
+  inventory?: { lowStockThreshold: number } | null;
   attributes: { id: string; name: string; type: string; values: string[] }[];
   reviewSummary: {
     averageRating: number;

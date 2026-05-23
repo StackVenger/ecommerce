@@ -17,6 +17,7 @@ import { ShippingService } from './shipping.service';
  */
 interface ItemValidation {
   productId: string;
+  variantId?: string;
   name: string;
   requestedQuantity: number;
   availableStock: number;
@@ -123,7 +124,10 @@ export class OrdersService {
       where: cartWhere,
       include: {
         items: {
-          include: { product: true },
+          include: {
+            product: true,
+            variant: true,
+          },
           orderBy: { createdAt: 'asc' },
         },
       },
@@ -137,12 +141,24 @@ export class OrdersService {
 
     for (const item of cart.items) {
       const product = item.product;
-      const inStock = product.quantity >= item.quantity;
+      const variant = item.variant;
+      
+      const inStock = variant 
+        ? (variant.quantity >= item.quantity && variant.isActive)
+        : (product.quantity >= item.quantity);
+
+      const availableStock = variant ? variant.quantity : product.quantity;
 
       if (!inStock) {
-        errors.push(
-          `"${product.name}" has only ${product.quantity} in stock (requested ${item.quantity})`,
-        );
+        if (variant) {
+          errors.push(
+            `variant "${variant.name}" has only ${variant.quantity} in stock (requested ${item.quantity})`,
+          );
+        } else {
+          errors.push(
+            `"${product.name}" has only ${product.quantity} in stock (requested ${item.quantity})`,
+          );
+        }
       }
 
       if (product.status !== 'ACTIVE') {
@@ -151,11 +167,12 @@ export class OrdersService {
 
       itemValidations.push({
         productId: product.id,
-        name: product.name,
+        variantId: item.variantId || undefined,
+        name: variant ? `${product.name} (${variant.name})` : product.name,
         requestedQuantity: item.quantity,
-        availableStock: product.quantity,
-        unitPrice: Number(product.price),
-        lineTotal: Number(product.price) * item.quantity,
+        availableStock,
+        unitPrice: Number(variant?.price ?? product.price),
+        lineTotal: Number(variant?.price ?? product.price) * item.quantity,
         inStock,
       });
     }
@@ -339,13 +356,22 @@ export class OrdersService {
 
     const order = await this.prisma.$transaction(async (tx) => {
       for (const item of cart.items) {
-        const product = await tx.product.update({
-          where: { id: item.productId },
-          data: { quantity: { decrement: item.quantity } },
-        });
-
-        if (product.quantity < 0) {
-          throw new BadRequestException(`"${item.product.name}" went out of stock during checkout`);
+        if (item.variantId) {
+          const v = await tx.productVariant.update({
+            where: { id: item.variantId },
+            data: { quantity: { decrement: item.quantity } },
+          });
+          if (v.quantity < 0) {
+            throw new BadRequestException(`"${item.product.name}" variant went out of stock during checkout`);
+          }
+        } else {
+          const p = await tx.product.update({
+            where: { id: item.productId },
+            data: { quantity: { decrement: item.quantity } },
+          });
+          if (p.quantity < 0) {
+            throw new BadRequestException(`"${item.product.name}" went out of stock during checkout`);
+          }
         }
       }
 
@@ -1284,10 +1310,17 @@ export class OrdersService {
     const cancelledOrder = await this.prisma.$transaction(async (tx) => {
       // 1. Restore inventory for each item
       for (const item of order.items) {
-        await tx.product.update({
-          where: { id: item.productId },
-          data: { quantity: { increment: item.quantity } },
-        });
+        if (item.variantId) {
+          await tx.productVariant.update({
+            where: { id: item.variantId },
+            data: { quantity: { increment: item.quantity } },
+          });
+        } else {
+          await tx.product.update({
+            where: { id: item.productId },
+            data: { quantity: { increment: item.quantity } },
+          });
+        }
       }
 
       // 2. Restore coupon usage count if a coupon was applied

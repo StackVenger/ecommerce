@@ -224,7 +224,6 @@ export class ProductsService {
         // sticks instead of silently falling back to the schema default.
         inventory: {
           create: {
-            quantity: dto.quantity ?? 0,
             lowStockThreshold: dto.lowStockThreshold ?? 10,
           },
         },
@@ -237,7 +236,7 @@ export class ProductsService {
           select: { id: true, name: true, slug: true },
         },
         images: true,
-        inventory: { select: { lowStockThreshold: true, quantity: true } },
+        inventory: { select: { lowStockThreshold: true } },
       },
     });
 
@@ -397,7 +396,6 @@ export class ProductsService {
           inventory: {
             select: {
               lowStockThreshold: true,
-              quantity: true,
             },
           },
           _count: {
@@ -441,7 +439,7 @@ export class ProductsService {
       include: {
         category: { select: { id: true, name: true, slug: true } },
         brand: { select: { id: true, name: true, slug: true } },
-        inventory: { select: { lowStockThreshold: true, quantity: true } },
+        inventory: { select: { lowStockThreshold: true } },
         images: {
           where: { variantId: null },
           orderBy: { sortOrder: 'asc' },
@@ -540,6 +538,11 @@ export class ProductsService {
             blurHash: true,
           },
         },
+        inventory: {
+          select: {
+            lowStockThreshold: true,
+          },
+        },
       },
     });
 
@@ -612,7 +615,16 @@ export class ProductsService {
 
     const existing = await this.prisma.product.findUnique({
       where: { id },
-      select: { id: true, name: true, slug: true, sku: true },
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        sku: true,
+        variants: {
+          where: { isActive: true },
+          select: { id: true },
+        },
+      },
     });
 
     if (!existing) {
@@ -670,7 +682,12 @@ export class ProductsService {
       updateData.costPrice = dto.costPrice;
     }
     if (dto.quantity !== undefined) {
-      updateData.quantity = dto.quantity;
+      const hasActiveVariants = existing.variants.length > 0;
+      if (hasActiveVariants) {
+        // variant products own quantity at the variant level
+      } else {
+        updateData.quantity = dto.quantity;
+      }
     }
     if (dto.status !== undefined) {
       updateData.status = dto.status;
@@ -745,7 +762,6 @@ export class ProductsService {
         create: {
           productId: id,
           lowStockThreshold: dto.lowStockThreshold,
-          quantity: dto.quantity ?? 0,
         },
       });
     }
