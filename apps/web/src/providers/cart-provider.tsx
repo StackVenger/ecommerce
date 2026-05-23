@@ -387,12 +387,14 @@ export function CartProvider({ children }: CartProviderProps) {
   }, []);
 
   const mergeGuestCart = useCallback(async () => {
+    // Wait a brief moment to ensure cookies are written and Axios interceptors are synchronized
+    await new Promise((resolve) => setTimeout(resolve, 50));
     try {
       const data = await cartApi.mergeCart();
       setCart(data);
       cartApi.clearSessionId();
-    } catch {
-      // Silent fail on merge
+    } catch (error) {
+      console.error('Failed to merge guest cart:', error);
     }
   }, []);
 
