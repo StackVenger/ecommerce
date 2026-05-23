@@ -14,6 +14,7 @@ import {
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
+import { toast } from 'sonner';
 
 import { ProductQuestions } from '@/components/products/product-questions';
 import { ReviewForm } from '@/components/reviews/review-form';
@@ -295,7 +296,7 @@ export default function ProductPage() {
     }
     if (variantsActive) {
       if (!selectedVariant) {
-        setCartError('Please select all options before adding to cart.');
+        toast.error('Please select all options before adding to cart.');
         return;
       }
       if (selectedVariant.quantity <= 0) {
