@@ -14,6 +14,7 @@ import { toast } from 'sonner';
 import type { Cart, CartItem, AddCartItemPayload } from '@/lib/api/cart';
 
 import * as cartApi from '@/lib/api/cart';
+import { useAuth } from '@/hooks/use-auth';
 import { getApiErrorMessage } from '@/lib/api/errors';
 
 // ──────────────────────────────────────────────────────────
@@ -103,6 +104,8 @@ interface CartProviderProps {
 }
 
 export function CartProvider({ children }: CartProviderProps) {
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
+  const prevAuthenticatedRef = useRef(isAuthenticated);
   const [cart, setCart] = useState<Cart | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isUpdating, setIsUpdating] = useState(false);
@@ -160,6 +163,8 @@ export function CartProvider({ children }: CartProviderProps) {
 
     loadCart();
   }, []);
+
+
 
   // ── Drawer controls ────────────────────────────────────
 
@@ -390,6 +395,17 @@ export function CartProvider({ children }: CartProviderProps) {
       // Silent fail on merge
     }
   }, []);
+
+  // ── Auto-merge guest cart on login ──────────────────────
+
+  useEffect(() => {
+    if (!authLoading && isAuthenticated && !prevAuthenticatedRef.current) {
+      mergeGuestCart();
+    }
+    if (!authLoading) {
+      prevAuthenticatedRef.current = isAuthenticated;
+    }
+  }, [isAuthenticated, authLoading, mergeGuestCart]);
 
   // ── Context value ──────────────────────────────────────
 
