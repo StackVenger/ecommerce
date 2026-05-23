@@ -164,15 +164,6 @@ export class OrdersService {
 
     // Address validation: authenticated users use addressId, guests provide inline
     if (isGuest) {
-      if (!dto.guestEmail) {
-        errors.push('Guest email is required');
-      }
-      if (!dto.guestFullName) {
-        errors.push('Guest name is required');
-      }
-      if (!dto.guestPhone) {
-        errors.push('Guest phone is required');
-      }
       if (!dto.shippingAddressLine1) {
         errors.push('Shipping address is required');
       }

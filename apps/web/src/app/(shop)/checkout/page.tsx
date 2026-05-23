@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { toast } from 'sonner';
@@ -435,12 +436,11 @@ function GuestInfoForm({ guestInfo, onChange, errors }: GuestInfoFormProps) {
       <div className="space-y-4">
         <div>
           <label htmlFor="guestName" className="block text-sm font-medium text-gray-700 mb-1">
-            Full Name <span className="text-red-500">*</span>
+            Full Name <span className="text-gray-400 font-normal">(optional)</span>
           </label>
           <input
             id="guestName"
             type="text"
-            required
             value={guestInfo.fullName}
             onChange={(e) => onChange({ ...guestInfo, fullName: e.target.value })}
             className={`w-full rounded-lg border px-4 py-2.5 text-sm focus:ring-1 outline-none ${
@@ -456,12 +456,11 @@ function GuestInfoForm({ guestInfo, onChange, errors }: GuestInfoFormProps) {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label htmlFor="guestEmail" className="block text-sm font-medium text-gray-700 mb-1">
-              Email <span className="text-red-500">*</span>
+              Email <span className="text-gray-400 font-normal">(optional)</span>
             </label>
             <input
               id="guestEmail"
               type="email"
-              required
               value={guestInfo.email}
               onChange={(e) => onChange({ ...guestInfo, email: e.target.value })}
               className={`w-full rounded-lg border px-4 py-2.5 text-sm focus:ring-1 outline-none ${
@@ -475,12 +474,11 @@ function GuestInfoForm({ guestInfo, onChange, errors }: GuestInfoFormProps) {
           </div>
           <div>
             <label htmlFor="guestPhone" className="block text-sm font-medium text-gray-700 mb-1">
-              Phone <span className="text-red-500">*</span>
+              Phone <span className="text-gray-400 font-normal">(optional)</span>
             </label>
             <input
               id="guestPhone"
               type="tel"
-              required
               value={guestInfo.phone}
               onChange={(e) => onChange({ ...guestInfo, phone: e.target.value })}
               className={`w-full rounded-lg border px-4 py-2.5 text-sm focus:ring-1 outline-none ${
@@ -844,6 +842,114 @@ const PAYMENT_OPTIONS: Array<{
 ];
 
 // ──────────────────────────────────────────────────────────
+// Checkout Login Form Component
+// ──────────────────────────────────────────────────────────
+
+function CheckoutLoginForm() {
+  const { login } = useAuth();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    setIsSubmitting(true);
+
+    try {
+      await login({
+        email,
+        password,
+        rememberMe: true,
+      });
+      toast.success('Welcome back!');
+    } catch (err: unknown) {
+      const msg = getApiErrorMessage(err, 'Failed to sign in. Please try again.');
+      setError(msg);
+      toast.error(msg);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4 max-w-md mx-auto py-2">
+      {error && (
+        <div className="rounded-lg border border-red-200 bg-red-50 p-3.5 text-sm text-red-800">
+          {error}
+        </div>
+      )}
+
+      <div>
+        <label htmlFor="checkoutEmail" className="block text-sm font-medium text-gray-700 mb-1">
+          Email Address <span className="text-red-500">*</span>
+        </label>
+        <input
+          id="checkoutEmail"
+          type="email"
+          required
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="you@example.com"
+          className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
+        />
+      </div>
+
+      <div>
+        <div className="flex items-center justify-between mb-1">
+          <label htmlFor="checkoutPassword" className="block text-sm font-medium text-gray-700">
+            Password <span className="text-red-500">*</span>
+          </label>
+          <Link
+            href="/forgot-password"
+            className="text-xs font-medium text-primary hover:underline"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Forgot password?
+          </Link>
+        </div>
+        <input
+          id="checkoutPassword"
+          type="password"
+          required
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          placeholder="Enter your password"
+          className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
+        />
+      </div>
+
+      <button
+        type="submit"
+        disabled={isSubmitting}
+        className="w-full rounded-xl bg-primary py-3 text-sm font-semibold text-white hover:bg-primary/90 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors mt-2"
+      >
+        {isSubmitting ? (
+          <span className="flex items-center justify-center gap-2">
+            <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+            Signing in...
+          </span>
+        ) : (
+          'Sign In'
+        )}
+      </button>
+
+      <p className="text-center text-sm text-gray-500 mt-4">
+        Don&apos;t have an account?{' '}
+        <Link
+          href={`/register?redirect=${encodeURIComponent('/checkout')}`}
+          className="font-medium text-primary hover:underline"
+        >
+          Create one now
+        </Link>
+      </p>
+    </form>
+  );
+}
+
+// ──────────────────────────────────────────────────────────
 // Checkout Page
 // ──────────────────────────────────────────────────────────
 
@@ -857,6 +963,7 @@ export default function CheckoutPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+  const [checkoutMode, setCheckoutMode] = useState<'guest' | 'login'>('guest');
 
   const handleGuestInfoChange = (info: GuestInfo) => {
     setCheckoutData((prev) => ({ ...prev, guestInfo: info }));
@@ -1018,27 +1125,25 @@ export default function CheckoutPage() {
     const newErrors: Record<string, string> = {};
 
     if (isGuest) {
-      // 1. Guest Info Validation
+      // 1. Guest Info Validation (optional fields - only validate when they have values)
       const guestName = checkoutData.guestInfo.fullName.trim();
-      if (!guestName) {
-        newErrors.fullName = 'Full name is required';
-      } else if (guestName.length < 3) {
-        newErrors.fullName = 'Name must be at least 3 characters long';
-      } else if (!/^[a-zA-Z\s.]+$/.test(guestName)) {
-        newErrors.fullName = 'Name can only contain letters, spaces, and periods (.)';
+      if (guestName) {
+        if (guestName.length < 3) {
+          newErrors.fullName = 'Name must be at least 3 characters long';
+        } else if (!/^[a-zA-Z\s.]+$/.test(guestName)) {
+          newErrors.fullName = 'Name can only contain letters, spaces, and periods (.)';
+        }
       }
 
       const guestEmail = checkoutData.guestInfo.email.trim();
-      if (!guestEmail) {
-        newErrors.email = 'Email address is required';
-      } else if (!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(guestEmail)) {
-        newErrors.email = 'Please enter a valid email address';
+      if (guestEmail) {
+        if (!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(guestEmail)) {
+          newErrors.email = 'Please enter a valid email address';
+        }
       }
 
       const guestPhone = checkoutData.guestInfo.phone.trim();
-      if (!guestPhone) {
-        newErrors.phone = 'Phone number is required';
-      } else {
+      if (guestPhone) {
         const cleanPhone = guestPhone.replace(/[\s-]/g, '');
         if (!/^(?:\+?88)?01[3-9]\d{8}$/.test(cleanPhone)) {
           newErrors.phone = 'Please enter a valid 11-digit Bangladeshi mobile number (e.g., 017XXXXXXXX)';
@@ -1104,9 +1209,13 @@ export default function CheckoutPage() {
   };
 
   const isGuestInfoValid =
-    checkoutData.guestInfo.fullName.trim() !== '' &&
-    checkoutData.guestInfo.email.trim() !== '' &&
-    checkoutData.guestInfo.phone.trim() !== '';
+    (checkoutData.guestInfo.fullName.trim() === '' ||
+      (checkoutData.guestInfo.fullName.trim().length >= 3 &&
+        /^[a-zA-Z\s.]+$/.test(checkoutData.guestInfo.fullName.trim()))) &&
+    (checkoutData.guestInfo.email.trim() === '' ||
+      /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(checkoutData.guestInfo.email.trim())) &&
+    (checkoutData.guestInfo.phone.trim() === '' ||
+      /^(?:\+?88)?01[3-9]\d{8}$/.test(checkoutData.guestInfo.phone.trim().replace(/[\s-]/g, '')));
 
   const isGuestAddressValid =
     checkoutData.guestAddress.fullName.trim() !== '' &&
@@ -1201,9 +1310,15 @@ export default function CheckoutPage() {
       }
 
       if (isGuest) {
-        payload.guestFullName = checkoutData.guestInfo.fullName;
-        payload.guestEmail = checkoutData.guestInfo.email;
-        payload.guestPhone = checkoutData.guestInfo.phone;
+        if (checkoutData.guestInfo.fullName.trim() !== '') {
+          payload.guestFullName = checkoutData.guestInfo.fullName.trim();
+        }
+        if (checkoutData.guestInfo.email.trim() !== '') {
+          payload.guestEmail = checkoutData.guestInfo.email.trim();
+        }
+        if (checkoutData.guestInfo.phone.trim() !== '') {
+          payload.guestPhone = checkoutData.guestInfo.phone.trim();
+        }
         payload.shippingFullName = checkoutData.guestAddress.fullName;
         payload.shippingPhone = checkoutData.guestAddress.phone;
         payload.shippingAddressLine1 = checkoutData.guestAddress.addressLine1;
@@ -1283,8 +1398,82 @@ export default function CheckoutPage() {
                 : 'Select or add a delivery address'}
             </p>
 
-            {/* Guest contact info */}
+            {/* Mode Selector for unauthenticated guests */}
             {isGuest && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+                <button
+                  type="button"
+                  onClick={() => setCheckoutMode('guest')}
+                  className={`flex items-start gap-4 rounded-xl border-2 p-4 text-left transition-all ${
+                    checkoutMode === 'guest'
+                      ? 'border-primary bg-teal-50/30 ring-1 ring-primary'
+                      : 'border-gray-200 hover:border-gray-300 bg-white'
+                  }`}
+                >
+                  <div
+                    className={`mt-1 flex h-5 w-5 items-center justify-center rounded-full border-2 flex-shrink-0 ${
+                      checkoutMode === 'guest' ? 'border-primary' : 'border-gray-300'
+                    }`}
+                  >
+                    {checkoutMode === 'guest' && <div className="h-2.5 w-2.5 rounded-full bg-primary" />}
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-gray-900 text-sm">Checkout as Guest</h3>
+                    <p className="text-xs text-gray-500 mt-1">No account needed. Fast and simple checkout.</p>
+                  </div>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setCheckoutMode('login')}
+                  className={`flex items-start gap-4 rounded-xl border-2 p-4 text-left transition-all ${
+                    checkoutMode === 'login'
+                      ? 'border-primary bg-teal-50/30 ring-1 ring-primary'
+                      : 'border-gray-200 hover:border-gray-300 bg-white'
+                  }`}
+                >
+                  <div
+                    className={`mt-1 flex h-5 w-5 items-center justify-center rounded-full border-2 flex-shrink-0 ${
+                      checkoutMode === 'login' ? 'border-primary' : 'border-gray-300'
+                    }`}
+                  >
+                    {checkoutMode === 'login' && <div className="h-2.5 w-2.5 rounded-full bg-primary" />}
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-gray-900 text-sm">Sign In / Register</h3>
+                    <p className="text-xs text-gray-500 mt-1">Use saved addresses, track orders, and more.</p>
+                  </div>
+                </button>
+              </div>
+            )}
+
+            {/* Inline Login Form */}
+            {isGuest && checkoutMode === 'login' && (
+              <div className="rounded-xl border border-gray-200 bg-white p-6 mb-6">
+                <div className="flex items-center gap-2 mb-4">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="text-primary"
+                  >
+                    <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
+                    <circle cx="12" cy="7" r="4" />
+                  </svg>
+                  <h3 className="text-base font-semibold text-gray-900">Sign In to Your Account</h3>
+                </div>
+                <CheckoutLoginForm />
+              </div>
+            )}
+
+            {/* Guest contact info */}
+            {isGuest && checkoutMode === 'guest' && (
               <GuestInfoForm
                 guestInfo={checkoutData.guestInfo}
                 onChange={handleGuestInfoChange}
@@ -1293,7 +1482,7 @@ export default function CheckoutPage() {
             )}
 
             {/* Guest address form */}
-            {isGuest && (
+            {isGuest && checkoutMode === 'guest' && (
               <div className="mb-6">
                 <h3 className="text-base font-semibold text-gray-900 mb-4">Delivery Address</h3>
                 <GuestAddressForm
@@ -1352,16 +1541,18 @@ export default function CheckoutPage() {
               </>
             )}
 
-            <div className="flex justify-end pt-6 border-t border-gray-100">
-              <button
-                type="button"
-                onClick={handleAddressContinue}
-                disabled={shippingLoading || isSubmitting}
-                className="rounded-xl bg-primary px-8 py-3 text-sm font-semibold text-white hover:bg-primary/90 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
-              >
-                Continue to Shipping
-              </button>
-            </div>
+            {(!isGuest || checkoutMode === 'guest') && (
+              <div className="flex justify-end pt-6 border-t border-gray-100">
+                <button
+                  type="button"
+                  onClick={handleAddressContinue}
+                  disabled={shippingLoading || isSubmitting}
+                  className="rounded-xl bg-primary px-8 py-3 text-sm font-semibold text-white hover:bg-primary/90 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+                >
+                  Continue to Shipping
+                </button>
+              </div>
+            )}
           </div>
         );
 
