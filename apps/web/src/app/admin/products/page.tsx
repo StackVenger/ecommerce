@@ -236,6 +236,17 @@ export default function AdminProductsPage() {
     fetchProducts();
   }, [fetchProducts]);
 
+  // Refetch when the admin tabs back to this page — stock changes whenever
+  // a customer places or cancels an order, and the StockBadge should reflect
+  // those decrements without forcing the admin to hit reload.
+  useEffect(() => {
+    const onFocus = () => {
+      fetchProducts();
+    };
+    window.addEventListener('focus', onFocus);
+    return () => window.removeEventListener('focus', onFocus);
+  }, [fetchProducts]);
+
   // ─── Selection Handlers ───────────────────────────────────────────
 
   const toggleSelectAll = () => {

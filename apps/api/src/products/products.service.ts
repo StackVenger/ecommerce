@@ -1382,11 +1382,17 @@ export class ProductsService {
           const data: Prisma.ProductVariantUpdateInput = {
             name,
             price,
-            quantity: payload.stock,
             lowStockThreshold: payload.lowStockThreshold ?? 10,
             isActive: payload.isActive,
             isDefault: idx === defaultIdx,
           };
+          // Only touch `quantity` when the admin explicitly sent it. Omitting
+          // the field preserves the row's existing value — important so a
+          // routine product-edit Save doesn't overwrite stock that customer
+          // orders have just decremented.
+          if (payload.stock !== undefined) {
+            data.quantity = payload.stock;
+          }
           if (desiredSku && desiredSku !== existing.sku) {
             // Check for clash on the new SKU; skip rename silently on conflict.
             const clash = await tx.productVariant.findFirst({
@@ -1418,7 +1424,9 @@ export class ProductsService {
               name,
               sku: desiredSku,
               price,
-              quantity: payload.stock,
+              // New variants must start somewhere; default to 0 when the
+              // admin didn't supply an initial stock value.
+              quantity: payload.stock ?? 0,
               lowStockThreshold: payload.lowStockThreshold ?? 10,
               isActive: payload.isActive,
               isDefault: idx === defaultIdx,

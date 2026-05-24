@@ -13,7 +13,7 @@ import {
   Loader2,
 } from 'lucide-react';
 import { useRouter, useParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
 
 import { CategorizationForm } from '@/components/admin/products/categorization-form';
@@ -178,6 +178,53 @@ function hydrateVariants(raw: unknown): { options: OptionType[]; variants: Varia
 }
 
 // ──────────────────────────────────────────────────────────
+// Variant Stock Summary
+// ──────────────────────────────────────────────────────────
+
+/**
+ * Read-only card shown at the top of the Variants tab so admin can see the
+ * rolled-up on-hand count without summing rows by eye. Updates live as the
+ * form state changes and as the background poll merges fresh stock values.
+ */
+function VariantStockSummary({ variants }: { variants: Variant[] }) {
+  const summary = useMemo(() => {
+    const active = variants.filter((v) => v.isActive !== false);
+    const total = active.reduce((sum, v) => sum + (v.stock ?? 0), 0);
+    const lowCount = active.filter(
+      (v) => (v.stock ?? 0) > 0 && (v.stock ?? 0) <= (v.lowStockThreshold ?? 10),
+    ).length;
+    const outCount = active.filter((v) => (v.stock ?? 0) <= 0).length;
+    return { total, activeCount: active.length, lowCount, outCount };
+  }, [variants]);
+
+  if (summary.activeCount === 0) {
+    return null;
+  }
+
+  return (
+    <div className="mb-4 flex flex-wrap items-baseline gap-x-6 gap-y-2 rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 text-sm">
+      <div>
+        <span className="text-gray-500">Total stock</span>{' '}
+        <span className="text-lg font-semibold text-gray-900">{summary.total}</span>{' '}
+        <span className="text-gray-500">
+          across {summary.activeCount} active variant{summary.activeCount === 1 ? '' : 's'}
+        </span>
+      </div>
+      {summary.lowCount > 0 && (
+        <span className="rounded-full bg-yellow-100 px-2 py-0.5 text-xs font-medium text-yellow-700">
+          {summary.lowCount} low
+        </span>
+      )}
+      {summary.outCount > 0 && (
+        <span className="rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700">
+          {summary.outCount} out of stock
+        </span>
+      )}
+    </div>
+  );
+}
+
+// ──────────────────────────────────────────────────────────
 // Product Edit Page
 // ──────────────────────────────────────────────────────────
 
@@ -200,6 +247,28 @@ export default function AdminProductEditPage() {
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [existingImages, setExistingImages] = useState<ProductImage[]>([]);
   const { confirm, dialog: confirmDialog } = useConfirm();
+
+  /**
+   * Snapshot of stock values as they were when the form last hydrated from
+   * the server. Used by `handleSave` to decide whether to send `quantity` /
+   * `stock` in the Save payload — if the admin didn't touch a field, we
+   * omit it so the API leaves the live DB value alone (preserves customer
+   * order decrements that arrived after the form loaded).
+   *
+   * Variants are keyed by canonical option fingerprint, matching how the
+   * backend identifies variants in replaceVariants.
+   */
+  const initialStockRef = useRef<{
+    productQuantity: number;
+    variants: Map<string, number>;
+  }>({ productQuantity: 0, variants: new Map() });
+
+  /** Stable fingerprint of a variant's option tuple — same algorithm as
+   *  backend (orders/products services) and variants-form.tsx. */
+  const fingerprintOptions = (opts: Record<string, string>): string =>
+    JSON.stringify(
+      Object.fromEntries(Object.entries(opts).sort(([a], [b]) => a.localeCompare(b))),
+    );
 
   const [formData, setFormData] = useState<ProductFormData>({
     name: '',
@@ -236,6 +305,15 @@ export default function AdminProductEditPage() {
         const product = data.data ?? data;
         const images: ProductImage[] = Array.isArray(product.images) ? product.images : [];
         const { options, variants } = hydrateVariants(product.variants);
+
+        // Snapshot stock for dirty-tracking (used by handleSave to decide
+        // whether to overwrite the field at save-time).
+        initialStockRef.current = {
+          productQuantity: product.quantity ?? 0,
+          variants: new Map(
+            variants.map((v) => [fingerprintOptions(v.options), v.stock]),
+          ),
+        };
 
         setExistingImages(images);
         setFormData({
@@ -283,6 +361,85 @@ export default function AdminProductEditPage() {
       loadProduct();
     }
   }, [productId]);
+
+  // ─── Live stock refresh (poll + on-focus) ─────────────────────────
+  //
+  // Admin uses these numbers to decide when to restock; if they sit at
+  // stale values for hours the decisions are wrong. Quietly refetch every
+  // 30s and whenever the tab regains focus, and merge ONLY the stock
+  // fields the admin hasn't already edited. Dirty fields are left alone
+  // so an in-progress edit isn't clobbered by the background poll.
+
+  const refreshStockFromServer = useCallback(async () => {
+    if (!productId) return;
+    try {
+      const { data } = await apiClient.get(`/products/by-id/${productId}`);
+      const product = data?.data ?? data;
+      if (!product) return;
+      const liveQuantity: number = product.quantity ?? 0;
+      const liveVariants = Array.isArray(product.variants) ? product.variants : [];
+
+      // Index live variant stock by option fingerprint so we can match it
+      // against the form's current rows regardless of array order.
+      const liveVariantStockByFp = new Map<string, number>();
+      for (const v of liveVariants) {
+        const opts: Record<string, string> = {};
+        for (const av of v.attributeValues ?? []) {
+          opts[av.attribute.name] = av.value;
+        }
+        liveVariantStockByFp.set(fingerprintOptions(opts), v.quantity ?? 0);
+      }
+
+      setFormData((prev) => {
+        let mutated = false;
+        const next = { ...prev };
+
+        // Product.quantity — only refresh when admin hasn't edited it.
+        if (prev.quantity === initialStockRef.current.productQuantity && liveQuantity !== prev.quantity) {
+          next.quantity = liveQuantity;
+          initialStockRef.current.productQuantity = liveQuantity;
+          mutated = true;
+        }
+
+        // Per-variant stock — only refresh rows where the admin's value
+        // still equals what we loaded for that row.
+        const nextVariants = prev.variants.map((v) => {
+          const fp = fingerprintOptions(v.options);
+          const liveStock = liveVariantStockByFp.get(fp);
+          if (liveStock === undefined) return v;
+          const initial = initialStockRef.current.variants.get(fp);
+          if (initial !== undefined && v.stock === initial && liveStock !== v.stock) {
+            initialStockRef.current.variants.set(fp, liveStock);
+            mutated = true;
+            return { ...v, stock: liveStock };
+          }
+          return v;
+        });
+        if (mutated) {
+          next.variants = nextVariants;
+          return next;
+        }
+        return prev;
+      });
+    } catch (err) {
+      // Background refresh — never disrupt the admin's session on a transient failure.
+      console.debug('Stock refresh failed:', err);
+    }
+  }, [productId]);
+
+  useEffect(() => {
+    if (!productId || isLoading) return;
+    const POLL_MS = 30_000;
+    const interval = setInterval(refreshStockFromServer, POLL_MS);
+    const onFocus = () => {
+      refreshStockFromServer();
+    };
+    window.addEventListener('focus', onFocus);
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('focus', onFocus);
+    };
+  }, [productId, isLoading, refreshStockFromServer]);
 
   // ─── Form Update Handler ──────────────────────────────────────────
 
@@ -340,7 +497,12 @@ export default function AdminProductEditPage() {
 
     try {
       setIsSaving(true);
-      const payload = {
+      // Only send `quantity` when the admin actually edited it. Otherwise
+      // omit it so the API doesn't overwrite live stock that customer orders
+      // may have decremented since the form was loaded.
+      const productQuantityDirty =
+        formData.quantity !== initialStockRef.current.productQuantity;
+      const payload: Record<string, unknown> = {
         name: formData.name.trim(),
         description: formData.description.trim(),
         descriptionBn: formData.descriptionBn.trim() || undefined,
@@ -349,7 +511,6 @@ export default function AdminProductEditPage() {
         price: formData.price,
         compareAtPrice: formData.compareAtPrice ?? undefined,
         costPrice: formData.costPrice ?? undefined,
-        quantity: formData.quantity,
         lowStockThreshold: formData.lowStockThreshold,
         weight: formData.weight ?? undefined,
         categoryId: formData.categoryId,
@@ -360,6 +521,9 @@ export default function AdminProductEditPage() {
         metaTitle: formData.metaTitle.trim() || undefined,
         metaDescription: formData.metaDescription.trim() || undefined,
       };
+      if (productQuantityDirty) {
+        payload.quantity = formData.quantity;
+      }
       const { data: patchResponse } = await apiClient.patch(`/products/${productId}`, payload);
       const updated = patchResponse?.data ?? patchResponse;
 
@@ -432,6 +596,11 @@ export default function AdminProductEditPage() {
       // Bulk-replace variants. The API matches existing rows by option-tuple
       // fingerprint, so we just send the cleaned current list and skip any
       // half-entered rows whose options map is empty.
+      //
+      // Stock is sent ONLY when the admin edited the variant's stock from
+      // the value loaded into the form. Otherwise we omit it so the API
+      // preserves the live DB value (including any concurrent customer-order
+      // decrements that happened after this form loaded).
       const cleanVariants = formData.variants
         .map((v) => {
           const cleanOptions: Record<string, string> = {};
@@ -442,18 +611,27 @@ export default function AdminProductEditPage() {
               cleanOptions[key] = value;
             }
           }
-          return {
+          const fp = fingerprintOptions(cleanOptions);
+          const initialStock = initialStockRef.current.variants.get(fp);
+          const isNewVariant = initialStock === undefined;
+          const stockDirty = !isNewVariant && v.stock !== initialStock;
+          const payload: Record<string, unknown> = {
             options: cleanOptions,
             price: v.price,
-            stock: v.stock,
             lowStockThreshold: v.lowStockThreshold ?? 10,
             sku: v.sku.trim() || undefined,
             isActive: v.isActive,
             isDefault: v.isDefault === true,
             imageUrls: Array.isArray(v.imageUrls) ? v.imageUrls : [],
           };
+          // New rows need an initial stock; existing rows only resync stock
+          // when the admin explicitly edited it.
+          if (isNewVariant || stockDirty) {
+            payload.stock = v.stock;
+          }
+          return payload;
         })
-        .filter((v) => Object.keys(v.options).length > 0);
+        .filter((v) => Object.keys((v.options ?? {}) as Record<string, string>).length > 0);
 
       await apiClient
         .put(`/products/${productId}/variants/replace`, { variants: cleanVariants })
@@ -470,8 +648,17 @@ export default function AdminProductEditPage() {
       const images: ProductImage[] = Array.isArray(fresh.images) ? fresh.images : [];
       const hydrated = hydrateVariants(fresh.variants);
       setExistingImages(images);
+      // Reset the dirty-tracking snapshot — everything in the form now
+      // matches the DB after this save, so the next Save should start fresh.
+      initialStockRef.current = {
+        productQuantity: fresh.quantity ?? 0,
+        variants: new Map(
+          hydrated.variants.map((v) => [fingerprintOptions(v.options), v.stock]),
+        ),
+      };
       setFormData((prev) => ({
         ...prev,
+        quantity: fresh.quantity ?? prev.quantity,
         images: images.map((img) => img.url),
         options: hydrated.options,
         variants: hydrated.variants,
@@ -767,15 +954,18 @@ export default function AdminProductEditPage() {
       )}
 
       {activeTab === 'variants' && (
-        <VariantsForm
-          options={formData.options}
-          variants={formData.variants}
-          onOptionsChange={(options) => updateField('options', options)}
-          onVariantsChange={(variants) => updateField('variants', variants)}
-          basePrice={formData.price}
-          baseSku={formData.sku}
-          productImages={formData.images}
-        />
+        <>
+          <VariantStockSummary variants={formData.variants} />
+          <VariantsForm
+            options={formData.options}
+            variants={formData.variants}
+            onOptionsChange={(options) => updateField('options', options)}
+            onVariantsChange={(variants) => updateField('variants', variants)}
+            basePrice={formData.price}
+            baseSku={formData.sku}
+            productImages={formData.images}
+          />
+        </>
       )}
 
       {activeTab === 'categorization' && (

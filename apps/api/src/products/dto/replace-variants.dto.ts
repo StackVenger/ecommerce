@@ -26,10 +26,17 @@ export class ReplaceVariantItemDto {
   @Type(() => Number)
   price?: number | null;
 
+  /**
+   * Absolute stock value. When omitted, the API does NOT touch the
+   * variant's existing quantity in the DB — important so admin saves
+   * (which often don't change stock) don't overwrite decrements made
+   * by concurrent customer orders.
+   */
+  @IsOptional()
   @IsInt()
   @Min(0)
   @Type(() => Number)
-  stock: number;
+  stock?: number;
 
   @IsOptional()
   @IsNumber()
