@@ -446,6 +446,12 @@ model Order {
   deliveredAt        DateTime?
   cancelledAt        DateTime?
   cancellationReason String?
+  /// Whether the order's line-item stock has been decremented. Set true at
+  /// placement (default flow) or at PENDING→CONFIRMED transition (safety net
+  /// for legacy orders that pre-date this field). Cancellation only restores
+  /// stock when this is true, preventing double-restore on orders that were
+  /// never decremented.
+  stockCommitted     Boolean     @default(false)
   createdAt          DateTime    @default(now())
   updatedAt          DateTime    @updatedAt
 

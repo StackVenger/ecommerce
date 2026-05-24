@@ -113,6 +113,80 @@ export class OrdersService {
     private readonly eventEmitter: EventEmitter2,
   ) {}
 
+  // ─── Stock commitment helpers ──────────────────────────────────────────────
+  //
+  // Stock is decremented at order placement and (defensively) at PENDING →
+  // CONFIRMED transition for any order whose stockCommitted flag is false.
+  // Cancellation only restores stock when the flag is true so legacy orders
+  // that were never decremented don't get a phantom restore.
+  //
+  // Both helpers MUST be called inside a Prisma $transaction so failures
+  // (insufficient stock) roll back atomically.
+
+  private async commitOrderStock(
+    tx: Prisma.TransactionClient,
+    items: Array<{
+      productId: string;
+      variantId: string | null;
+      quantity: number;
+      productName?: string | null;
+    }>,
+  ): Promise<Set<string>> {
+    const touched = new Set<string>();
+    for (const item of items) {
+      const label = item.productName ?? 'item';
+      if (item.variantId) {
+        const v = await tx.productVariant.update({
+          where: { id: item.variantId },
+          data: { quantity: { decrement: item.quantity } },
+        });
+        if (v.quantity < 0) {
+          throw new BadRequestException(
+            `Insufficient stock for variant of "${label}" (would go to ${v.quantity}).`,
+          );
+        }
+      } else {
+        const p = await tx.product.update({
+          where: { id: item.productId },
+          data: { quantity: { decrement: item.quantity } },
+        });
+        if (p.quantity < 0) {
+          throw new BadRequestException(
+            `Insufficient stock for "${label}" (would go to ${p.quantity}).`,
+          );
+        }
+      }
+      touched.add(item.productId);
+    }
+    return touched;
+  }
+
+  private async restoreOrderStock(
+    tx: Prisma.TransactionClient,
+    items: Array<{
+      productId: string;
+      variantId: string | null;
+      quantity: number;
+    }>,
+  ): Promise<Set<string>> {
+    const touched = new Set<string>();
+    for (const item of items) {
+      if (item.variantId) {
+        await tx.productVariant.update({
+          where: { id: item.variantId },
+          data: { quantity: { increment: item.quantity } },
+        });
+      } else {
+        await tx.product.update({
+          where: { id: item.productId },
+          data: { quantity: { increment: item.quantity } },
+        });
+      }
+      touched.add(item.productId);
+    }
+    return touched;
+  }
+
   // ─── Order Number Generator ─────────────────────────────────────────────────
 
   async generateOrderNumber(): Promise<string> {
@@ -410,27 +484,15 @@ export class OrdersService {
     const orderNumber = await this.generateOrderNumber();
 
     const order = await this.prisma.$transaction(async (tx) => {
-      const touchedProductIds = new Set<string>();
-      for (const item of cart.items) {
-        if (item.variantId) {
-          const v = await tx.productVariant.update({
-            where: { id: item.variantId },
-            data: { quantity: { decrement: item.quantity } },
-          });
-          if (v.quantity < 0) {
-            throw new BadRequestException(`"${item.product.name}" variant went out of stock during checkout`);
-          }
-        } else {
-          const p = await tx.product.update({
-            where: { id: item.productId },
-            data: { quantity: { decrement: item.quantity } },
-          });
-          if (p.quantity < 0) {
-            throw new BadRequestException(`"${item.product.name}" went out of stock during checkout`);
-          }
-        }
-        touchedProductIds.add(item.productId);
-      }
+      const touchedProductIds = await this.commitOrderStock(
+        tx,
+        cart.items.map((item) => ({
+          productId: item.productId,
+          variantId: item.variantId,
+          quantity: item.quantity,
+          productName: item.product.name,
+        })),
+      );
 
       // Stock dropped — recompute Product.status so the storefront stops
       // listing products that just hit zero (auto-flip to OUT_OF_STOCK).
@@ -443,6 +505,10 @@ export class OrdersService {
           orderNumber,
           userId: userId || null,
           status: 'PENDING',
+          // Stock was just decremented above — record it so the confirmation
+          // safety-net doesn't double-decrement, and so cancellation knows
+          // there's stock to restore.
+          stockCommitted: true,
           subtotal: validation.subtotal,
           discountAmount: validation.discount,
           shippingCost: validation.shippingCost,
@@ -1187,6 +1253,7 @@ export class OrdersService {
       deliveredAt?: Date;
       cancelledAt?: Date;
       notes?: string;
+      stockCommitted?: boolean;
     } = {
       status: dto.status,
     };
@@ -1209,6 +1276,36 @@ export class OrdersService {
     }
 
     const updatedOrder = await this.prisma.$transaction(async (tx) => {
+      // Safety-net stock decrement: if this is the PENDING → CONFIRMED
+      // transition and the order was created before the placement-time
+      // decrement was wired up (or that decrement never ran for any other
+      // reason), commit the stock now. The stockCommitted flag is the
+      // idempotency guard — orders that already decremented at placement
+      // skip this branch entirely.
+      if (
+        order.status === OrderStatus.PENDING &&
+        dto.status === OrderStatus.CONFIRMED &&
+        !order.stockCommitted
+      ) {
+        const items = await tx.orderItem.findMany({
+          where: { orderId },
+          select: {
+            productId: true,
+            variantId: true,
+            quantity: true,
+            productName: true,
+          },
+        });
+        const touchedProductIds = await this.commitOrderStock(tx, items);
+        for (const productId of touchedProductIds) {
+          await recomputeProductStatus(tx, productId);
+        }
+        updateData.stockCommitted = true;
+        this.logger.log(
+          `Order ${order.orderNumber}: safety-net stock decrement fired at PENDING→CONFIRMED (legacy order or placement-decrement missed).`,
+        );
+      }
+
       const next = await tx.order.update({
         where: { id: orderId },
         data: updateData,
@@ -1409,26 +1506,24 @@ export class OrdersService {
     cancelledBy: 'customer' | 'admin',
   ) {
     const cancelledOrder = await this.prisma.$transaction(async (tx) => {
-      // 1. Restore inventory for each item
-      const touchedProductIds = new Set<string>();
-      for (const item of order.items) {
-        if (item.variantId) {
-          await tx.productVariant.update({
-            where: { id: item.variantId },
-            data: { quantity: { increment: item.quantity } },
-          });
-        } else {
-          await tx.product.update({
-            where: { id: item.productId },
-            data: { quantity: { increment: item.quantity } },
-          });
-        }
-        touchedProductIds.add(item.productId);
-      }
+      // 1. Restore inventory — but only if this order actually had its
+      //    stock decremented. Legacy orders or never-confirmed orders that
+      //    pre-date the stockCommitted flag have it false and must NOT
+      //    receive a phantom restore (would create stock from nothing).
+      if (order.stockCommitted) {
+        const touchedProductIds = await this.restoreOrderStock(tx, order.items);
 
-      // Stock came back — flip status from OUT_OF_STOCK to ACTIVE if needed.
-      for (const productId of touchedProductIds) {
-        await recomputeProductStatus(tx, productId);
+        // Stock came back — flip status from OUT_OF_STOCK to ACTIVE if needed.
+        for (const productId of touchedProductIds) {
+          await recomputeProductStatus(tx, productId);
+        }
+        this.logger.log(
+          `Order ${order.orderNumber}: stock restored on cancel (${order.items.length} items).`,
+        );
+      } else {
+        this.logger.log(
+          `Order ${order.orderNumber}: skipping stock restore on cancel — stockCommitted=false (never decremented).`,
+        );
       }
 
       // 2. Restore coupon usage count if a coupon was applied
@@ -1457,6 +1552,10 @@ export class OrdersService {
           status: OrderStatus.CANCELLED,
           cancelledAt: new Date(),
           notes: order.notes ? `${order.notes}\n${cancellationNote}` : cancellationNote,
+          // If we restored stock above, the order no longer owns those
+          // units. Flip the flag so a future re-cancel attempt (or audit)
+          // doesn't try to restore them a second time.
+          ...(order.stockCommitted ? { stockCommitted: false } : {}),
         },
         include: { items: true },
       });
