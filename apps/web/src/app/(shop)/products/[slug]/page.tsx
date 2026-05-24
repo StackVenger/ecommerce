@@ -257,10 +257,14 @@ export default function ProductPage() {
     }
     if (variantsActive) {
       if (!selectedVariant) {
-        return false;
+        return cart.items.some(
+          (item) => item.productId === product.id && !item.variantId
+        );
       }
       return cart.items.some(
-        (item) => item.productId === product.id && item.variantId === selectedVariant.id
+        (item) =>
+          item.productId === product.id &&
+          (item.variantId === selectedVariant.id || !item.variantId)
       );
     }
     return cart.items.some(
