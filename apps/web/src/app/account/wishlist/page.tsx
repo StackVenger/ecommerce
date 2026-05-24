@@ -21,7 +21,7 @@ export default function WishlistPage() {
 
   const fetchWishlist = useCallback(async () => {
     try {
-      const data = await getWishlist();
+      const { items: data } = await getWishlist();
       setItems(data);
     } catch (error) {
       console.error('Failed to fetch wishlist:', error);

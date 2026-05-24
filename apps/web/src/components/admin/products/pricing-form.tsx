@@ -179,14 +179,15 @@ export function PricingForm({
           </div>
         )}
 
-        {/* Compare price warning */}
+        {/* Compare price validation */}
         {data.compareAtPrice !== null &&
           data.compareAtPrice > 0 &&
           data.price >= data.compareAtPrice && (
-            <div className="mt-3 flex items-center gap-2 rounded-lg bg-yellow-50 px-4 py-3">
-              <AlertTriangle className="h-4 w-4 text-yellow-600" />
-              <p className="text-sm text-yellow-700">
-                Compare-at price should be higher than the selling price.
+            <div className="mt-3 flex items-center gap-2 rounded-lg bg-red-50 px-4 py-3">
+              <AlertTriangle className="h-4 w-4 text-red-600" />
+              <p className="text-sm text-red-700">
+                Compare-at price must be higher than the selling price — clear
+                it or raise it before saving. (Saving as-is will be rejected.)
               </p>
             </div>
           )}

@@ -167,6 +167,20 @@ export class ProductsService {
   async create(dto: CreateProductDto) {
     this.logger.log(`Creating product: ${dto.name}`);
 
+    // compareAtPrice represents the original "marked up" price for a
+    // discount display ("৳1000 ৳500" with a strikethrough). It must be
+    // strictly greater than price or the storefront would render a
+    // negative discount badge.
+    if (
+      dto.compareAtPrice !== undefined &&
+      dto.compareAtPrice !== null &&
+      dto.compareAtPrice <= dto.price
+    ) {
+      throw new BadRequestException(
+        'compareAtPrice must be greater than price (otherwise the storefront would show a negative discount)',
+      );
+    }
+
     const rawSlug = this.generateSlug(dto.name);
     const slug = await this.ensureUniqueSlug(rawSlug);
 
@@ -209,7 +223,10 @@ export class ProductsService {
         status: dto.status ?? 'DRAFT',
         category: { connect: { id: dto.categoryId } },
         brand: dto.brandId ? { connect: { id: dto.brandId } } : undefined,
-        tags: dto.tags ?? [],
+        // Tag search lowercases the query (line ~338); normalize on write so
+        // the comparison is symmetric. Tags entered as "Electronics" become
+        // "electronics" — the storefront should render with title-case CSS.
+        tags: (dto.tags ?? []).map((t) => t.trim().toLowerCase()).filter((t) => t.length > 0),
         weight: dto.weight,
         weightUnit: dto.weightUnit ?? 'kg',
         length: dto.length,
@@ -474,6 +491,27 @@ export class ProductsService {
     return product;
   }
 
+  /**
+   * Look up a historical slug and return the product's current canonical
+   * slug + id, so the storefront can 301-redirect to the new URL.
+   * Returns 404 when neither the alias nor a current product matches.
+   */
+  async resolveSlugAlias(oldSlug: string) {
+    const alias = await this.prisma.productSlugAlias.findUnique({
+      where: { oldSlug },
+      select: {
+        product: { select: { id: true, slug: true, status: true } },
+      },
+    });
+    if (!alias?.product) {
+      throw new NotFoundException(`No product alias for slug "${oldSlug}"`);
+    }
+    if (alias.product.status === 'ARCHIVED') {
+      throw new NotFoundException(`Product for slug "${oldSlug}" is archived`);
+    }
+    return { id: alias.product.id, slug: alias.product.slug };
+  }
+
   async findBySlug(slug: string, actorRole?: string | null) {
     const product = await this.prisma.product.findUnique({
       where: { slug },
@@ -599,15 +637,62 @@ export class ProductsService {
   }
 
   private async logProductView(productId: string): Promise<void> {
-    await Promise.all([
-      this.prisma.product.update({
+    // Product.viewCount is the SOT for view analytics. ProductViewEvent has
+    // no reader anywhere in the codebase; previously it was double-written
+    // here, which only wasted storage. Re-introduce the event write if/when
+    // a per-event analytics view is added.
+    await this.prisma.product.update({
+      where: { id: productId },
+      data: { viewCount: { increment: 1 } },
+    });
+  }
+
+  /**
+   * Recompute Product.status based on effective stock.
+   *
+   * Variant products: sum of active variant quantities.
+   * Non-variant products: Product.quantity.
+   *
+   * Flips ACTIVE <-> OUT_OF_STOCK in both directions. ARCHIVED and DRAFT
+   * are admin overrides and are never touched — the admin must move them
+   * out of those states manually.
+   *
+   * Accepts an optional Prisma transaction client so callers inside a
+   * `$transaction` can keep the status update atomic with their changes.
+   */
+  async recomputeProductStatus(
+    productId: string,
+    tx?: Prisma.TransactionClient,
+  ): Promise<void> {
+    const client = tx ?? this.prisma;
+    const product = await client.product.findUnique({
+      where: { id: productId },
+      select: {
+        id: true,
+        status: true,
+        quantity: true,
+        variants: {
+          where: { isActive: true },
+          select: { quantity: true },
+        },
+      },
+    });
+    if (!product) {
+      return;
+    }
+    if (product.status === 'ARCHIVED' || product.status === 'DRAFT') {
+      return;
+    }
+    const effectiveStock = product.variants.length > 0
+      ? product.variants.reduce((s, v) => s + v.quantity, 0)
+      : product.quantity;
+    const desired = effectiveStock <= 0 ? 'OUT_OF_STOCK' : 'ACTIVE';
+    if (desired !== product.status) {
+      await client.product.update({
         where: { id: productId },
-        data: { viewCount: { increment: 1 } },
-      }),
-      this.prisma.productViewEvent.create({
-        data: { productId },
-      }),
-    ]);
+        data: { status: desired },
+      });
+    }
   }
 
   async update(id: string, dto: UpdateProductDto) {
@@ -620,6 +705,8 @@ export class ProductsService {
         name: true,
         slug: true,
         sku: true,
+        price: true,
+        compareAtPrice: true,
         variants: {
           where: { isActive: true },
           select: { id: true },
@@ -681,6 +768,27 @@ export class ProductsService {
     if (dto.costPrice !== undefined) {
       updateData.costPrice = dto.costPrice;
     }
+
+    // Validate compareAtPrice vs whichever price wins after this update.
+    // Either the DTO carries a new price or we fall back to the existing
+    // row. Only enforce when compareAtPrice ends up non-null.
+    {
+      const effectivePrice = dto.price ?? Number(existing.price);
+      const effectiveCompare =
+        dto.compareAtPrice !== undefined
+          ? dto.compareAtPrice
+          : existing.compareAtPrice;
+      if (
+        effectiveCompare !== undefined &&
+        effectiveCompare !== null &&
+        Number(effectiveCompare) <= Number(effectivePrice)
+      ) {
+        throw new BadRequestException(
+          'compareAtPrice must be greater than price (otherwise the storefront would show a negative discount)',
+        );
+      }
+    }
+
     if (dto.quantity !== undefined) {
       const hasActiveVariants = existing.variants.length > 0;
       if (hasActiveVariants) {
@@ -693,7 +801,8 @@ export class ProductsService {
       updateData.status = dto.status;
     }
     if (dto.tags !== undefined) {
-      updateData.tags = dto.tags;
+      // Normalize to lowercase so they match the lowercased search query.
+      updateData.tags = dto.tags.map((t) => t.trim().toLowerCase()).filter((t) => t.length > 0);
     }
     if (dto.weight !== undefined) {
       updateData.weight = dto.weight;
@@ -788,6 +897,29 @@ export class ProductsService {
     });
 
     this.logger.log(`Product updated: ${product.id} (${product.slug})`);
+
+    // Stock or status edit can flip the product into/out of OUT_OF_STOCK.
+    // Cheap to recompute even if neither changed — branches on status enum.
+    await this.recomputeProductStatus(id);
+
+    // Slug change: stash the old slug so old URLs can 301-redirect instead
+    // of 404. Skip if the slug didn't actually move (avoids inserting an
+    // identity row), and swallow uniqueness collisions when the slug was
+    // previously used and re-released (e.g. ping-pong renames).
+    if (updateData.slug && existing.slug !== product.slug) {
+      try {
+        await this.prisma.productSlugAlias.create({
+          data: { productId: id, oldSlug: existing.slug },
+        });
+      } catch (err) {
+        // Unique violation = an alias for this slug already exists. Safe
+        // to ignore — the old URL still points to the right product.
+        this.logger.debug(
+          `Skipped slug alias for "${existing.slug}": ${err instanceof Error ? err.message : String(err)}`,
+        );
+      }
+    }
+
     return product;
   }
 
@@ -961,6 +1093,7 @@ export class ProductsService {
     });
 
     this.logger.log(`Variant created: ${variant.id} (${variant.sku})`);
+    await this.recomputeProductStatus(productId);
     return variant;
   }
 
@@ -1039,6 +1172,7 @@ export class ProductsService {
     });
 
     this.logger.log(`Variant updated: ${updated.id}`);
+    await this.recomputeProductStatus(productId);
     return updated;
   }
 
@@ -1073,6 +1207,7 @@ export class ProductsService {
     });
 
     this.logger.log(`Variant deleted: ${variantId} (${variant.sku})`);
+    await this.recomputeProductStatus(productId);
     return { deleted: true, id: variantId, sku: variant.sku };
   }
 
@@ -1403,6 +1538,28 @@ export class ProductsService {
         });
       }
 
+      // 7. Default-variant promotion. The product MUST have at most one
+      // isDefault=true variant, AND if there's ≥1 active variant at least
+      // one of them should carry isDefault — the PDP relies on it for
+      // first-load price/image. The earlier write loop honours the payload's
+      // isDefault flag, but the admin can save a payload with none marked
+      // (e.g. they deleted the default row); promote the lowest-sortOrder
+      // active variant in that case.
+      const activeWithDefault = await tx.productVariant.findMany({
+        where: { productId, isActive: true },
+        orderBy: { sortOrder: 'asc' },
+        select: { id: true, isDefault: true },
+      });
+      if (activeWithDefault.length > 0) {
+        const currentDefault = activeWithDefault.find((v) => v.isDefault);
+        if (!currentDefault) {
+          await tx.productVariant.update({
+            where: { id: activeWithDefault[0]!.id },
+            data: { isDefault: true },
+          });
+        }
+      }
+
       return tx.productVariant.findMany({
         where: { productId },
         orderBy: { sortOrder: 'asc' },
@@ -1433,6 +1590,9 @@ export class ProductsService {
         await this.uploadService.deleteByUrls(toDestroy);
       }
     }
+
+    // Variant edits change effective stock — refresh Product.status.
+    await this.recomputeProductStatus(productId);
 
     return result;
   }

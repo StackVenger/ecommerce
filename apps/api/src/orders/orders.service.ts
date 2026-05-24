@@ -1,6 +1,7 @@
 import { Injectable, Logger, NotFoundException, BadRequestException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { EventEmitter2 } from '@nestjs/event-emitter';
+import { Prisma } from '@prisma/client';
 
 import { EmailService } from '../email/email.service';
 import { PrismaService } from '../prisma/prisma.service';
@@ -11,6 +12,43 @@ import {
   ORDER_STATUS_TRANSITIONS,
 } from './dto/update-order-status.dto';
 import { ShippingService } from './shipping.service';
+
+/**
+ * Recompute Product.status based on effective stock. Duplicated from
+ * products.service.ts (where the canonical implementation lives) to keep
+ * orders.service free of cross-module dependencies — adding ProductsService
+ * here would create a circular import path. Keep the two implementations
+ * in lockstep when modifying.
+ */
+async function recomputeProductStatus(
+  tx: Prisma.TransactionClient,
+  productId: string,
+): Promise<void> {
+  const product = await tx.product.findUnique({
+    where: { id: productId },
+    select: {
+      status: true,
+      quantity: true,
+      variants: { where: { isActive: true }, select: { quantity: true } },
+    },
+  });
+  if (!product) {
+    return;
+  }
+  if (product.status === 'ARCHIVED' || product.status === 'DRAFT') {
+    return;
+  }
+  const effectiveStock = product.variants.length > 0
+    ? product.variants.reduce((s, v) => s + v.quantity, 0)
+    : product.quantity;
+  const desired = effectiveStock <= 0 ? 'OUT_OF_STOCK' : 'ACTIVE';
+  if (desired !== product.status) {
+    await tx.product.update({
+      where: { id: productId },
+      data: { status: desired },
+    });
+  }
+}
 
 /**
  * Validation result for a single cart item during checkout.
@@ -372,6 +410,7 @@ export class OrdersService {
     const orderNumber = await this.generateOrderNumber();
 
     const order = await this.prisma.$transaction(async (tx) => {
+      const touchedProductIds = new Set<string>();
       for (const item of cart.items) {
         if (item.variantId) {
           const v = await tx.productVariant.update({
@@ -390,6 +429,13 @@ export class OrdersService {
             throw new BadRequestException(`"${item.product.name}" went out of stock during checkout`);
           }
         }
+        touchedProductIds.add(item.productId);
+      }
+
+      // Stock dropped — recompute Product.status so the storefront stops
+      // listing products that just hit zero (auto-flip to OUT_OF_STOCK).
+      for (const productId of touchedProductIds) {
+        await recomputeProductStatus(tx, productId);
       }
 
       const createdOrder = await tx.order.create({
@@ -438,6 +484,26 @@ export class OrdersService {
         },
       });
 
+      // Persist OrderShipping so the admin has a row to attach tracking /
+      // carrier info to once the parcel is dispatched. The shippingMethodId
+      // FK is nullable because runtime checkout uses hardcoded codes
+      // ('standard', 'express') that may not map to a shipping_methods
+      // row — we keep the code in methodCode for display.
+      if (dto.shippingMethodId) {
+        const dbMethod = await tx.shippingMethod.findFirst({
+          where: { id: dto.shippingMethodId },
+          select: { id: true },
+        });
+        await tx.orderShipping.create({
+          data: {
+            orderId: createdOrder.id,
+            shippingMethodId: dbMethod?.id,
+            methodCode: dto.shippingMethodId,
+            cost: validation.shippingCost,
+          },
+        });
+      }
+
       await tx.cartItem.deleteMany({ where: { cartId: cart.id } });
       await tx.cart.update({
         where: { id: cart.id },
@@ -445,10 +511,25 @@ export class OrdersService {
       });
 
       if (dto.couponCode) {
-        await tx.coupon.update({
-          where: { code: dto.couponCode.toUpperCase() },
-          data: { usageCount: { increment: 1 } },
-        });
+        // Atomic limit-check + increment: the SQL predicate combines the
+        // check with the update so two concurrent orders can't both pass a
+        // usageLimit boundary. Prisma's typed updateMany can't compare
+        // column-to-column, so drop to $executeRaw. `result` is the number
+        // of rows updated — 0 means the coupon hit its limit between
+        // validation and commit.
+        const code = dto.couponCode.toUpperCase();
+        const result = await tx.$executeRaw`
+          UPDATE "coupons"
+          SET "usageCount" = "usageCount" + 1
+          WHERE "code" = ${code}
+            AND "isActive" = true
+            AND ("usageLimit" IS NULL OR "usageCount" < "usageLimit")
+        `;
+        if (result === 0) {
+          throw new BadRequestException(
+            'Coupon usage limit was reached while placing your order. Please remove the coupon and try again.',
+          );
+        }
       }
 
       return createdOrder;
@@ -1154,7 +1235,10 @@ export class OrdersService {
 
     this.logger.log(`Order ${order.orderNumber} status updated: ${order.status} → ${dto.status}`);
 
-    if (dto.notifyCustomer) {
+    // Default to notifying the customer on every status change. Admins can
+    // explicitly suppress with `notifyCustomer: false` (e.g. backfills,
+    // internal corrections that don't need an email blast).
+    if (dto.notifyCustomer !== false) {
       await this.deliverStatusChangeEmail(orderId, dto.status, dto.note);
     }
 
@@ -1326,6 +1410,7 @@ export class OrdersService {
   ) {
     const cancelledOrder = await this.prisma.$transaction(async (tx) => {
       // 1. Restore inventory for each item
+      const touchedProductIds = new Set<string>();
       for (const item of order.items) {
         if (item.variantId) {
           await tx.productVariant.update({
@@ -1338,6 +1423,12 @@ export class OrdersService {
             data: { quantity: { increment: item.quantity } },
           });
         }
+        touchedProductIds.add(item.productId);
+      }
+
+      // Stock came back — flip status from OUT_OF_STOCK to ACTIVE if needed.
+      for (const productId of touchedProductIds) {
+        await recomputeProductStatus(tx, productId);
       }
 
       // 2. Restore coupon usage count if a coupon was applied
@@ -1374,11 +1465,20 @@ export class OrdersService {
       //    Already-PAID payments stay PAID until admin issues an
       //    explicit refund (which flips them to REFUNDED) — there is
       //    no REFUND_PENDING status in the schema.
+      //
+      //    Stripe PENDING payments are left alone: the webhook may still
+      //    arrive and flip them to COMPLETED, and we want the refund flow
+      //    to remain available. COD / manual PENDING payments are safe
+      //    to mark CANCELLED here since no async confirmation is pending.
       if (latestPayment && !needsRefund) {
-        await tx.payment.update({
-          where: { id: latestPayment.id },
-          data: { status: 'CANCELLED' },
-        });
+        const isStripePending =
+          latestPayment.method === 'STRIPE' && latestPayment.status === 'PENDING';
+        if (!isStripePending) {
+          await tx.payment.update({
+            where: { id: latestPayment.id },
+            data: { status: 'CANCELLED' },
+          });
+        }
       }
 
       return updated;

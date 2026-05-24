@@ -210,18 +210,19 @@ model Product {
   createdAt        DateTime      @default(now())
   updatedAt        DateTime      @updatedAt
 
-  category   Category           @relation(fields: [categoryId], references: [id])
-  brand      Brand?             @relation(fields: [brandId], references: [id])
-  variants   ProductVariant[]
-  attributes ProductAttribute[]
-  images     ProductImage[]
-  inventory  Inventory?
-  cartItems  CartItem[]
-  orderItems OrderItem[]
-  reviews    Review[]
-  questions  ProductQuestion[]
-  wishlists  Wishlist[]
-  viewEvents ProductViewEvent[]
+  category    Category           @relation(fields: [categoryId], references: [id])
+  brand       Brand?             @relation(fields: [brandId], references: [id])
+  variants    ProductVariant[]
+  attributes  ProductAttribute[]
+  images      ProductImage[]
+  inventory   Inventory?
+  cartItems   CartItem[]
+  orderItems  OrderItem[]
+  reviews     Review[]
+  questions   ProductQuestion[]
+  wishlists   Wishlist[]
+  viewEvents  ProductViewEvent[]
+  slugAliases ProductSlugAlias[]
 
   @@index([slug])
   @@index([categoryId])
@@ -230,6 +231,20 @@ model Product {
   @@index([price])
   @@index([createdAt])
   @@map("products")
+}
+
+/// Historical slug -> product mapping. Populated whenever an admin renames a
+/// product's slug so old URLs can 301-redirect instead of 404.
+model ProductSlugAlias {
+  id        String   @id @default(cuid())
+  productId String
+  oldSlug   String   @unique
+  createdAt DateTime @default(now())
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([productId])
+  @@map("product_slug_aliases")
 }
 
 model ProductVariant {
@@ -391,8 +406,8 @@ model CartItem {
   updatedAt DateTime @updatedAt
 
   cart    Cart            @relation(fields: [cartId], references: [id], onDelete: Cascade)
-  product Product         @relation(fields: [productId], references: [id])
-  variant ProductVariant? @relation(fields: [variantId], references: [id])
+  product Product         @relation(fields: [productId], references: [id], onDelete: Cascade)
+  variant ProductVariant? @relation(fields: [variantId], references: [id], onDelete: Cascade)
 
   @@unique([cartId, productId, variantId])
   @@map("cart_items")
@@ -568,7 +583,13 @@ model ShippingMethod {
 model OrderShipping {
   id                String    @id @default(cuid())
   orderId           String    @unique
-  shippingMethodId  String
+  /// FK to shipping_methods. Optional because runtime checkout uses
+  /// hardcoded codes ('standard', 'express') that may not have a row yet —
+  /// see methodCode for that case.
+  shippingMethodId  String?
+  /// Snapshot of the shipping method code at order time ('standard' / 'express' / DB id).
+  methodCode        String?
+  cost              Decimal   @default(0) @db.Decimal(10, 2)
   trackingNumber    String?
   carrier           String?
   estimatedDelivery DateTime?
@@ -577,8 +598,8 @@ model OrderShipping {
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
 
-  order          Order          @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  shippingMethod ShippingMethod @relation(fields: [shippingMethodId], references: [id])
+  order          Order           @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  shippingMethod ShippingMethod? @relation(fields: [shippingMethodId], references: [id])
 
   @@map("order_shippings")
 }

@@ -28,14 +28,21 @@ export interface WishlistItem {
 // API Functions
 // ──────────────────────────────────────────────────────────
 
-export async function getWishlist(): Promise<WishlistItem[]> {
+export async function getWishlist(): Promise<{
+  items: WishlistItem[];
+  removedItems: { name: string; reason: 'archived' }[];
+}> {
   const response = await apiClient.get<{
     success: boolean;
     data: WishlistItem[];
     count: number;
+    removedItems?: { name: string; reason: 'archived' }[];
   }>('/wishlist');
 
-  return response.data.data;
+  return {
+    items: response.data.data,
+    removedItems: response.data.removedItems ?? [],
+  };
 }
 
 export async function addToWishlist(productId: string): Promise<void> {

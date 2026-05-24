@@ -20,12 +20,13 @@ export class WishlistController {
   @Get()
   async getWishlist(@Req() req: Request) {
     const userId = (req.user as any).id;
-    const items = await this.wishlistService.getWishlist(userId);
+    const { items, removedItems } = await this.wishlistService.getWishlist(userId);
 
     return {
       success: true,
       data: items,
       count: items.length,
+      removedItems,
     };
   }
 

@@ -18,6 +18,11 @@ export interface CartSummary {
   total: number;
   itemCount: number;
   couponCode: string | null;
+  /**
+   * Items the server silently removed during this load because the product
+   * was archived or the variant deactivated. Empty when nothing changed.
+   */
+  removedItems: { name: string; reason: 'archived' | 'variant_inactive' }[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -457,7 +462,7 @@ export class CartService {
    * Get a cart by ID with calculated totals.
    */
   async getCartByIdSummary(cartId: string): Promise<CartSummary> {
-    const cart = await this.prisma.cart.findUnique({
+    const rawCart = await this.prisma.cart.findUnique({
       where: { id: cartId },
       include: {
         items: {
@@ -467,10 +472,11 @@ export class CartService {
       },
     });
 
-    if (!cart) {
+    if (!rawCart) {
       throw new NotFoundException('Cart not found');
     }
 
+    const cart = await this.purgeInvalidItems(rawCart);
     return this.buildCartSummary(cart);
   }
 
@@ -481,7 +487,7 @@ export class CartService {
       return null;
     }
 
-    return this.prisma.cart.findFirst({
+    const cart = await this.prisma.cart.findFirst({
       where: {
         ...(userId ? { userId } : { sessionId, userId: null }),
       },
@@ -492,6 +498,56 @@ export class CartService {
         },
       },
     });
+    if (!cart) {
+      return cart;
+    }
+    return this.purgeInvalidItems(cart);
+  }
+
+  /**
+   * Strip cart items whose underlying product was archived or whose
+   * variant was deactivated. Cart items reference live product/variant
+   * rows; if the admin pulls a product from sale the customer should not
+   * be allowed to check it out. Deletes the row in the DB AND removes it
+   * from the in-memory cart object so callers see the post-purge state.
+   * Records the removed item names on the cart so buildCartSummary can
+   * surface them to the frontend as a one-time notice.
+   */
+  private async purgeInvalidItems(cart: any) {
+    const removed: { name: string; reason: 'archived' | 'variant_inactive' }[] = [];
+    const survivors: any[] = [];
+    const deletions: string[] = [];
+    for (const item of cart.items as any[]) {
+      const productArchived = item.product?.status === 'ARCHIVED';
+      const variantInactive = item.variant && item.variant.isActive === false;
+      if (productArchived) {
+        removed.push({
+          name: item.product?.name ?? 'Unknown item',
+          reason: 'archived',
+        });
+        deletions.push(item.id);
+        continue;
+      }
+      if (variantInactive) {
+        removed.push({
+          name: item.variant?.name
+            ? `${item.product?.name ?? 'Unknown'} (${item.variant.name})`
+            : item.product?.name ?? 'Unknown item',
+          reason: 'variant_inactive',
+        });
+        deletions.push(item.id);
+        continue;
+      }
+      survivors.push(item);
+    }
+    if (deletions.length > 0) {
+      await this.prisma.cartItem.deleteMany({
+        where: { id: { in: deletions } },
+      });
+    }
+    cart.items = survivors;
+    cart.__removedItems = removed;
+    return cart;
   }
 
   private productSelect() {
@@ -579,6 +635,8 @@ export class CartService {
       total,
       itemCount,
       couponCode: cart.couponCode || null,
+      // Surfaced from purgeInvalidItems — empty when nothing was stripped.
+      removedItems: cart.__removedItems ?? [],
       createdAt: cart.createdAt,
       updatedAt: cart.updatedAt,
     };

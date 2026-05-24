@@ -45,6 +45,12 @@ export interface Cart {
   total: number;
   itemCount: number;
   couponCode: string | null;
+  /**
+   * Items the server silently removed on this load (product archived /
+   * variant deactivated). Frontend should surface a one-time toast and
+   * not persist this across re-renders.
+   */
+  removedItems?: { name: string; reason: 'archived' | 'variant_inactive' }[];
   createdAt: string;
   updatedAt: string;
 }

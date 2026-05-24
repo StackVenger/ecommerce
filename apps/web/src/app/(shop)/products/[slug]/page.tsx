@@ -12,7 +12,7 @@ import {
   Shield,
 } from 'lucide-react';
 import Link from 'next/link';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
@@ -142,6 +142,8 @@ export default function ProductPage() {
   const [cartError, setCartError] = useState<string | null>(null);
   const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>({});
 
+  const router = useRouter();
+
   useEffect(() => {
     async function fetchProduct() {
       setLoading(true);
@@ -180,6 +182,20 @@ export default function ProductPage() {
           }
         }
       } catch {
+        // Slug 404: try resolving it as a historical slug alias and
+        // 301-style redirect to the canonical slug before giving up.
+        try {
+          const { data: aliasData } = await apiClient.get(
+            `/products/slug-alias/${slug}`,
+          );
+          const alias = aliasData.data ?? aliasData;
+          if (alias?.slug && alias.slug !== slug) {
+            router.replace(`/products/${alias.slug}`);
+            return;
+          }
+        } catch {
+          // No alias either — fall through to the standard not-found state.
+        }
         setError('Product not found');
       } finally {
         setLoading(false);
@@ -188,7 +204,7 @@ export default function ProductPage() {
     if (slug) {
       fetchProduct();
     }
-  }, [slug]);
+  }, [slug, router]);
 
   // ─── Variant lookup ───────────────────────────────────────────────
 

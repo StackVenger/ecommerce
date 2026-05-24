@@ -33,10 +33,18 @@ export function useWishlist(): UseWishlistReturn {
     async function load() {
       setIsLoading(true);
       try {
-        const items = await getWishlist();
+        const { items, removedItems } = await getWishlist();
         if (!cancelled) {
           setWishlist(new Set(items.map((item) => item.productId)));
           loadedRef.current = true;
+          // Server-side purge of archived products — toast once so the
+          // customer notices the wishlist self-cleaned.
+          if (removedItems.length > 0) {
+            const names = removedItems.map((r) => r.name).join(', ');
+            toast.warning(
+              `Removed from wishlist: ${names} (no longer available).`,
+            );
+          }
         }
       } catch {
         // Silently fail — wishlist is non-critical

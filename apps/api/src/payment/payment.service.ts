@@ -5,6 +5,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import Stripe from 'stripe';
 
 import { PrismaService } from '../prisma/prisma.service';
@@ -30,6 +31,7 @@ export class PaymentService {
   constructor(
     private readonly config: ConfigService,
     private readonly prisma: PrismaService,
+    private readonly eventEmitter: EventEmitter2,
   ) {
     const stripeKey = this.config.get<string>('STRIPE_SECRET_KEY');
     if (stripeKey && stripeKey !== 'sk_test_...') {
@@ -265,14 +267,14 @@ export class PaymentService {
       },
     });
 
-    await this.prisma.order.update({
-      where: { id: orderId },
-      data: {
-        paymentStatus: newStatus,
-        ...(type === RefundType.FULL && { status: 'CANCELLED' }),
-        updatedAt: new Date(),
-      },
-    });
+    // Order has no paymentStatus column — Payment.status is the source of
+    // truth. Only mirror the order-level transition for full refunds.
+    if (type === RefundType.FULL) {
+      await this.prisma.order.update({
+        where: { id: orderId },
+        data: { status: 'CANCELLED', updatedAt: new Date() },
+      });
+    }
 
     this.logger.log(
       `Refund ${refund.id} processed for order ${orderId}: ${formatBDT(refundAmountBDT)}`,
@@ -313,13 +315,11 @@ export class PaymentService {
       status: 'PENDING',
     });
 
+    // Order has no paymentStatus column — Payment.status (PENDING) is the SOT.
+    // Flip order to CONFIRMED so customer-facing status reflects the booked sale.
     await this.prisma.order.update({
       where: { id: orderId },
-      data: {
-        paymentStatus: 'PENDING',
-        status: 'CONFIRMED',
-        updatedAt: new Date(),
-      },
+      data: { status: 'CONFIRMED', updatedAt: new Date() },
     });
 
     this.logger.log(
@@ -361,17 +361,20 @@ export class PaymentService {
       },
     });
 
-    await this.prisma.order.update({
-      where: { id: orderId },
-      data: {
-        paymentStatus: 'PAID',
-        updatedAt: new Date(),
-      },
-    });
-
+    // Payment.status is the SOT for payment state — Order.status stays
+    // wherever the admin/fulfilment moved it last. No order.update here.
     this.logger.log(
       `COD payment for order ${orderId} marked as PAID: ${formatBDT(payment.amount)}`,
     );
+
+    // Customer-facing "we received your payment" email. Listeners can be
+    // added in email-events.service.ts; the emit is safe with no subscribers.
+    this.eventEmitter.emit('payment.received', {
+      orderId,
+      paymentId: payment.id,
+      method: 'COD',
+      amountBDT: Number(payment.amount),
+    });
 
     return {
       paymentId: payment.id,
@@ -406,16 +409,21 @@ export class PaymentService {
         },
       });
 
+      // Order has no paymentStatus column — Payment.status (COMPLETED) is the SOT.
+      // Flip order status to CONFIRMED for fulfilment.
       await this.prisma.order.update({
         where: { id: orderId },
-        data: {
-          paymentStatus: 'PAID',
-          status: 'CONFIRMED',
-          updatedAt: new Date(),
-        },
+        data: { status: 'CONFIRMED', updatedAt: new Date() },
       });
 
       this.logger.log(`Order ${orderId} payment marked as PAID`);
+
+      this.eventEmitter.emit('payment.received', {
+        orderId,
+        paymentId: payment.id,
+        method: 'STRIPE',
+        amountBDT: Number(payment.amount),
+      });
     }
   }
 

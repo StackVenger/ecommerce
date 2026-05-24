@@ -714,6 +714,12 @@ export default function AdminProductEditPage() {
             <div>
               <label className="mb-1.5 block text-sm font-medium text-gray-700">
                 Description (বাংলা)
+                {formData.description.trim().length > 0 &&
+                  formData.descriptionBn.trim().length === 0 && (
+                    <span className="ml-2 rounded-full bg-yellow-100 px-2 py-0.5 text-[10px] font-medium text-yellow-700">
+                      Bn missing
+                    </span>
+                  )}
               </label>
               <RichTextEditor
                 value={formData.descriptionBn}

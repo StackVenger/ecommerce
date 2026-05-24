@@ -153,6 +153,15 @@ export function CartProvider({ children }: CartProviderProps) {
     async function loadCart() {
       try {
         const data = await cartApi.getCart();
+        // Server-side purge of archived products / deactivated variants —
+        // surface as a one-time toast so the customer notices items vanished
+        // from their cart rather than silently being charged less.
+        if (data.removedItems && data.removedItems.length > 0) {
+          const names = data.removedItems.map((r) => r.name).join(', ');
+          toast.warning(
+            `Removed from cart: ${names} (no longer available).`,
+          );
+        }
         setCart(data);
       } catch {
         setCart(emptyCart());
