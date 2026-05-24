@@ -273,7 +273,13 @@ export default function AdminProductCreatePage() {
 
       if (cleanVariants.length > 0) {
         await apiClient
-          .put(`/products/${product.id}/variants/replace`, { variants: cleanVariants })
+          .put(`/products/${product.id}/variants/replace`, {
+            variants: cleanVariants,
+            options: formData.options.map((o) => ({
+              name: o.name,
+              values: o.values,
+            })),
+          })
           .catch((err) => {
             console.error('Failed to sync variants:', err);
             toast.error('Product saved, but variant sync failed — open Edit to retry');

@@ -74,9 +74,24 @@ export class ReplaceVariantItemDto {
   imageUrls?: string[];
 }
 
+export class ReplaceVariantOptionDto {
+  @IsString()
+  name: string;
+
+  @IsArray()
+  @IsString({ each: true })
+  values: string[];
+}
+
 export class ReplaceVariantsDto {
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => ReplaceVariantItemDto)
   variants: ReplaceVariantItemDto[];
+
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => ReplaceVariantOptionDto)
+  options?: ReplaceVariantOptionDto[];
 }

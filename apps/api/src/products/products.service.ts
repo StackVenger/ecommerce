@@ -1290,12 +1290,28 @@ export class ProductsService {
       // 1. Upsert ProductAttribute rows and capture their IDs.
       const attrsByName = new Map<string, { id: string }>();
       for (const [name, values] of attrValuesMap) {
+        const customOption = dto.options?.find((o) => o.name === name);
+        let finalValues: string[];
+        if (customOption && Array.isArray(customOption.values)) {
+          const variantVals = Array.from(values) as string[];
+          const customValsFiltered = (customOption.values as string[]).filter((v) => variantVals.includes(v));
+          const extraVals = variantVals.filter((v) => !customValsFiltered.includes(v));
+          finalValues = [...customValsFiltered, ...extraVals];
+        } else {
+          finalValues = Array.from(values).sort() as string[];
+        }
+
         const existing = await tx.productAttribute.findFirst({
           where: { productId, name },
           select: { id: true, values: true },
         });
         if (existing) {
-          const union = Array.from(new Set([...existing.values, ...values])).sort();
+          let union: string[];
+          if (customOption && Array.isArray(customOption.values)) {
+            union = finalValues;
+          } else {
+            union = Array.from(new Set([...existing.values, ...values])).sort();
+          }
           await tx.productAttribute.update({
             where: { id: existing.id },
             data: { values: union },
@@ -1306,7 +1322,7 @@ export class ProductsService {
             data: {
               productId,
               name,
-              values: Array.from(values).sort(),
+              values: finalValues,
               type: inferAttributeType(name),
             },
             select: { id: true },

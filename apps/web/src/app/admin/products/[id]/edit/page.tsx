@@ -642,7 +642,13 @@ export default function AdminProductEditPage() {
         .filter((v) => Object.keys((v.options ?? {}) as Record<string, string>).length > 0);
 
       await apiClient
-        .put(`/products/${productId}/variants/replace`, { variants: cleanVariants })
+        .put(`/products/${productId}/variants/replace`, {
+          variants: cleanVariants,
+          options: formData.options.map((o) => ({
+            name: o.name,
+            values: o.values,
+          })),
+        })
         .catch((err) => {
           console.error('Failed to replace variants:', err);
           toast.error('Variant sync failed — other changes were saved');

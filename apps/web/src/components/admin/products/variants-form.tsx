@@ -461,6 +461,8 @@ interface OptionTypeEditorProps {
 
 function OptionTypeEditor({ option, onChange, onRemove, index }: OptionTypeEditorProps) {
   const [newValue, setNewValue] = useState('');
+  const [draggedValueIndex, setDraggedValueIndex] = useState<number | null>(null);
+  const [dragOverValueIndex, setDragOverValueIndex] = useState<number | null>(null);
 
   const addValue = () => {
     const trimmed = newValue.trim();
@@ -475,6 +477,20 @@ function OptionTypeEditor({ option, onChange, onRemove, index }: OptionTypeEdito
       ...option,
       values: option.values.filter((_, i) => i !== valueIndex),
     });
+  };
+
+  const handleValueReorderDrop = (targetIndex: number) => {
+    if (draggedValueIndex === null || draggedValueIndex === targetIndex) {
+      setDraggedValueIndex(null);
+      setDragOverValueIndex(null);
+      return;
+    }
+    const reordered = [...option.values];
+    const [moved] = reordered.splice(draggedValueIndex, 1);
+    reordered.splice(targetIndex, 0, moved ?? '');
+    onChange({ ...option, values: reordered });
+    setDraggedValueIndex(null);
+    setDragOverValueIndex(null);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -517,11 +533,27 @@ function OptionTypeEditor({ option, onChange, onRemove, index }: OptionTypeEdito
         <div className="mb-2 flex flex-wrap gap-2">
           {option.values.map((value, valueIndex) => (
             <span
-              key={valueIndex}
-              className="inline-flex items-center gap-1 rounded-full bg-teal-100 px-3 py-1 text-sm text-teal-700"
+              key={`${value}-${valueIndex}`}
+              draggable
+              onDragStart={() => setDraggedValueIndex(valueIndex)}
+              onDragOver={(e) => {
+                e.preventDefault();
+                setDragOverValueIndex(valueIndex);
+              }}
+              onDrop={() => handleValueReorderDrop(valueIndex)}
+              onDragEnd={() => {
+                setDraggedValueIndex(null);
+                setDragOverValueIndex(null);
+              }}
+              className={cn(
+                'inline-flex items-center gap-1 rounded-full bg-teal-100 px-3 py-1 text-sm text-teal-700 cursor-move transition-all border border-transparent',
+                dragOverValueIndex === valueIndex && 'border-teal-500 scale-105 bg-teal-200',
+                draggedValueIndex === valueIndex && 'opacity-50',
+              )}
             >
               {value}
               <button
+                type="button"
                 onClick={() => removeValue(valueIndex)}
                 className="rounded-full p-0.5 hover:bg-teal-200"
               >
