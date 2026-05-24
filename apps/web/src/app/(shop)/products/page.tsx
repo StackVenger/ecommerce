@@ -81,7 +81,7 @@ function normalizeProduct(raw: any): Product {
     salePrice: compareAtPrice ? price : null,
     images: defaultVariantImage ? [defaultVariantImage, ...rawImages] : rawImages,
     averageRating: Number(raw.averageRating ?? 0),
-    reviewCount: raw._count?.reviews ?? raw.totalReviews ?? 0,
+    reviewCount: raw.totalReviews ?? raw._count?.reviews ?? 0,
     categoryName: raw.category?.name ?? raw.categoryName ?? null,
     brandName: raw.brand?.name ?? raw.brandName ?? null,
     isFeatured: raw.isFeatured ?? false,

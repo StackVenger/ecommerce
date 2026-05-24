@@ -49,7 +49,7 @@ function normalizeProduct(raw: any): Product {
     compareAtPrice: cap && cap > price ? cap : null,
     images: defaultVariantImage ? [defaultVariantImage, ...rawImages] : rawImages,
     averageRating: Number(raw.averageRating ?? 0),
-    reviewCount: raw._count?.reviews ?? raw.totalReviews ?? 0,
+    reviewCount: raw.totalReviews ?? raw._count?.reviews ?? 0,
     categoryName: raw.category?.name ?? null,
     brandName: raw.brand?.name ?? null,
   };

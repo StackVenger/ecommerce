@@ -87,7 +87,10 @@ function normalizeProduct(raw: any): Product {
     compareAtPrice,
     images: defaultVariantImage ? [defaultVariantImage, ...rawImages] : rawImages,
     averageRating: Number(raw.averageRating ?? 0),
-    reviewCount: raw._count?.reviews ?? raw.totalReviews ?? 0,
+    // Prefer the denormalized column — it's written by the same recompute
+    // helper as averageRating, so the stars and count always agree. _count
+    // is a fallback for any legacy response that lacks totalReviews.
+    reviewCount: raw.totalReviews ?? raw._count?.reviews ?? 0,
     brandName: raw.brand?.name ?? raw.brandName ?? null,
     categoryName: raw.category?.name ?? raw.categoryName ?? null,
     isFeatured: raw.isFeatured ?? false,

@@ -416,7 +416,14 @@ export class ProductsService {
             },
           },
           _count: {
-            select: { reviews: true, variants: true },
+            // Match Product.averageRating / totalReviews semantics — both
+            // count APPROVED reviews only. Including PENDING/REJECTED here
+            // would make the storefront card show e.g. "0 stars (3)" the
+            // moment a customer submits a review.
+            select: {
+              reviews: { where: { status: 'APPROVED' } },
+              variants: true,
+            },
           },
         },
       }),
