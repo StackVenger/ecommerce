@@ -42,6 +42,7 @@ interface ProductVariant {
   name: string;
   sku: string;
   price: number;
+  compareAtPrice: number | null;
   quantity: number;
   lowStockThreshold: number;
   isDefault?: boolean;
@@ -160,6 +161,7 @@ export default function ProductPage() {
             ? raw.variants.map((v: ProductVariant) => ({
                 ...v,
                 price: Number(v.price),
+                compareAtPrice: v.compareAtPrice ? Number(v.compareAtPrice) : null,
                 quantity: v.quantity ?? 0,
                 lowStockThreshold: v.lowStockThreshold ?? 10,
               }))
@@ -424,15 +426,19 @@ export default function ProductPage() {
 
   // Display fields come from the effective variant (selected if any,
   // otherwise the admin-marked default) when variants exist; from the
-  // base product otherwise. `compareAtPrice` stays product-level since
-  // the admin form doesn't capture a per-variant compare price.
+  // base product otherwise.
   const displayPrice = effectiveVariant ? Number(effectiveVariant.price) : product.price;
+  const displayCompareAtPrice = effectiveVariant
+    ? (effectiveVariant.compareAtPrice !== undefined && effectiveVariant.compareAtPrice !== null
+        ? Number(effectiveVariant.compareAtPrice)
+        : null)
+    : product.compareAtPrice;
   const displayStock = selectedVariant ? selectedVariant.quantity : product.quantity;
   const displaySku = effectiveVariant?.sku ?? product.sku;
 
   const discount =
-    product.compareAtPrice && product.compareAtPrice > displayPrice
-      ? Math.round((1 - displayPrice / Number(product.compareAtPrice)) * 100)
+    displayCompareAtPrice && displayCompareAtPrice > displayPrice
+      ? Math.round((1 - displayPrice / Number(displayCompareAtPrice)) * 100)
       : 0;
 
   const inStock = variantsActive
@@ -605,10 +611,10 @@ export default function ProductPage() {
             {/* Price */}
             <div className="mb-6 flex items-baseline gap-3">
               <span className="text-3xl font-bold text-primary">{formatBDT(displayPrice)}</span>
-              {product.compareAtPrice && Number(product.compareAtPrice) > displayPrice && (
+              {displayCompareAtPrice && Number(displayCompareAtPrice) > displayPrice && (
                 <>
                   <span className="text-lg text-gray-400 line-through">
-                    {formatBDT(Number(product.compareAtPrice))}
+                    {formatBDT(Number(displayCompareAtPrice))}
                   </span>
                   <span className="rounded-md bg-red-100 px-2 py-0.5 text-sm font-semibold text-red-600">
                     {discount}% OFF

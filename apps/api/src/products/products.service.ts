@@ -1382,6 +1382,8 @@ export class ProductsService {
           const data: Prisma.ProductVariantUpdateInput = {
             name,
             price,
+            compareAtPrice: payload.compareAtPrice !== undefined ? payload.compareAtPrice : undefined,
+            costPrice: payload.costPrice !== undefined ? payload.costPrice : undefined,
             lowStockThreshold: payload.lowStockThreshold ?? 10,
             isActive: payload.isActive,
             isDefault: idx === defaultIdx,
@@ -1424,6 +1426,8 @@ export class ProductsService {
               name,
               sku: desiredSku,
               price,
+              compareAtPrice: payload.compareAtPrice ?? null,
+              costPrice: payload.costPrice ?? null,
               // New variants must start somewhere; default to 0 when the
               // admin didn't supply an initial stock value.
               quantity: payload.stock ?? 0,

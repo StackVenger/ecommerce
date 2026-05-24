@@ -573,6 +573,7 @@ export class CartService {
         name: true,
         sku: true,
         price: true,
+        compareAtPrice: true,
         quantity: true,
         isActive: true,
         attributeValues: {

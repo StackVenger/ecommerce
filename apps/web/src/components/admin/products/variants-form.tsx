@@ -35,6 +35,8 @@ interface Variant {
   id: string;
   options: Record<string, string>;
   price: number | null;
+  compareAtPrice?: number | null;
+  costPrice?: number | null;
   stock: number;
   lowStockThreshold: number;
   sku: string;
@@ -117,6 +119,8 @@ function generateVariantMatrix(
       id: generateId(),
       options: optionValues,
       price: basePrice || null,
+      compareAtPrice: null,
+      costPrice: null,
       stock: 0,
       lowStockThreshold: 10,
       sku: `${baseSku}-${Object.values(optionValues).join('-').toUpperCase().replace(/\s+/g, '')}`,
@@ -810,6 +814,12 @@ export function VariantsForm({
                     Price (৳)
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                    Compare At (৳)
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                    Cost Price (৳)
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
                     Stock
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
@@ -904,6 +914,48 @@ export function VariantsForm({
                               updateVariant(
                                 index,
                                 'price',
+                                e.target.value ? parseFloat(e.target.value) : null,
+                              )
+                            }
+                            className="w-24 rounded-r px-2 py-1.5 text-sm focus:outline-none"
+                          />
+                        </div>
+                      </td>
+                      <td className="px-4 py-2">
+                        <div className="flex rounded border border-gray-300 focus-within:border-teal-500 focus-within:ring-1 focus-within:ring-teal-500">
+                          <span className="inline-flex items-center border-r border-gray-300 bg-gray-50 px-2 text-xs text-gray-500">
+                            ৳
+                          </span>
+                          <input
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            value={variant.compareAtPrice ?? ''}
+                            onChange={(e) =>
+                              updateVariant(
+                                index,
+                                'compareAtPrice',
+                                e.target.value ? parseFloat(e.target.value) : null,
+                              )
+                            }
+                            className="w-24 rounded-r px-2 py-1.5 text-sm focus:outline-none"
+                          />
+                        </div>
+                      </td>
+                      <td className="px-4 py-2">
+                        <div className="flex rounded border border-gray-300 focus-within:border-teal-500 focus-within:ring-1 focus-within:ring-teal-500">
+                          <span className="inline-flex items-center border-r border-gray-300 bg-gray-50 px-2 text-xs text-gray-500">
+                            ৳
+                          </span>
+                          <input
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            value={variant.costPrice ?? ''}
+                            onChange={(e) =>
+                              updateVariant(
+                                index,
+                                'costPrice',
                                 e.target.value ? parseFloat(e.target.value) : null,
                               )
                             }

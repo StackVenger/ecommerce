@@ -53,6 +53,8 @@ interface Variant {
   id: string;
   options: Record<string, string>;
   price: number | null;
+  compareAtPrice?: number | null;
+  costPrice?: number | null;
   stock: number;
   lowStockThreshold: number;
   sku: string;
@@ -257,6 +259,8 @@ export default function AdminProductCreatePage() {
           return {
             options: cleanOptions,
             price: v.price,
+            compareAtPrice: v.compareAtPrice ?? null,
+            costPrice: v.costPrice ?? null,
             stock: v.stock,
             lowStockThreshold: v.lowStockThreshold ?? 10,
             sku: v.sku.trim() || undefined,

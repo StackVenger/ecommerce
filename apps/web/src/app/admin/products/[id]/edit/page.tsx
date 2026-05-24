@@ -75,6 +75,8 @@ interface Variant {
   id: string;
   options: Record<string, string>;
   price: number | null;
+  compareAtPrice?: number | null;
+  costPrice?: number | null;
   stock: number;
   lowStockThreshold: number;
   sku: string;
@@ -128,6 +130,8 @@ interface ApiVariant {
   id: string;
   sku: string;
   price: number | string | null;
+  compareAtPrice?: number | string | null;
+  costPrice?: number | string | null;
   quantity: number;
   lowStockThreshold?: number;
   isActive: boolean;
@@ -159,6 +163,8 @@ function hydrateVariants(raw: unknown): { options: OptionType[]; variants: Varia
       id: v.id,
       options,
       price: v.price !== null && v.price !== undefined ? Number(v.price) : null,
+      compareAtPrice: v.compareAtPrice !== null && v.compareAtPrice !== undefined ? Number(v.compareAtPrice) : null,
+      costPrice: v.costPrice !== null && v.costPrice !== undefined ? Number(v.costPrice) : null,
       stock: v.quantity ?? 0,
       lowStockThreshold: v.lowStockThreshold ?? 10,
       sku: v.sku ?? '',
@@ -618,6 +624,8 @@ export default function AdminProductEditPage() {
           const payload: Record<string, unknown> = {
             options: cleanOptions,
             price: v.price,
+            compareAtPrice: v.compareAtPrice ?? null,
+            costPrice: v.costPrice ?? null,
             lowStockThreshold: v.lowStockThreshold ?? 10,
             sku: v.sku.trim() || undefined,
             isActive: v.isActive,
