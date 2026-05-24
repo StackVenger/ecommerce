@@ -25,6 +25,7 @@ interface Product {
   isFeatured?: boolean;
   shortDescription?: string;
   stock: number;
+  defaultVariantId?: string;
 }
 
 interface Pagination {
@@ -46,23 +47,45 @@ interface Category {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function normalizeProduct(raw: any): Product {
+  const defaultVariant = Array.isArray(raw.variants)
+    ? (raw.variants.find((v: any) => v.isDefault === true) ?? raw.variants[0] ?? null)
+    : null;
+
+  const defaultVariantImage: string | null = (() => {
+    const img = defaultVariant?.images?.[0];
+    if (!img) {
+      return null;
+    }
+    return typeof img === 'string' ? img : (img.url ?? null);
+  })();
+
+  const rawImages: string[] = Array.isArray(raw.images)
+    ? raw.images.map((img: any) => (typeof img === 'string' ? img : img.url))
+    : [];
+
+  const price = defaultVariant ? Number(defaultVariant.price) : Number(raw.price);
+  const compareAtPrice = defaultVariant
+    ? (defaultVariant.compareAtPrice ? Number(defaultVariant.compareAtPrice) : undefined)
+    : (raw.compareAtPrice ? Number(raw.compareAtPrice) : undefined);
+  const stock = defaultVariant ? (defaultVariant.quantity ?? 0) : (raw.quantity ?? 0);
+  const defaultVariantId = defaultVariant ? defaultVariant.id : undefined;
+
   return {
     id: raw.id,
     name: raw.name,
     slug: raw.slug,
-    price: Number(raw.price),
-    compareAtPrice: raw.compareAtPrice ? Number(raw.compareAtPrice) : undefined,
-    salePrice: raw.compareAtPrice ? Number(raw.price) : null,
-    images: Array.isArray(raw.images)
-      ? raw.images.map((img: any) => (typeof img === 'string' ? img : img.url))
-      : [],
+    price,
+    compareAtPrice,
+    salePrice: compareAtPrice ? price : null,
+    images: defaultVariantImage ? [defaultVariantImage, ...rawImages] : rawImages,
     averageRating: Number(raw.averageRating ?? 0),
     reviewCount: raw._count?.reviews ?? raw.totalReviews ?? 0,
     categoryName: raw.category?.name ?? raw.categoryName ?? null,
     brandName: raw.brand?.name ?? raw.brandName ?? null,
     isFeatured: raw.isFeatured ?? false,
     shortDescription: raw.shortDescription ?? null,
-    stock: raw.quantity ?? 0,
+    stock,
+    defaultVariantId,
   };
 }
 
@@ -179,7 +202,14 @@ export default function CategoryPage() {
     if (product.stock <= 0) {
       return;
     }
-    addItem({ productId: product.id, quantity: 1 }, { openDrawer: false });
+    addItem(
+      {
+        productId: product.id,
+        variantId: product.defaultVariantId,
+        quantity: 1,
+      },
+      { openDrawer: false },
+    );
   };
 
   const formatPrice = (price: number) => `৳${price.toLocaleString('en-BD')}`;

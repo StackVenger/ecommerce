@@ -20,17 +20,34 @@ interface Product {
 }
 
 function normalizeProduct(raw: any): Product {
-  const price = Number(raw.price);
-  const cap = raw.compareAtPrice ? Number(raw.compareAtPrice) : null;
+  const defaultVariant = Array.isArray(raw.variants)
+    ? (raw.variants.find((v: any) => v.isDefault === true) ?? raw.variants[0] ?? null)
+    : null;
+
+  const defaultVariantImage: string | null = (() => {
+    const img = defaultVariant?.images?.[0];
+    if (!img) {
+      return null;
+    }
+    return typeof img === 'string' ? img : (img.url ?? null);
+  })();
+
+  const rawImages: string[] = Array.isArray(raw.images)
+    ? raw.images.map((img: any) => (typeof img === 'string' ? img : img.url))
+    : [];
+
+  const price = defaultVariant ? Number(defaultVariant.price) : Number(raw.price);
+  const cap = defaultVariant
+    ? (defaultVariant.compareAtPrice ? Number(defaultVariant.compareAtPrice) : null)
+    : (raw.compareAtPrice ? Number(raw.compareAtPrice) : null);
+
   return {
     id: raw.id,
     name: raw.name,
     slug: raw.slug,
     price,
     compareAtPrice: cap && cap > price ? cap : null,
-    images: Array.isArray(raw.images)
-      ? raw.images.map((img: any) => (typeof img === 'string' ? img : img.url))
-      : [],
+    images: defaultVariantImage ? [defaultVariantImage, ...rawImages] : rawImages,
     averageRating: Number(raw.averageRating ?? 0),
     reviewCount: raw._count?.reviews ?? raw.totalReviews ?? 0,
     categoryName: raw.category?.name ?? null,

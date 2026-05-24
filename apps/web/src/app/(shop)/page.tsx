@@ -39,6 +39,7 @@ interface Product {
   isFeatured: boolean;
   shortDescription: string | null;
   stock: number;
+  defaultVariantId?: string;
 }
 
 interface Category {
@@ -55,9 +56,12 @@ interface Category {
 // ────────────────────────────────────────────────────────────────────────────
 
 function normalizeProduct(raw: any): Product {
+  const defaultVariant = Array.isArray(raw.variants)
+    ? (raw.variants.find((v: any) => v.isDefault === true) ?? raw.variants[0] ?? null)
+    : null;
+
   const defaultVariantImage: string | null = (() => {
-    const v = Array.isArray(raw.variants) ? raw.variants[0] : null;
-    const img = v?.images?.[0];
+    const img = defaultVariant?.images?.[0];
     if (!img) {
       return null;
     }
@@ -68,12 +72,19 @@ function normalizeProduct(raw: any): Product {
     ? raw.images.map((img: any) => (typeof img === 'string' ? img : img.url))
     : [];
 
+  const price = defaultVariant ? Number(defaultVariant.price) : Number(raw.price);
+  const compareAtPrice = defaultVariant
+    ? (defaultVariant.compareAtPrice ? Number(defaultVariant.compareAtPrice) : undefined)
+    : (raw.compareAtPrice ? Number(raw.compareAtPrice) : undefined);
+  const stock = defaultVariant ? (defaultVariant.quantity ?? 0) : (raw.quantity ?? 0);
+  const defaultVariantId = defaultVariant ? defaultVariant.id : undefined;
+
   return {
     id: raw.id,
     name: raw.name,
     slug: raw.slug,
-    price: Number(raw.price),
-    compareAtPrice: raw.compareAtPrice ? Number(raw.compareAtPrice) : undefined,
+    price,
+    compareAtPrice,
     images: defaultVariantImage ? [defaultVariantImage, ...rawImages] : rawImages,
     averageRating: Number(raw.averageRating ?? 0),
     reviewCount: raw._count?.reviews ?? raw.totalReviews ?? 0,
@@ -81,7 +92,8 @@ function normalizeProduct(raw: any): Product {
     categoryName: raw.category?.name ?? raw.categoryName ?? null,
     isFeatured: raw.isFeatured ?? false,
     shortDescription: raw.shortDescription ?? null,
-    stock: raw.quantity ?? 0,
+    stock,
+    defaultVariantId,
   };
 }
 
@@ -300,7 +312,14 @@ export default function HomePage() {
 
   const handleAddToCart = useCallback(
     (product: Product) => {
-      addItem({ productId: product.id, quantity: 1 }, { openDrawer: false });
+      addItem(
+        {
+          productId: product.id,
+          variantId: product.defaultVariantId,
+          quantity: 1,
+        },
+        { openDrawer: false },
+      );
     },
     [addItem],
   );
