@@ -4,7 +4,12 @@ import { useSearchParams } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 
-import { trackGuestOrder, getStatusLabel, formatOrderAmount, type Order } from '@/lib/api/orders';
+import {
+  trackGuestOrder,
+  getStatusLabel,
+  formatOrderAmount,
+  type TrackedOrderSummary,
+} from '@/lib/api/orders';
 
 // ──────────────────────────────────────────────────────────
 // Status Color Map
@@ -35,37 +40,37 @@ function getStatusColor(status: string): string {
 
 export default function TrackOrderPage() {
   const searchParams = useSearchParams();
+  // `email` may still be present in legacy URLs from old confirmation emails;
+  // we read but ignore it (the backend ignores it too).
   const prefillOrderNumber = searchParams.get('orderNumber') || '';
-  const prefillEmail = searchParams.get('email') || '';
 
   const [orderNumber, setOrderNumber] = useState(prefillOrderNumber);
-  const [email, setEmail] = useState(prefillEmail);
-  const [order, setOrder] = useState<Order | null>(null);
+  const [order, setOrder] = useState<TrackedOrderSummary | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
 
-  // Auto-search if prefilled from checkout redirect
+  // Auto-search if prefilled from checkout redirect or a tracking-email link
   useEffect(() => {
-    if (prefillOrderNumber && prefillEmail) {
+    if (prefillOrderNumber) {
       handleSearch();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleSearch = async () => {
-    if (!orderNumber.trim() || !email.trim()) {
-      toast.error('Please enter both order number and email');
+    if (!orderNumber.trim()) {
+      toast.error('Please enter your order number');
       return;
     }
 
     setIsLoading(true);
     setHasSearched(true);
     try {
-      const result = await trackGuestOrder(orderNumber.trim(), email.trim());
+      const result = await trackGuestOrder(orderNumber.trim());
       setOrder(result);
     } catch {
       setOrder(null);
-      toast.error('Order not found. Please check your order number and email.');
+      toast.error('Order not found. Please check your order number.');
     } finally {
       setIsLoading(false);
     }
@@ -80,7 +85,7 @@ export default function TrackOrderPage() {
     <div className="mx-auto max-w-2xl px-4 sm:px-6 lg:px-8 py-12">
       <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-2">Track Your Order</h1>
       <p className="text-gray-500 mb-8">
-        Enter your order number and email address to view your order status.
+        Enter your order number to view your order status.
       </p>
 
       {/* Search Form */}
@@ -96,21 +101,6 @@ export default function TrackOrderPage() {
               value={orderNumber}
               onChange={(e) => setOrderNumber(e.target.value)}
               placeholder="e.g. ORD-20260217-XXXXX"
-              className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
-              required
-            />
-          </div>
-
-          <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-              Email Address
-            </label>
-            <input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="The email you used during checkout"
               className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
               required
             />
@@ -244,8 +234,7 @@ export default function TrackOrderPage() {
           </svg>
           <h3 className="text-lg font-semibold text-gray-900 mb-2">Order Not Found</h3>
           <p className="text-sm text-gray-500">
-            We couldn&apos;t find an order matching that order number and email. Please double-check
-            your details and try again.
+            We couldn&apos;t find an order with that number. Please double-check it and try again.
           </p>
         </div>
       )}

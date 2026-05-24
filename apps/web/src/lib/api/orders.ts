@@ -28,6 +28,22 @@ export interface Order {
   updatedAt: string;
 }
 
+/**
+ * Slim shape returned by the public order tracker (GET /orders/guest).
+ * Intentionally lacks `id`, payment status, address, contact info — that
+ * endpoint is unauthenticated and returns only what the tracker page renders.
+ */
+export interface TrackedOrderSummary {
+  orderNumber: string;
+  status: string;
+  createdAt: string;
+  paymentMethod: string | null;
+  subtotal: number;
+  shippingCost: number;
+  total: number;
+  items: OrderItem[];
+}
+
 export interface OrderPagination {
   page: number;
   limit: number;
@@ -249,15 +265,14 @@ export async function validateCheckout(
 }
 
 /**
- * Look up a guest order by order number and email.
+ * Look up an order on the public tracker by order number alone.
+ * Returns the minimal shape used by `/orders/track` — no PII.
  */
-export async function trackGuestOrder(orderNumber: string, email: string): Promise<Order> {
+export async function trackGuestOrder(orderNumber: string): Promise<TrackedOrderSummary> {
   const response = await apiClient.get<{
     success: boolean;
-    data: Order;
-  }>(
-    `/orders/guest?orderNumber=${encodeURIComponent(orderNumber)}&email=${encodeURIComponent(email)}`,
-  );
+    data: TrackedOrderSummary;
+  }>(`/orders/guest?orderNumber=${encodeURIComponent(orderNumber)}`);
 
   return response.data.data;
 }

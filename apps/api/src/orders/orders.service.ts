@@ -630,7 +630,9 @@ export class OrdersService {
         'FRONTEND_URL',
         this.configService.get<string>('WEB_URL', 'http://localhost:3000'),
       );
-      const trackingUrl = `${publicUrl}/orders/track?orderNumber=${orderNumber}&email=${encodeURIComponent(customerEmail)}`;
+      // Tracker is order-number-only now; keep customerEmail referenced below
+      // for the email subject/body context but don't include it in the URL.
+      const trackingUrl = `${publicUrl}/orders/track?orderNumber=${encodeURIComponent(orderNumber)}`;
 
       this.eventEmitter.emit('order.confirmed', {
         orderId: order.id,
@@ -1159,22 +1161,36 @@ export class OrdersService {
   /**
    * Look up a guest order by order number + email verification.
    */
-  async findGuestOrder(orderNumber: string, email: string) {
-    if (!orderNumber || !email) {
-      throw new BadRequestException('Order number and email are required');
+  async findGuestOrder(orderNumber: string) {
+    if (!orderNumber) {
+      throw new BadRequestException('Order number is required');
     }
 
     // Accept "#ORD-...", " ORD-... ", or "ord-..." — confirmation pages and
     // emails sometimes show the # prefix and customers paste it back in.
     const cleaned = orderNumber.trim().replace(/^#+/, '').toUpperCase();
 
+    // Public tracker is intentionally order-number-only (the prior email
+    // gate locked out guests who checked out without an email). The
+    // response below is minimal — everything not displayed on the tracker
+    // page is omitted so we don't leak PII (userId, address, contact info).
     const order = await this.prisma.order.findUnique({
       where: { orderNumber: cleaned },
       include: {
-        items: true,
-        shippingAddress: true,
-        payments: { orderBy: { createdAt: 'desc' }, take: 1 },
-        user: { select: { email: true } },
+        items: {
+          select: {
+            id: true,
+            productName: true,
+            productImage: true,
+            quantity: true,
+            unitPrice: true,
+          },
+        },
+        payments: {
+          orderBy: { createdAt: 'desc' },
+          take: 1,
+          select: { method: true },
+        },
       },
     });
 
@@ -1182,46 +1198,23 @@ export class OrdersService {
       throw new NotFoundException(`Order ${cleaned} not found`);
     }
 
-    // Match against guestEmail OR the owning user's email. Lets a customer
-    // who later created an account (or pasted their own order number into
-    // the public tracker) still look up that order, as long as they can
-    // prove the email it was placed with.
-    const lookup = email.toLowerCase();
-    const matchesGuest = order.guestEmail?.toLowerCase() === lookup;
-    const matchesUser = order.user?.email?.toLowerCase() === lookup;
-    if (!matchesGuest && !matchesUser) {
-      throw new NotFoundException(`Order ${cleaned} not found`);
-    }
-
     const payment = order.payments[0];
 
     return {
-      id: order.id,
       orderNumber: order.orderNumber,
       status: order.status,
+      createdAt: order.createdAt,
       paymentMethod: payment?.method ?? null,
-      paymentStatus: payment?.status ?? null,
-      guestFullName: order.guestFullName,
-      guestEmail: order.guestEmail,
-      guestPhone: order.guestPhone,
       subtotal: Number(order.subtotal),
       shippingCost: Number(order.shippingCost),
-      taxAmount: Number(order.taxAmount),
-      discountAmount: Number(order.discountAmount),
       total: Number(order.totalAmount),
-      couponCode: order.couponCode,
       items: order.items.map((item) => ({
         id: item.id,
         productName: item.productName,
-        productSlug: item.productSlug,
-        sku: item.sku,
+        image: item.productImage ?? null,
         quantity: item.quantity,
         price: Number(item.unitPrice),
-        image: item.productImage ?? null,
       })),
-      shippingAddress: order.shippingAddress,
-      createdAt: order.createdAt,
-      updatedAt: order.updatedAt,
     };
   }
 
