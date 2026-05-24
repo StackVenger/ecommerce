@@ -464,6 +464,15 @@ export class ProductsService {
         category: { select: { id: true, name: true, slug: true } },
         brand: { select: { id: true, name: true, slug: true } },
         inventory: { select: { lowStockThreshold: true } },
+        attributes: {
+          orderBy: { createdAt: 'asc' },
+          select: {
+            id: true,
+            name: true,
+            type: true,
+            values: true,
+          },
+        },
         images: {
           where: { variantId: null },
           orderBy: { sortOrder: 'asc' },
@@ -560,7 +569,7 @@ export class ProductsService {
           },
         },
         attributes: {
-          orderBy: { name: 'asc' },
+          orderBy: { createdAt: 'asc' },
           select: {
             id: true,
             name: true,
@@ -1297,7 +1306,9 @@ export class ProductsService {
       // 1. Upsert ProductAttribute rows and capture their IDs.
       const attrsByName = new Map<string, { id: string }>();
       for (const [name, values] of attrValuesMap) {
-        const customOption = dto.options?.find((o) => o.name === name);
+        const customOption = dto.options?.find(
+          (o) => o.name.trim().toLowerCase() === name.trim().toLowerCase(),
+        );
         let finalValues: string[];
         if (customOption && Array.isArray(customOption.values)) {
           const variantVals = Array.from(values) as string[];

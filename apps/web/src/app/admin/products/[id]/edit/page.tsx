@@ -144,7 +144,7 @@ interface ApiVariant {
  * Convert the API variant shape (attributeValues → attribute.name) into the
  * admin-form shape (flat options map per variant + distinct options list).
  */
-function hydrateVariants(raw: unknown): { options: OptionType[]; variants: Variant[] } {
+function hydrateVariants(raw: unknown, rawAttributes?: any[]): { options: OptionType[]; variants: Variant[] } {
   if (!Array.isArray(raw)) {
     return { options: [], variants: [] };
   }
@@ -174,11 +174,25 @@ function hydrateVariants(raw: unknown): { options: OptionType[]; variants: Varia
     };
   });
 
-  const options: OptionType[] = Array.from(valuesByName.entries()).map(([name, vals]) => ({
-    id: `opt-${name}`,
-    name,
-    values: Array.from(vals).sort(),
-  }));
+  let options: OptionType[] = [];
+  if (Array.isArray(rawAttributes) && rawAttributes.length > 0) {
+    options = rawAttributes.map((attr: any) => {
+      const activeVals = valuesByName.get(attr.name) ?? new Set<string>();
+      const orderedVals = (attr.values as string[]).filter((v) => activeVals.has(v));
+      const extraVals = Array.from(activeVals).filter((v) => !orderedVals.includes(v));
+      return {
+        id: attr.id ?? `opt-${attr.name}`,
+        name: attr.name,
+        values: [...orderedVals, ...extraVals],
+      };
+    });
+  } else {
+    options = Array.from(valuesByName.entries()).map(([name, vals]) => ({
+      id: `opt-${name}`,
+      name,
+      values: Array.from(vals).sort(),
+    }));
+  }
 
   return { options, variants };
 }
@@ -310,7 +324,7 @@ export default function AdminProductEditPage() {
         const { data } = await apiClient.get(`/products/by-id/${productId}`);
         const product = data.data ?? data;
         const images: ProductImage[] = Array.isArray(product.images) ? product.images : [];
-        const { options, variants } = hydrateVariants(product.variants);
+        const { options, variants } = hydrateVariants(product.variants, product.attributes);
 
         // Snapshot stock for dirty-tracking (used by handleSave to decide
         // whether to overwrite the field at save-time).
@@ -660,7 +674,7 @@ export default function AdminProductEditPage() {
       const { data } = await apiClient.get(`/products/by-id/${productId}`);
       const fresh = data.data ?? data;
       const images: ProductImage[] = Array.isArray(fresh.images) ? fresh.images : [];
-      const hydrated = hydrateVariants(fresh.variants);
+      const hydrated = hydrateVariants(fresh.variants, fresh.attributes);
       setExistingImages(images);
       // Reset the dirty-tracking snapshot — everything in the form now
       // matches the DB after this save, so the next Save should start fresh.
