@@ -1,29 +1,21 @@
+import { SkeletonBlock } from '@/components/ui/bento';
+
 export default function AdminLoading() {
   return (
-    <div className="animate-pulse p-6">
-      <div className="mb-6 h-8 w-48 rounded bg-gray-200" />
-
-      {/* Stats cards skeleton */}
-      <div className="mb-8 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {Array.from({ length: 4 }).map((_, i) => (
-          <div key={i} className="rounded-xl border bg-white p-5">
-            <div className="mb-2 h-4 w-24 rounded bg-gray-200" />
-            <div className="h-8 w-32 rounded bg-gray-200" />
-            <div className="mt-2 h-3 w-20 rounded bg-gray-200" />
-          </div>
-        ))}
+    <div role="status" aria-label="Loading">
+      <div className="mb-8 flex flex-col gap-2">
+        <SkeletonBlock className="h-8 w-48" />
+        <SkeletonBlock className="h-4 w-72" />
       </div>
 
-      {/* Charts skeleton */}
-      <div className="grid gap-6 lg:grid-cols-2">
-        <div className="rounded-xl border bg-white p-5">
-          <div className="mb-4 h-5 w-32 rounded bg-gray-200" />
-          <div className="h-64 rounded bg-gray-200" />
-        </div>
-        <div className="rounded-xl border bg-white p-5">
-          <div className="mb-4 h-5 w-32 rounded bg-gray-200" />
-          <div className="h-64 rounded bg-gray-200" />
-        </div>
+      {/* Bento skeleton — mirrors the dashboard rhythm */}
+      <div className="grid grid-cols-2 gap-4 sm:gap-6 md:grid-cols-6 xl:grid-cols-12">
+        <SkeletonBlock className="col-span-2 h-72 rounded-[2rem] md:col-span-6 xl:col-span-4" />
+        <SkeletonBlock className="h-72 rounded-[2rem] md:col-span-3 xl:col-span-2" />
+        <SkeletonBlock className="h-72 rounded-[2rem] md:col-span-3 xl:col-span-2" />
+        <SkeletonBlock className="col-span-2 h-72 rounded-[2rem] md:col-span-6 xl:col-span-4" />
+        <SkeletonBlock className="col-span-2 h-96 rounded-[2rem] md:col-span-6 xl:col-span-8" />
+        <SkeletonBlock className="col-span-2 h-96 rounded-[2rem] md:col-span-6 xl:col-span-4" />
       </div>
     </div>
   );

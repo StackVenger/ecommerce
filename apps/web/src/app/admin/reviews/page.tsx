@@ -106,11 +106,11 @@ export default function AdminReviewsPage() {
   const statusColor = (s: string) => {
     switch (s) {
       case 'APPROVED':
-        return 'bg-green-100 text-green-700';
+        return 'bg-emerald-50 text-emerald-600';
       case 'REJECTED':
-        return 'bg-red-100 text-red-700';
+        return 'bg-rose-50 text-rose-600';
       default:
-        return 'bg-yellow-100 text-yellow-700';
+        return 'bg-amber-50 text-amber-600';
     }
   };
 
@@ -118,14 +118,12 @@ export default function AdminReviewsPage() {
     <div className="space-y-6">
       {confirmDialog}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Review Moderation</h1>
-        <p className="text-sm text-gray-500">
-          {pagination ? `${pagination.total} reviews` : 'Loading...'}
-        </p>
+        <h1 className="page-title">Review Moderation</h1>
+        <p className="page-subtitle">{pagination ? `${pagination.total} reviews` : 'Loading...'}</p>
       </div>
 
       {/* Status Tabs */}
-      <div className="flex gap-2">
+      <div className="flex w-fit max-w-full gap-1 overflow-x-auto rounded-[1.5rem] border border-foreground/[0.04] bg-card p-2 shadow-bento scrollbar-none">
         {STATUS_TABS.map((tab) => (
           <button
             key={tab}
@@ -133,11 +131,7 @@ export default function AdminReviewsPage() {
               setStatus(tab);
               setPage(1);
             }}
-            className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
-              status === tab
-                ? 'bg-teal-600 text-white'
-                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-            }`}
+            className={`chip uppercase tracking-wider ${status === tab ? 'chip-active' : ''}`}
           >
             {tab}
           </button>
@@ -156,7 +150,7 @@ export default function AdminReviewsPage() {
       ) : (
         <div className="space-y-4">
           {reviews.map((review) => (
-            <div key={review.id} className="rounded-lg border p-4">
+            <div key={review.id} className="bento-tile p-5">
               <div className="flex items-start justify-between">
                 <div className="flex gap-3">
                   {review.product.images?.[0] && (
@@ -174,11 +168,7 @@ export default function AdminReviewsPage() {
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span
-                    className={`rounded-full px-2 py-0.5 text-xs font-medium ${statusColor(review.status)}`}
-                  >
-                    {review.status}
-                  </span>
+                  <span className={`pill ${statusColor(review.status)}`}>{review.status}</span>
                   <span className="text-xs text-gray-400">
                     {new Date(review.createdAt).toLocaleDateString()}
                   </span>
@@ -201,9 +191,9 @@ export default function AdminReviewsPage() {
               </div>
 
               {review.adminReply && (
-                <div className="mt-3 rounded-md bg-teal-50 p-3">
-                  <p className="text-xs font-medium text-teal-700">Your Response</p>
-                  <p className="text-sm text-teal-600">{review.adminReply}</p>
+                <div className="mt-3 rounded-md bg-brand-50 p-3">
+                  <p className="text-xs font-medium text-brand-700">Your Response</p>
+                  <p className="text-sm text-brand-600">{review.adminReply}</p>
                 </div>
               )}
 
@@ -219,7 +209,7 @@ export default function AdminReviewsPage() {
                   />
                   <button
                     onClick={() => submitResponse(review.id)}
-                    className="rounded-md bg-teal-600 px-3 py-1 text-sm text-white hover:bg-teal-700"
+                    className="btn btn-primary btn-sm"
                   >
                     Send
                   </button>
@@ -238,27 +228,24 @@ export default function AdminReviewsPage() {
                   <>
                     <button
                       onClick={() => moderate(review.id, 'APPROVED')}
-                      className="rounded-md bg-green-50 px-3 py-1 text-sm text-green-600 hover:bg-green-100"
+                      className="rounded-xl bg-emerald-50 px-4 py-2 text-xs text-emerald-600 hover:bg-emerald-100 font-bold transition-all"
                     >
                       Approve
                     </button>
                     <button
                       onClick={() => moderate(review.id, 'REJECTED')}
-                      className="rounded-md bg-red-50 px-3 py-1 text-sm text-red-600 hover:bg-red-100"
+                      className="rounded-xl bg-rose-50 px-4 py-2 text-xs text-rose-600 hover:bg-rose-100 font-bold transition-all"
                     >
                       Reject
                     </button>
                   </>
                 )}
-                <button
-                  onClick={() => setRespondingId(review.id)}
-                  className="rounded-md bg-gray-50 px-3 py-1 text-sm text-gray-600 hover:bg-gray-100"
-                >
+                <button onClick={() => setRespondingId(review.id)} className="btn btn-soft btn-sm">
                   Respond
                 </button>
                 <button
                   onClick={() => deleteReview(review.id)}
-                  className="ml-auto rounded-md px-3 py-1 text-sm text-red-500 hover:bg-red-50"
+                  className="ml-auto rounded-xl px-4 py-2 text-xs text-rose-500 hover:bg-rose-50 font-bold transition-all"
                 >
                   Delete
                 </button>

@@ -89,12 +89,12 @@ function getPasswordStrength(password: string): {
   }
 
   if (score <= 2) {
-    return { score, label: 'Weak', color: 'bg-destructive' };
+    return { score, label: 'Weak', color: 'bg-rose-500' };
   }
   if (score <= 4) {
-    return { score, label: 'Fair', color: 'bg-yellow-500' };
+    return { score, label: 'Fair', color: 'bg-amber-400' };
   }
-  return { score, label: 'Strong', color: 'bg-green-500' };
+  return { score, label: 'Strong', color: 'bg-emerald-500' };
 }
 
 // ──────────────────────────────────────────────────────────
@@ -120,7 +120,7 @@ function PasswordRequirements({ password }: { password: string }) {
           <li
             key={rule.label}
             className={`flex items-center gap-1.5 text-xs transition-colors ${
-              passed ? 'text-green-600' : 'text-muted-foreground'
+              passed ? 'font-bold text-emerald-600' : 'font-medium text-gray-500'
             }`}
           >
             {passed ? (
@@ -199,8 +199,9 @@ function RegisterContent() {
     <div className="w-full max-w-md space-y-8">
       {/* Header */}
       <div className="text-center">
-        <h1 className="text-2xl font-bold tracking-tight">Create your account</h1>
-        <p className="mt-2 text-sm text-muted-foreground">
+        <p className="eyebrow mb-3">Get started</p>
+        <h1 className="text-3xl font-black tracking-tighter text-gray-900">Create your account</h1>
+        <p className="mt-2 text-sm font-bold text-gray-500">
           Join thousands of happy shoppers and get access to exclusive deals.
         </p>
       </div>
@@ -210,7 +211,7 @@ function RegisterContent() {
 
       {/* Server error */}
       {serverError && (
-        <div className="rounded-md border border-destructive/50 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+        <div className="rounded-2xl border border-rose-100 bg-rose-50 px-4 py-3 text-sm font-bold text-rose-600">
           {serverError}
         </div>
       )}
@@ -282,12 +283,12 @@ function RegisterContent() {
                       type={showPassword ? 'text' : 'password'}
                       placeholder="Create a strong password"
                       autoComplete="new-password"
-                      className="pr-10"
+                      className="pr-11"
                       {...field}
                     />
                     <button
                       type="button"
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 transition-colors hover:text-gray-900"
                       onClick={() => setShowPassword(!showPassword)}
                       tabIndex={-1}
                       aria-label={showPassword ? 'Hide password' : 'Show password'}
@@ -305,14 +306,14 @@ function RegisterContent() {
                         <div
                           key={i}
                           className={`h-1.5 flex-1 rounded-full transition-colors ${
-                            i < passwordStrength.score ? passwordStrength.color : 'bg-muted'
+                            i < passwordStrength.score ? passwordStrength.color : 'bg-gray-100'
                           }`}
                         />
                       ))}
                     </div>
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-xs font-medium text-gray-500">
                       Password strength:{' '}
-                      <span className="font-medium">{passwordStrength.label}</span>
+                      <span className="font-black text-gray-900">{passwordStrength.label}</span>
                     </p>
                   </div>
                 )}
@@ -339,12 +340,12 @@ function RegisterContent() {
                       type={showConfirmPassword ? 'text' : 'password'}
                       placeholder="Confirm your password"
                       autoComplete="new-password"
-                      className="pr-10"
+                      className="pr-11"
                       {...field}
                     />
                     <button
                       type="button"
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 transition-colors hover:text-gray-900"
                       onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                       tabIndex={-1}
                       aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
@@ -374,11 +375,11 @@ function RegisterContent() {
                 <div className="space-y-1 leading-none">
                   <FormLabel className="text-sm font-normal">
                     I agree to the{' '}
-                    <Link href="/terms" className="font-medium text-primary hover:underline">
+                    <Link href="/terms" className="font-black text-primary hover:underline">
                       Terms of Service
                     </Link>{' '}
                     and{' '}
-                    <Link href="/privacy" className="font-medium text-primary hover:underline">
+                    <Link href="/privacy" className="font-black text-primary hover:underline">
                       Privacy Policy
                     </Link>
                   </FormLabel>
@@ -396,9 +397,9 @@ function RegisterContent() {
       </Form>
 
       {/* Login link */}
-      <p className="text-center text-sm text-muted-foreground">
+      <p className="text-center text-sm font-medium text-gray-500">
         Already have an account?{' '}
-        <Link href="/login" className="font-medium text-primary hover:underline">
+        <Link href="/login" className="font-black text-primary hover:underline">
           Sign in
         </Link>
       </p>

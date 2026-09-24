@@ -1,6 +1,7 @@
 apps/api/api/
 packages/database/prisma/
-# Root-level lint-staged has no TS parser for bare config files in
-# the shared UI package, and the file is a static Tailwind preset
-# with nothing to lint.
+# Bare Tailwind config files in the shared UI package sit outside its
+# tsconfig (src/ only), so the type-aware parser can't lint them; they
+# are static preset/palette definitions.
 packages/ui/tailwind.config.ts
+packages/ui/tailwind.palette.ts

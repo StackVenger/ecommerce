@@ -1,10 +1,12 @@
 'use client';
 
-import { Heart, Search, ShoppingCart, Star } from 'lucide-react';
+import { ChevronRight, Search } from 'lucide-react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 
+import { ProductCard, ProductCardSkeleton, ProductGrid } from '@/components/products/product-card';
+import { EmptyState } from '@/components/ui/bento';
 import { useCart } from '@/hooks/use-cart';
 import { useWishlist } from '@/hooks/use-wishlist';
 import { apiClient } from '@/lib/api/client';
@@ -124,79 +126,87 @@ export default function SearchPage() {
 
   if (!q) {
     return (
-      <div className="site-container px-4 py-20 text-center">
-        <Search className="mx-auto h-16 w-16 text-gray-300 mb-4" />
-        <h1 className="text-2xl font-bold text-gray-900">Search Products</h1>
-        <p className="mt-2 text-gray-500">
-          Enter a search term in the search bar above to find products.
-        </p>
+      <div className="site-container px-4 py-10 sm:py-16">
+        <EmptyState
+          icon={Search}
+          title={<span className="text-2xl">Search Products</span>}
+          description="Enter a search term in the search bar above to find products."
+          action={
+            <Link href="/products" className="btn btn-primary">
+              Browse All Products
+            </Link>
+          }
+        />
       </div>
     );
   }
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="border-b bg-white">
-        <div className="site-container px-4 py-6">
-          <nav className="mb-3 flex items-center gap-2 text-sm text-gray-500">
-            <Link href="/" className="hover:text-gray-700">
-              Home
-            </Link>
-            <span>/</span>
-            <span className="text-gray-900">Search</span>
-          </nav>
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">Results for &ldquo;{q}&rdquo;</h1>
+      <div className="site-container px-4 py-6 sm:py-8">
+        <nav className="mb-4 flex items-center gap-2 text-xs font-bold text-gray-400">
+          <Link href="/" className="transition-colors hover:text-gray-900">
+            Home
+          </Link>
+          <ChevronRight className="h-3.5 w-3.5" />
+          <span className="text-gray-900">Search</span>
+        </nav>
+
+        {/* Header */}
+        <div className="bento-card mb-6 flex flex-col gap-4 p-6 sm:mb-8 sm:flex-row sm:items-center sm:justify-between sm:p-8">
+          <div className="flex min-w-0 items-center gap-4">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-brand-50 text-brand-600">
+              <Search className="h-6 w-6" strokeWidth={2.25} />
+            </div>
+            <div className="min-w-0">
+              <p className="eyebrow mb-1">Search results</p>
+              <h1 className="truncate text-2xl font-black tracking-tighter text-gray-900 sm:text-3xl">
+                &ldquo;{q}&rdquo;
+              </h1>
               {pagination && (
-                <p className="mt-1 text-sm text-gray-500">
+                <p className="mt-0.5 text-sm font-bold text-gray-500">
                   {pagination.total} product{pagination.total !== 1 ? 's' : ''} found
                 </p>
               )}
             </div>
-            <select
-              value={sortBy}
-              onChange={(e) => {
-                setSortBy(e.target.value);
-                setPage(1);
-              }}
-              className="rounded-lg border-gray-300 text-sm shadow-sm"
-            >
-              {SORT_OPTIONS.map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
           </div>
+          <select
+            value={sortBy}
+            onChange={(e) => {
+              setSortBy(e.target.value);
+              setPage(1);
+            }}
+            aria-label="Sort results"
+            className="field-input w-full cursor-pointer py-2.5 pr-9 text-xs font-bold sm:w-auto"
+          >
+            {SORT_OPTIONS.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
+              </option>
+            ))}
+          </select>
         </div>
-      </div>
 
-      <div className="site-container px-4 py-8">
         {/* Results */}
         {loading ? (
-          <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
+          <ProductGrid>
             {Array.from({ length: 8 }).map((_, i) => (
-              <div key={i} className="h-80 animate-pulse rounded-xl bg-gray-200" />
+              <ProductCardSkeleton key={i} />
             ))}
-          </div>
+          </ProductGrid>
         ) : products.length === 0 ? (
-          <div className="py-20 text-center">
-            <Search className="mx-auto h-16 w-16 text-gray-300 mb-4" />
-            <p className="text-xl font-medium text-gray-500">
-              No products found for &ldquo;{q}&rdquo;
-            </p>
-            <p className="mt-2 text-gray-400">Try different keywords or browse our categories.</p>
-            <Link
-              href="/products"
-              className="mt-4 inline-block rounded-lg bg-primary px-6 py-2.5 text-sm font-medium text-white hover:bg-primary/90"
-            >
-              Browse All Products
-            </Link>
-          </div>
+          <EmptyState
+            icon={Search}
+            title={<>No products found for &ldquo;{q}&rdquo;</>}
+            description="Try different keywords or browse our categories."
+            action={
+              <Link href="/products" className="btn btn-primary">
+                Browse All Products
+              </Link>
+            }
+          />
         ) : (
-          <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
+          <ProductGrid>
             {products.map((product) => {
               const hasDiscount = product.compareAtPrice !== null;
               const discountPercent = hasDiscount
@@ -206,118 +216,40 @@ export default function SearchPage() {
                 : 0;
 
               return (
-                <Link
+                <ProductCard
                   key={product.id}
                   href={`/products/${product.slug}`}
-                  className="group relative flex flex-col rounded-xl border border-gray-200 bg-white transition-all duration-300 hover:shadow-lg hover:border-primary hover:-translate-y-0.5"
-                >
-                  <div className="relative aspect-square overflow-hidden rounded-t-xl bg-gray-100">
-                    {product.images?.[0] ? (
-                      <img
-                        src={product.images[0]}
-                        alt={product.name}
-                        className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
-                      />
-                    ) : (
-                      <div className="flex h-full items-center justify-center text-gray-400">
-                        No Image
-                      </div>
-                    )}
-
-                    {hasDiscount && (
-                      <span className="absolute left-2 top-2 rounded-md bg-red-500 px-2 py-0.5 text-xs font-bold text-white shadow-sm">
-                        -{discountPercent}%
-                      </span>
-                    )}
-
-                    <button
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        toggleWishlist(product.id);
-                      }}
-                      className="absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-full bg-white/80 opacity-0 backdrop-blur-sm shadow-sm transition-all duration-200 group-hover:opacity-100 hover:bg-white hover:scale-110"
-                    >
-                      <Heart
-                        className={`h-4 w-4 ${wishlist.has(product.id) ? 'fill-red-500 text-red-500' : 'text-gray-600'}`}
-                      />
-                    </button>
-
-                    {product.stock <= 0 && (
-                      <div className="absolute inset-x-0 bottom-0 bg-gray-900/80 py-2.5 text-center text-sm font-medium text-white backdrop-blur-sm">
-                        Out of Stock
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="flex flex-1 flex-col p-3 sm:p-4">
-                    {product.brandName && (
-                      <p className="text-xs font-medium text-primary">{product.brandName}</p>
-                    )}
-                    <h3 className="mt-1 line-clamp-2 text-sm font-semibold text-gray-900 group-hover:text-primary">
-                      {product.name}
-                    </h3>
-
-                    {product.reviewCount > 0 && (
-                      <div className="mt-1.5 flex items-center gap-1.5">
-                        <div className="flex">
-                          {[1, 2, 3, 4, 5].map((s) => (
-                            <Star
-                              key={s}
-                              className={`h-3 w-3 ${s <= Math.round(product.averageRating) ? 'fill-amber-400 text-amber-400' : 'fill-gray-200 text-gray-200'}`}
-                            />
-                          ))}
-                        </div>
-                        <span className="text-xs text-gray-400">({product.reviewCount})</span>
-                      </div>
-                    )}
-
-                    <div className="mt-auto pt-2">
-                      {hasDiscount ? (
-                        <div className="flex items-center gap-2">
-                          <span className="text-base font-bold text-primary">
-                            {formatPrice(product.price)}
-                          </span>
-                          <span className="text-xs text-gray-400 line-through">
-                            {formatPrice(product.compareAtPrice!)}
-                          </span>
-                        </div>
-                      ) : (
-                        <span className="text-base font-bold text-primary">
-                          {formatPrice(product.price)}
-                        </span>
-                      )}
-                    </div>
-
-                    {/* Add to Cart */}
-                    {product.stock > 0 ? (
-                      <button
-                        onClick={(e) => handleQuickAdd(e, product)}
-                        disabled={isUpdating}
-                        className="mt-2 flex w-full items-center justify-center gap-1.5 rounded-lg bg-primary px-3 py-2 text-xs font-medium text-white transition-all hover:bg-primary/90 disabled:opacity-50"
-                      >
-                        <ShoppingCart className="h-3.5 w-3.5" />
-                        Add to Cart
-                      </button>
-                    ) : (
-                      <p className="mt-2 text-center text-xs font-medium text-red-500">
-                        Out of Stock
-                      </p>
-                    )}
-                  </div>
-                </Link>
+                  name={product.name}
+                  image={product.images?.[0]}
+                  brand={product.brandName}
+                  rating={product.reviewCount > 0 ? product.averageRating : null}
+                  reviewCount={product.reviewCount}
+                  price={product.price}
+                  originalPrice={product.compareAtPrice}
+                  formatPrice={formatPrice}
+                  badges={hasDiscount ? [{ label: `-${discountPercent}%`, tone: 'sale' }] : []}
+                  outOfStock={product.stock <= 0}
+                  onAddToCart={(e) => handleQuickAdd(e, product)}
+                  addDisabled={isUpdating}
+                  wishlisted={wishlist.has(product.id)}
+                  onToggleWishlist={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    toggleWishlist(product.id);
+                  }}
+                />
               );
             })}
-          </div>
+          </ProductGrid>
         )}
 
         {/* Pagination */}
         {pagination && pagination.pages > 1 && (
-          <div className="mt-10 flex items-center justify-center gap-1">
+          <div className="mt-10 flex flex-wrap items-center justify-center gap-1.5">
             <button
               onClick={() => setPage((p) => Math.max(1, p - 1))}
               disabled={page === 1}
-              className="rounded-lg border px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 disabled:opacity-30"
+              className="btn btn-soft btn-sm"
             >
               Previous
             </button>
@@ -336,10 +268,11 @@ export default function SearchPage() {
                 <button
                   key={pageNum}
                   onClick={() => setPage(pageNum)}
-                  className={`min-w-[36px] rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+                  aria-current={pageNum === page ? 'page' : undefined}
+                  className={`h-10 min-w-[40px] rounded-xl px-3 text-xs font-black tabular-nums transition-all ${
                     pageNum === page
-                      ? 'bg-primary text-white'
-                      : 'border text-gray-600 hover:bg-gray-50'
+                      ? 'bg-ink text-white shadow-lg shadow-black/10'
+                      : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900'
                   }`}
                 >
                   {pageNum}
@@ -349,7 +282,7 @@ export default function SearchPage() {
             <button
               onClick={() => setPage((p) => Math.min(pagination.pages, p + 1))}
               disabled={page === pagination.pages}
-              className="rounded-lg border px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 disabled:opacity-30"
+              className="btn btn-dark btn-sm"
             >
               Next
             </button>

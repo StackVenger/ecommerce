@@ -1,5 +1,6 @@
 'use client';
 
+import { Search } from 'lucide-react';
 import {
   BarChart,
   Bar,
@@ -13,21 +14,26 @@ import {
 
 import type { MostSearchedTerm } from '@/lib/api/admin';
 
+import { EmptyState, SectionHeader } from '@/components/ui/bento';
+import { chartNeutrals } from '@/lib/theme/chart-colors';
+import { useIsDark } from '@/lib/theme/color-mode';
+
 // ──────────────────────────────────────────────────────────
 // Colors
 // ──────────────────────────────────────────────────────────
 
+// Coral for the leader, softer coral steps for the rest.
 const BAR_COLORS = [
-  '#7c3aed',
-  '#4f46e5',
-  '#2563eb',
-  '#0891b2',
-  '#059669',
-  '#d97706',
-  '#dc2626',
-  '#db2777',
-  '#4338ca',
-  '#0d9488',
+  '#f46e54',
+  '#f67e63',
+  '#f99177',
+  '#fdb29b',
+  '#fdb29b',
+  '#ffd0c0',
+  '#ffd0c0',
+  '#ffd0c0',
+  '#ffe7de',
+  '#ffe7de',
 ];
 
 // ──────────────────────────────────────────────────────────
@@ -53,10 +59,10 @@ function CustomTooltip({ active, payload }: CustomTooltipProps) {
   }
 
   return (
-    <div className="rounded-lg border border-gray-200 bg-white p-3 shadow-lg">
-      <p className="mb-1 text-sm font-medium text-gray-900">"{item.term}"</p>
-      <p className="text-sm text-gray-600">
-        Searches: <span className="font-medium">{item.searchCount.toLocaleString()}</span>
+    <div className="rounded-2xl bg-ink px-4 py-3 shadow-xl shadow-black/10">
+      <p className="mb-1 text-xs font-black text-white">"{item.term}"</p>
+      <p className="text-[11px] font-bold text-white/60">
+        Searches: <span className="text-white">{item.searchCount.toLocaleString()}</span>
       </p>
     </div>
   );
@@ -71,11 +77,12 @@ interface MostSearchedChartProps {
 }
 
 export function MostSearchedChart({ data }: MostSearchedChartProps) {
+  const neutral = chartNeutrals(useIsDark());
   if (data.length === 0) {
     return (
-      <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-        <h3 className="text-lg font-semibold text-gray-900">Most Searched Terms</h3>
-        <p className="mt-4 text-center text-sm text-gray-500">No search data available yet.</p>
+      <div className="bento-card p-6 sm:p-8">
+        <SectionHeader title="Most Searched Terms" caption="What customers are looking for" />
+        <EmptyState bare icon={Search} title="No search data available yet." className="py-8" />
       </div>
     );
   }
@@ -86,18 +93,15 @@ export function MostSearchedChart({ data }: MostSearchedChartProps) {
   }));
 
   return (
-    <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-      <div className="mb-6">
-        <h3 className="text-lg font-semibold text-gray-900">Most Searched Terms</h3>
-        <p className="text-sm text-gray-500">What customers are looking for</p>
-      </div>
+    <div className="bento-card bento-card-hover p-6 sm:p-8">
+      <SectionHeader title="Most Searched Terms" caption="What customers are looking for" />
 
       <ResponsiveContainer width="100%" height={320}>
         <BarChart data={chartData} layout="vertical" margin={{ left: 20 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" horizontal={false} />
+          <CartesianGrid stroke={neutral.grid} horizontal={false} />
           <XAxis
             type="number"
-            tick={{ fontSize: 12, fill: '#6b7280' }}
+            tick={{ fontSize: 10, fontWeight: 700, fill: neutral.tick }}
             tickLine={false}
             axisLine={false}
           />
@@ -105,12 +109,12 @@ export function MostSearchedChart({ data }: MostSearchedChartProps) {
             dataKey="shortTerm"
             type="category"
             width={140}
-            tick={{ fontSize: 11, fill: '#6b7280' }}
+            tick={{ fontSize: 11, fontWeight: 700, fill: neutral.label }}
             tickLine={false}
             axisLine={false}
           />
-          <Tooltip content={<CustomTooltip />} />
-          <Bar dataKey="searchCount" radius={[0, 4, 4, 0]} barSize={24}>
+          <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(244,110,84,0.06)' }} />
+          <Bar dataKey="searchCount" radius={[0, 999, 999, 0]} barSize={18}>
             {chartData.map((_, index) => (
               <Cell key={`cell-${index}`} fill={BAR_COLORS[index % BAR_COLORS.length]} />
             ))}

@@ -1,9 +1,12 @@
 'use client';
 
+import { ChevronRight, Tag } from 'lucide-react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
+import { ProductCard, ProductCardSkeleton, ProductGrid } from '@/components/products/product-card';
+import { BentoGlow, EmptyState } from '@/components/ui/bento';
 import { apiClient } from '@/lib/api/client';
 
 interface Product {
@@ -62,91 +65,78 @@ export default function DealsCategoryPage() {
 
   const formatPrice = (price: number) => `৳${price.toLocaleString('en-BD')}`;
 
+  const dealPercent = (product: Product) =>
+    product.compareAtPrice
+      ? Math.round(((product.compareAtPrice - product.price) / product.compareAtPrice) * 100)
+      : 0;
+
   return (
-    <div className="site-container px-4 py-6">
-      <nav className="mb-4 text-sm text-gray-500">
-        <Link href="/" className="hover:text-gray-700">
+    <div className="site-container px-4 py-6 sm:py-8">
+      <nav className="mb-4 flex flex-wrap items-center gap-2 text-xs font-bold text-gray-400">
+        <Link href="/" className="transition-colors hover:text-gray-900">
           Home
         </Link>
-        <span className="mx-2">/</span>
-        <Link href="/deals" className="hover:text-gray-700">
+        <ChevronRight className="h-3.5 w-3.5" />
+        <Link href="/deals" className="transition-colors hover:text-gray-900">
           Deals
         </Link>
-        <span className="mx-2">/</span>
+        <ChevronRight className="h-3.5 w-3.5" />
         <span className="text-gray-900">{title}</span>
       </nav>
 
-      <div className="mb-8 rounded-xl bg-gradient-to-r from-blue-700 to-indigo-900 p-8 text-white">
-        <h1 className="text-3xl font-bold">{title} Deals</h1>
-        <p className="mt-2 text-blue-100">
-          Special offers on {title.toLowerCase()} — grab them before they&apos;re gone!
-        </p>
+      <div className="bento-dark mb-6 rounded-[2rem] p-8 sm:mb-8 sm:p-10">
+        <BentoGlow variant="dark" />
+        <div className="relative z-10">
+          <div className="mb-5 flex items-center gap-3 text-white/50">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/10 backdrop-blur-md">
+              <Tag className="h-5 w-5" strokeWidth={2.25} />
+            </div>
+            <span className="text-[10px] font-black uppercase tracking-widest">Category deals</span>
+          </div>
+          <h1 className="text-3xl font-black leading-none tracking-tighter sm:text-4xl">
+            {title} Deals
+          </h1>
+          <p className="mt-3 text-sm font-bold text-white/60">
+            Special offers on {title.toLowerCase()} — grab them before they&apos;re gone!
+          </p>
+        </div>
       </div>
 
       {loading ? (
-        <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
+        <ProductGrid>
           {Array.from({ length: 8 }).map((_, i) => (
-            <div key={i} className="h-72 animate-pulse rounded-lg bg-gray-100" />
+            <ProductCardSkeleton key={i} />
           ))}
-        </div>
+        </ProductGrid>
       ) : products.length === 0 ? (
-        <div className="py-16 text-center">
-          <p className="text-lg text-gray-500">No deals in {title} right now.</p>
-          <Link href="/deals" className="mt-4 inline-block text-sm text-primary hover:underline">
-            View all deals
-          </Link>
-        </div>
+        <EmptyState
+          icon={Tag}
+          title={`No deals in ${title} right now.`}
+          action={
+            <Link href="/deals" className="btn btn-primary">
+              View all deals
+            </Link>
+          }
+        />
       ) : (
-        <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
+        <ProductGrid>
           {products.map((product) => (
-            <Link
+            <ProductCard
               key={product.id}
               href={`/products/${product.slug}`}
-              className="group rounded-lg border border-gray-200 bg-white p-3 transition-shadow hover:shadow-md"
-            >
-              <div className="relative aspect-square overflow-hidden rounded-md bg-gray-100">
-                {product.images?.[0] ? (
-                  <img
-                    src={product.images[0]}
-                    alt={product.name}
-                    className="h-full w-full object-cover transition-transform group-hover:scale-105"
-                  />
-                ) : (
-                  <div className="flex h-full items-center justify-center text-gray-400">
-                    No Image
-                  </div>
-                )}
-                {product.compareAtPrice && (
-                  <span className="absolute left-2 top-2 rounded-md bg-red-500 px-1.5 py-0.5 text-xs font-bold text-white">
-                    {Math.round(
-                      ((product.compareAtPrice - product.price) / product.compareAtPrice) * 100,
-                    )}
-                    % OFF
-                  </span>
-                )}
-              </div>
-              <div className="mt-3">
-                <h3 className="line-clamp-2 text-sm font-medium text-gray-900">{product.name}</h3>
-                <div className="mt-2 flex items-center gap-2">
-                  {product.compareAtPrice ? (
-                    <>
-                      <span className="text-sm font-bold text-red-600">
-                        {formatPrice(product.price)}
-                      </span>
-                      <span className="text-xs text-gray-400 line-through">
-                        {formatPrice(product.compareAtPrice)}
-                      </span>
-                    </>
-                  ) : (
-                    <span className="text-sm font-bold text-gray-900">
-                      {formatPrice(product.price)}
-                    </span>
-                  )}
-                </div>
-              </div>
-            </Link>
+              name={product.name}
+              image={product.images?.[0]}
+              price={product.price}
+              originalPrice={product.compareAtPrice}
+              formatPrice={formatPrice}
+              badges={
+                product.compareAtPrice
+                  ? [{ label: `${dealPercent(product)}% OFF`, tone: 'sale' }]
+                  : []
+              }
+            />
           ))}
-        </div>
+        </ProductGrid>
       )}
     </div>
   );

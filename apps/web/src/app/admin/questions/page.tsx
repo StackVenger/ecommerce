@@ -119,11 +119,11 @@ export default function AdminQuestionsPage() {
       {confirmDialog}
 
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Product Questions</h1>
-        <p className="text-sm text-gray-500">Answer customer questions on product pages</p>
+        <h1 className="page-title">Product Questions</h1>
+        <p className="page-subtitle">Answer customer questions on product pages</p>
       </div>
 
-      <div className="flex gap-2">
+      <div className="flex w-fit max-w-full gap-1 overflow-x-auto rounded-[1.5rem] border border-foreground/[0.04] bg-card p-2 shadow-bento scrollbar-none">
         {STATUS_TABS.map((tab) => (
           <button
             key={tab.key}
@@ -132,18 +132,14 @@ export default function AdminQuestionsPage() {
               setStatus(tab.key);
               setPage(1);
             }}
-            className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
-              status === tab.key
-                ? 'bg-teal-600 text-white'
-                : 'border border-gray-200 bg-white text-gray-700 hover:bg-gray-50'
-            }`}
+            className={`chip ${status === tab.key ? 'chip-active' : ''}`}
           >
             {tab.label}
           </button>
         ))}
       </div>
 
-      <div className="overflow-hidden rounded-xl border border-gray-200 bg-white">
+      <div className="bento-card overflow-hidden">
         {loading ? (
           <div className="divide-y divide-gray-100">
             {[1, 2, 3].map((i) => (
@@ -169,7 +165,7 @@ export default function AdminQuestionsPage() {
                       {q.product.name}
                     </Link>
                     <p className="mt-1 whitespace-pre-line text-gray-900">{q.question}</p>
-                    <p className="mt-1 text-xs text-gray-500">
+                    <p className="field-hint">
                       Asked by {q.user ? `${q.user.firstName} ${q.user.lastName}` : 'User'}
                       {q.user?.email ? ` (${q.user.email})` : ''} ·{' '}
                       {new Date(q.createdAt).toLocaleDateString('en-GB', {
@@ -183,7 +179,7 @@ export default function AdminQuestionsPage() {
                     type="button"
                     onClick={() => removeQuestion(q.id)}
                     disabled={busyId === q.id}
-                    className="rounded p-1 text-gray-400 hover:bg-red-50 hover:text-red-600 disabled:opacity-40"
+                    className="rounded-xl p-1 text-gray-400 hover:bg-red-50 hover:text-red-600 disabled:opacity-40 transition-all"
                     aria-label="Delete"
                   >
                     ✕
@@ -191,9 +187,9 @@ export default function AdminQuestionsPage() {
                 </div>
 
                 {q.answer ? (
-                  <div className="rounded-lg bg-teal-50 px-3 py-2">
+                  <div className="rounded-lg bg-brand-50 px-3 py-2">
                     <p className="whitespace-pre-line text-sm text-gray-800">{q.answer}</p>
-                    <p className="mt-1 text-xs text-gray-500">
+                    <p className="field-hint">
                       Answered by{' '}
                       {q.answerer ? `${q.answerer.firstName} ${q.answerer.lastName}` : 'Admin'}
                       {q.answeredAt
@@ -210,7 +206,7 @@ export default function AdminQuestionsPage() {
                         setRespondingId(q.id);
                         setDrafts((prev) => ({ ...prev, [q.id]: q.answer ?? '' }));
                       }}
-                      className="mt-2 text-xs font-medium text-teal-700 hover:text-teal-900"
+                      className="mt-2 text-xs font-medium text-brand-700 hover:text-brand-900"
                     >
                       Edit response
                     </button>
@@ -226,7 +222,7 @@ export default function AdminQuestionsPage() {
                       rows={3}
                       maxLength={2000}
                       disabled={busyId === q.id}
-                      className="w-full resize-none rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500 disabled:bg-gray-50"
+                      className="field-input w-full resize-none disabled:bg-gray-50 rounded-[1.25rem]"
                     />
                     <div className="flex justify-end gap-2">
                       {respondingId === q.id && (
@@ -240,7 +236,7 @@ export default function AdminQuestionsPage() {
                               return next;
                             });
                           }}
-                          className="rounded-lg border border-gray-200 px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-50"
+                          className="btn btn-secondary btn-sm"
                         >
                           Cancel
                         </button>
@@ -249,7 +245,7 @@ export default function AdminQuestionsPage() {
                         type="button"
                         onClick={() => submitAnswer(q.id)}
                         disabled={busyId === q.id || (drafts[q.id] ?? '').trim().length < 2}
-                        className="rounded-lg bg-teal-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-teal-700 disabled:opacity-50"
+                        className="btn btn-primary btn-sm"
                       >
                         {busyId === q.id ? 'Posting…' : q.answer ? 'Update answer' : 'Post answer'}
                       </button>
@@ -262,12 +258,12 @@ export default function AdminQuestionsPage() {
         )}
 
         {pagination && pagination.pages > 1 && (
-          <div className="flex items-center justify-end gap-1 border-t border-gray-100 px-4 py-3">
+          <div className="flex items-center justify-end gap-1 border-t border-foreground/[0.04] px-4 py-3">
             <button
               type="button"
               onClick={() => setPage((p) => Math.max(1, p - 1))}
               disabled={page === 1}
-              className="rounded p-1.5 text-gray-500 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40"
+              className="rounded-xl p-2 text-gray-500 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40 transition-all"
               aria-label="Previous page"
             >
               <ChevronLeft className="h-4 w-4" />
@@ -279,7 +275,7 @@ export default function AdminQuestionsPage() {
               type="button"
               onClick={() => setPage((p) => Math.min(pagination.pages, p + 1))}
               disabled={page === pagination.pages}
-              className="rounded p-1.5 text-gray-500 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40"
+              className="rounded-xl p-2 text-gray-500 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40 transition-all"
               aria-label="Next page"
             >
               <ChevronRight className="h-4 w-4" />

@@ -157,25 +157,23 @@ export function AdminSidebar({
       {/* Desktop sidebar */}
       <aside
         className={cn(
-          'fixed left-0 top-0 z-40 hidden h-screen flex-col border-r border-gray-200 bg-white transition-all duration-300 lg:flex',
-          collapsed ? 'w-16' : 'w-64',
+          'fixed left-0 top-0 z-40 hidden h-screen flex-col bg-gray-50 transition-all duration-300 lg:flex',
+          collapsed ? 'w-20' : 'w-72',
         )}
       >
         {/* Logo / Brand */}
-        <div className="flex h-16 items-center justify-between border-b border-gray-200 px-4">
+        <div
+          className={cn('flex items-center justify-between pb-8 pt-8', collapsed ? 'px-4' : 'px-6')}
+        >
           {!collapsed && (
-            <Link href="/admin" className="flex items-center gap-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-teal-600 text-sm font-bold text-white">
-                S
-              </div>
-              <span className="text-lg font-semibold text-gray-900">Admin</span>
+            <Link href="/admin" className="flex items-center gap-3">
+              <BrandMark />
+              <span className="text-lg font-black tracking-tight text-gray-900">Admin</span>
             </Link>
           )}
           {collapsed && (
-            <Link href="/admin" className="mx-auto">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-teal-600 text-sm font-bold text-white">
-                S
-              </div>
+            <Link href="/admin" className="mx-auto" aria-label="Admin dashboard">
+              <BrandMark />
             </Link>
           )}
         </div>
@@ -183,7 +181,7 @@ export function AdminSidebar({
         {/* Collapse toggle */}
         <button
           onClick={onToggle}
-          className="absolute -right-3 top-20 z-50 flex h-6 w-6 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-500 shadow-sm hover:text-gray-700"
+          className="absolute -right-3 top-[4.5rem] z-50 flex h-7 w-7 items-center justify-center rounded-full border border-foreground/[0.05] bg-card text-gray-500 shadow-sm transition-colors hover:text-gray-900"
           aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
         >
           {collapsed ? (
@@ -194,7 +192,9 @@ export function AdminSidebar({
         </button>
 
         {/* Navigation */}
-        <nav className="flex-1 overflow-y-auto px-3 py-4">
+        <nav
+          className={cn('scrollbar-thin flex-1 overflow-y-auto pb-4', collapsed ? 'px-3' : 'px-4')}
+        >
           <SidebarNav
             items={navigation}
             collapsed={collapsed}
@@ -206,8 +206,8 @@ export function AdminSidebar({
 
         {/* Footer */}
         {!collapsed && (
-          <div className="border-t border-gray-200 p-4">
-            <p className="text-xs text-gray-400">ShopBD Admin v1.0</p>
+          <div className="mx-4 mb-4 border-t border-foreground/[0.05] px-2 pt-4">
+            <p className="eyebrow text-gray-400">ShopBD Admin v1.0</p>
           </div>
         )}
       </aside>
@@ -215,21 +215,19 @@ export function AdminSidebar({
       {/* Mobile sidebar */}
       <aside
         className={cn(
-          'fixed left-0 top-0 z-50 flex h-screen w-72 flex-col border-r border-gray-200 bg-white transition-transform duration-300 lg:hidden',
+          'fixed left-0 top-0 z-50 flex h-screen w-[18rem] max-w-[85vw] flex-col rounded-r-[2rem] bg-gray-50 shadow-2xl shadow-black/10 transition-transform duration-300 lg:hidden',
           mobileOpen ? 'translate-x-0' : '-translate-x-full',
         )}
       >
         {/* Mobile header */}
-        <div className="flex h-16 items-center justify-between border-b border-gray-200 px-4">
-          <Link href="/admin" className="flex items-center gap-2" onClick={handleLinkClick}>
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-teal-600 text-sm font-bold text-white">
-              S
-            </div>
-            <span className="text-lg font-semibold text-gray-900">Admin</span>
+        <div className="flex items-center justify-between px-6 pb-6 pt-6">
+          <Link href="/admin" className="flex items-center gap-3" onClick={handleLinkClick}>
+            <BrandMark />
+            <span className="text-lg font-black tracking-tight text-gray-900">Admin</span>
           </Link>
           <button
             onClick={onMobileClose}
-            className="rounded-md p-1.5 text-gray-500 hover:bg-gray-100 hover:text-gray-700"
+            className="flex h-9 w-9 items-center justify-center rounded-xl text-gray-500 transition-colors hover:bg-card hover:text-gray-900"
             aria-label="Close sidebar"
           >
             <X className="h-5 w-5" />
@@ -237,7 +235,7 @@ export function AdminSidebar({
         </div>
 
         {/* Mobile Navigation */}
-        <nav className="flex-1 overflow-y-auto px-3 py-4">
+        <nav className="scrollbar-thin flex-1 overflow-y-auto px-4 pb-4">
           <SidebarNav
             items={navigation}
             collapsed={false}
@@ -248,11 +246,20 @@ export function AdminSidebar({
           />
         </nav>
 
-        <div className="border-t border-gray-200 p-4">
-          <p className="text-xs text-gray-400">ShopBD Admin v1.0</p>
+        <div className="mx-4 mb-4 border-t border-foreground/[0.05] px-2 pt-4">
+          <p className="eyebrow text-gray-400">ShopBD Admin v1.0</p>
         </div>
       </aside>
     </>
+  );
+}
+
+/** Coral rounded monogram used for the admin brand. */
+function BrandMark() {
+  return (
+    <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-sm font-black text-white shadow-brand-glow">
+      S
+    </div>
   );
 }
 
@@ -276,7 +283,7 @@ function SidebarNav({
   onLinkClick?: () => void;
 }) {
   return (
-    <ul className="space-y-1">
+    <ul className="space-y-1.5">
       {items.map((item) => (
         <li key={item.label}>
           {/* Simple link (no children) */}
@@ -285,15 +292,21 @@ function SidebarNav({
               href={item.href}
               onClick={onLinkClick}
               className={cn(
-                'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
+                'flex h-12 items-center gap-3 rounded-[14px] px-4 text-sm font-bold transition-all',
                 isActive(item.href)
-                  ? 'bg-teal-50 text-teal-700'
-                  : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900',
-                collapsed && 'justify-center px-2',
+                  ? 'bg-card text-gray-900 shadow-sm'
+                  : 'text-gray-500 hover:bg-card/60 hover:text-gray-900',
+                collapsed && 'justify-center px-0',
               )}
               title={collapsed ? item.label : undefined}
             >
-              <item.icon className="h-5 w-5 flex-shrink-0" />
+              <item.icon
+                className={cn(
+                  'h-5 w-5 flex-shrink-0',
+                  isActive(item.href) ? 'text-primary' : 'text-gray-500',
+                )}
+                strokeWidth={2.25}
+              />
               {!collapsed && <span>{item.label}</span>}
             </Link>
           ) : (
@@ -302,21 +315,29 @@ function SidebarNav({
               <button
                 onClick={() => toggleSection(item.label)}
                 className={cn(
-                  'flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
+                  'flex h-12 w-full items-center gap-3 rounded-[14px] px-4 text-sm font-bold transition-all',
                   item.children?.some((child) => isActive(child.href))
-                    ? 'bg-teal-50 text-teal-700'
-                    : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900',
-                  collapsed && 'justify-center px-2',
+                    ? 'bg-card text-gray-900 shadow-sm'
+                    : 'text-gray-500 hover:bg-card/60 hover:text-gray-900',
+                  collapsed && 'justify-center px-0',
                 )}
                 title={collapsed ? item.label : undefined}
               >
-                <item.icon className="h-5 w-5 flex-shrink-0" />
+                <item.icon
+                  className={cn(
+                    'h-5 w-5 flex-shrink-0',
+                    item.children?.some((child) => isActive(child.href))
+                      ? 'text-primary'
+                      : 'text-gray-500',
+                  )}
+                  strokeWidth={2.25}
+                />
                 {!collapsed && (
                   <>
                     <span className="flex-1 text-left">{item.label}</span>
                     <ChevronDown
                       className={cn(
-                        'h-4 w-4 transition-transform',
+                        'h-4 w-4 text-gray-400 transition-transform',
                         expandedSections.includes(item.label) && 'rotate-180',
                       )}
                     />
@@ -326,17 +347,17 @@ function SidebarNav({
 
               {/* Children */}
               {!collapsed && expandedSections.includes(item.label) && item.children && (
-                <ul className="mt-1 space-y-1 pl-11">
+                <ul className="relative ml-[1.625rem] mt-1.5 space-y-0.5 border-l border-foreground/[0.06] pl-4">
                   {item.children.map((child) => (
                     <li key={child.href}>
                       <Link
                         href={child.href}
                         onClick={onLinkClick}
                         className={cn(
-                          'block rounded-lg px-3 py-1.5 text-sm transition-colors',
+                          'block rounded-xl px-3 py-2 text-[13px] font-bold transition-all',
                           isActive(child.href)
-                            ? 'font-medium text-teal-700'
-                            : 'text-gray-600 hover:text-gray-900',
+                            ? 'bg-card/70 text-primary'
+                            : 'text-gray-500 hover:bg-card/50 hover:text-gray-900',
                         )}
                       >
                         {child.label}

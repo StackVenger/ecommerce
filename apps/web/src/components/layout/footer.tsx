@@ -175,22 +175,34 @@ export function Footer({
   }
 
   return (
-    <footer className="border-t bg-gray-50">
-      <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
+    <footer className="px-4 pb-6 pt-10 sm:px-6 lg:px-8">
+      <div className="bento-dark mx-auto max-w-7xl p-8 sm:p-10 lg:p-12">
+        <div className="bento-glow -right-16 -top-16 h-72 w-72 bg-primary/20" aria-hidden />
+        <div className="bento-glow -bottom-16 -left-16 h-56 w-56 bg-blue-500/10" aria-hidden />
+
+        <div className="relative z-10 grid grid-cols-1 gap-10 lg:grid-cols-12">
           {/* Brand */}
-          <div>
-            <Link href="/" className="text-xl font-bold text-gray-900">
+          <div className="lg:col-span-4">
+            <Link
+              href="/"
+              className="inline-flex items-center gap-3 text-2xl font-black tracking-tighter text-white"
+            >
+              <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-base shadow-brand-glow">
+                {siteName.charAt(0).toUpperCase()}
+              </span>
               {siteName}
             </Link>
-            {tagline && <p className="mt-4 text-sm text-gray-600">{tagline}</p>}
-            {taglineBn && <p className="mt-2 text-sm text-gray-600">{taglineBn}</p>}
+            {tagline && <p className="mt-5 text-sm font-bold text-white/60">{tagline}</p>}
+            {taglineBn && <p className="mt-1.5 text-sm font-medium text-white/50">{taglineBn}</p>}
             {(phone || email) && (
-              <div className="mt-4 space-y-1 text-sm text-gray-600">
-                {phone && <p>{phone}</p>}
+              <div className="mt-6 flex flex-wrap gap-2 text-xs font-bold text-white/80">
+                {phone && <p className="rounded-xl bg-white/10 px-3 py-2">{phone}</p>}
                 {email && (
                   <p>
-                    <a href={`mailto:${email}`} className="hover:text-gray-900">
+                    <a
+                      href={`mailto:${email}`}
+                      className="block rounded-xl bg-white/10 px-3 py-2 transition-colors hover:bg-white/20 hover:text-white"
+                    >
                       {email}
                     </a>
                   </p>
@@ -198,14 +210,14 @@ export function Footer({
               </div>
             )}
             {socials.length > 0 && (
-              <ul className="mt-4 flex gap-3 text-sm text-gray-600">
+              <ul className="mt-4 flex flex-wrap gap-2">
                 {socials.map((s) => (
                   <li key={s.label}>
                     <a
                       href={s.href}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="hover:text-gray-900"
+                      className="inline-flex rounded-xl border border-white/10 px-3 py-1.5 text-[10px] font-black uppercase tracking-widest text-white/60 transition-all hover:border-primary hover:bg-primary hover:text-white"
                     >
                       {s.label}
                     </a>
@@ -216,34 +228,39 @@ export function Footer({
           </div>
 
           {/* Columns from FOOTER NavigationMenu (or defaults) */}
-          {columns.map((column) => (
-            <div key={column.id}>
-              <h3 className="text-sm font-semibold uppercase tracking-wider text-gray-900">
-                {column.heading}
-              </h3>
-              <ul className="mt-4 space-y-2">
-                {column.links.map((link) => (
-                  <li key={link.id}>
-                    <Link href={link.url} className="text-sm text-gray-600 hover:text-gray-900">
-                      {link.label}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
+          <div className="grid grid-cols-2 gap-8 sm:grid-cols-3 lg:col-span-8 lg:grid-cols-4">
+            {columns.map((column) => (
+              <div key={column.id}>
+                <h3 className="text-[10px] font-black uppercase tracking-eyebrow text-white/40">
+                  {column.heading}
+                </h3>
+                <ul className="mt-5 space-y-3">
+                  {column.links.map((link) => (
+                    <li key={link.id}>
+                      <Link
+                        href={link.url}
+                        className="text-sm font-bold text-white/70 transition-colors hover:text-primary"
+                      >
+                        {link.label}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
         </div>
 
         {/* Bottom bar */}
-        <div className="mt-8 border-t border-gray-200 pt-8">
-          <div className="flex flex-col items-center justify-between gap-4 sm:flex-row">
-            <p className="text-sm text-gray-500">
+        <div className="relative z-10 mt-10 border-t border-white/10 pt-6">
+          <div className="flex flex-col items-center justify-between gap-4 text-center sm:flex-row sm:text-left">
+            <p className="text-xs font-bold text-white/40">
               &copy; {new Date().getFullYear()} {siteName}. All rights reserved.
             </p>
             {paymentsText && (
-              <div className="flex items-center gap-4">
-                <span className="text-xs text-gray-400">{paymentsText}</span>
-              </div>
+              <span className="rounded-xl bg-white/10 px-3 py-1.5 text-[10px] font-black uppercase tracking-widest text-white/60">
+                {paymentsText}
+              </span>
             )}
           </div>
         </div>

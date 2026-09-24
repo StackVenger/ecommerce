@@ -83,14 +83,18 @@ export function CookieConsent() {
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-[9999] p-4 sm:p-6">
-      <div className="mx-auto max-w-4xl bg-white rounded-2xl shadow-2xl border border-gray-200 overflow-hidden">
+      <div className="mx-auto max-w-4xl overflow-hidden rounded-[2rem] border border-foreground/[0.04] bg-card shadow-2xl shadow-black/10">
         {/* Main banner */}
-        <div className="p-6">
+        <div className="p-6 sm:p-8">
           <div className="flex items-start gap-4">
-            <div className="flex-shrink-0 text-2xl">🍪</div>
+            <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl bg-brand-50 text-2xl">
+              🍪
+            </div>
             <div className="flex-1">
-              <h3 className="text-lg font-semibold text-gray-900 mb-1">We use cookies</h3>
-              <p className="text-sm text-gray-600 mb-1">
+              <h3 className="mb-1 text-lg font-black tracking-tight text-gray-900">
+                We use cookies
+              </h3>
+              <p className="mb-1 text-sm font-medium text-gray-600">
                 We use cookies to enhance your browsing experience, serve personalized content, and
                 analyze our traffic.
               </p>
@@ -101,7 +105,7 @@ export function CookieConsent() {
 
               <button
                 onClick={() => setShowDetails(!showDetails)}
-                className="mt-2 text-sm text-blue-600 hover:text-blue-700 underline"
+                className="mt-2 text-sm font-bold text-brand-700 underline underline-offset-4 hover:text-brand-800"
               >
                 {showDetails ? 'Hide details' : 'Customize preferences'}
               </button>
@@ -110,7 +114,7 @@ export function CookieConsent() {
 
           {/* Detailed preferences */}
           {showDetails && (
-            <div className="mt-4 pt-4 border-t border-gray-200 space-y-3">
+            <div className="mt-5 space-y-3 border-t border-foreground/[0.05] pt-5">
               <CookieCategory
                 title="Necessary"
                 titleBn="প্রয়োজনীয়"
@@ -145,24 +149,15 @@ export function CookieConsent() {
 
           {/* Action buttons */}
           <div className="mt-6 flex flex-col sm:flex-row gap-3">
-            <button
-              onClick={acceptAll}
-              className="flex-1 px-6 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-            >
+            <button onClick={acceptAll} className="btn btn-primary flex-1">
               Accept All / সব গ্রহণ করুন
             </button>
             {showDetails ? (
-              <button
-                onClick={saveCustom}
-                className="flex-1 px-6 py-2.5 bg-gray-800 text-white text-sm font-medium rounded-lg hover:bg-gray-900 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
-              >
+              <button onClick={saveCustom} className="btn btn-dark flex-1">
                 Save Preferences
               </button>
             ) : (
-              <button
-                onClick={acceptNecessary}
-                className="flex-1 px-6 py-2.5 bg-gray-200 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-300 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2"
-              >
+              <button onClick={acceptNecessary} className="btn btn-soft flex-1">
                 Necessary Only / শুধু প্রয়োজনীয়
               </button>
             )}
@@ -194,11 +189,9 @@ function CookieCategory({
     <div className="flex items-start justify-between gap-4">
       <div className="flex-1">
         <div className="flex items-center gap-2">
-          <span className="text-sm font-medium text-gray-900">{title}</span>
+          <span className="text-sm font-bold text-gray-900">{title}</span>
           <span className="text-sm text-gray-500 font-bengali">({titleBn})</span>
-          {disabled && (
-            <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded">Required</span>
-          )}
+          {disabled && <span className="pill pill-neutral">Required</span>}
         </div>
         <p className="text-xs text-gray-500 mt-0.5">{description}</p>
       </div>
@@ -212,8 +205,8 @@ function CookieCategory({
         />
         <div
           className={`w-10 h-5 rounded-full transition-colors ${
-            disabled ? 'bg-blue-400 cursor-not-allowed' : checked ? 'bg-blue-600' : 'bg-gray-300'
-          } peer-focus:ring-2 peer-focus:ring-blue-300 after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-transform ${
+            disabled ? 'cursor-not-allowed bg-brand-300' : checked ? 'bg-primary' : 'bg-gray-300'
+          } peer-focus:ring-4 peer-focus:ring-primary/20 after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-transform ${
             checked ? 'after:translate-x-5' : ''
           }`}
         />

@@ -1,10 +1,15 @@
 'use client';
 
+import { ArrowLeft, Pencil, ShoppingBag, UserRound } from 'lucide-react';
+import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
+import { OrderStatusPill } from '@/components/admin/orders/order-status';
 import { useConfirm } from '@/components/admin/ui/confirm-dialog';
+import { AccountStatusPill, RolePill } from '@/components/admin/users/user-pills';
+import { EmptyState, LoadingState, PageHeader, SectionHeader } from '@/components/ui/bento';
 import { apiClient } from '@/lib/api/client';
 import { getApiErrorMessage } from '@/lib/api/errors';
 
@@ -62,7 +67,7 @@ export default function AdminUserDetailPage() {
           role: u.role,
         });
       })
-      .catch(() => toast.error(getApiErrorMessage(err, 'Failed to load user')))
+      .catch((err) => toast.error(getApiErrorMessage(err, 'Failed to load user')))
       .finally(() => setLoading(false));
   }, [id]);
 
@@ -101,176 +106,200 @@ export default function AdminUserDetailPage() {
   };
 
   if (loading) {
-    return <div className="animate-pulse text-gray-400">Loading user details...</div>;
+    return <LoadingState label="Loading user details" className="min-h-[400px]" />;
   }
 
   if (!user) {
-    return <div className="text-red-500">User not found</div>;
+    return (
+      <EmptyState
+        icon={UserRound}
+        title="User not found"
+        action={
+          <Link href="/admin/users" className="btn btn-soft">
+            <ArrowLeft className="h-4 w-4" strokeWidth={2.5} /> Back to users
+          </Link>
+        }
+      />
+    );
   }
 
   return (
-    <div className="space-y-8">
+    <div>
       {confirmDialog}
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">
-            {user.firstName} {user.lastName}
-          </h1>
-          <p className="text-sm text-gray-500">{user.email}</p>
-        </div>
-        <div className="flex gap-2">
-          <button
-            onClick={() => setEditing(!editing)}
-            className="rounded-md border px-4 py-2 text-sm hover:bg-gray-50"
+      <PageHeader
+        eyebrow={
+          <Link
+            href="/admin/users"
+            className="mb-1 inline-flex w-fit items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-gray-400 transition-colors hover:text-gray-900"
           >
-            {editing ? 'Cancel' : 'Edit'}
-          </button>
-          <button
-            onClick={handleDelete}
-            className="rounded-md bg-red-50 px-4 py-2 text-sm text-red-600 hover:bg-red-100"
-          >
-            Delete
-          </button>
-        </div>
-      </div>
+            <ArrowLeft className="h-3.5 w-3.5" strokeWidth={2.5} /> Users
+          </Link>
+        }
+        title={`${user.firstName} ${user.lastName}`}
+        description={user.email}
+        actions={
+          <>
+            <button
+              type="button"
+              onClick={() => setEditing(!editing)}
+              className={`btn ${editing ? 'btn-soft' : 'btn-secondary'}`}
+            >
+              {editing ? 'Cancel' : 'Edit'}
+            </button>
+            <button type="button" onClick={handleDelete} className="btn btn-danger-soft">
+              Delete
+            </button>
+          </>
+        }
+      />
 
       {/* Edit Form or Info Display */}
       {editing ? (
-        <div className="grid grid-cols-1 gap-4 rounded-lg border p-4 md:grid-cols-2">
-          <div>
-            <label className="block text-sm font-medium text-gray-700">First Name</label>
-            <input
-              type="text"
-              value={form.firstName}
-              onChange={(e) => setForm({ ...form, firstName: e.target.value })}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Last Name</label>
-            <input
-              type="text"
-              value={form.lastName}
-              onChange={(e) => setForm({ ...form, lastName: e.target.value })}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Email</label>
-            <input
-              type="email"
-              value={form.email}
-              onChange={(e) => setForm({ ...form, email: e.target.value })}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Phone</label>
-            <input
-              type="tel"
-              value={form.phone}
-              onChange={(e) => setForm({ ...form, phone: e.target.value })}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
-              placeholder="+880 1XXX-XXXXXX"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Role</label>
-            <select
-              value={form.role}
-              onChange={(e) => setForm({ ...form, role: e.target.value })}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
-            >
-              {ROLES.map((r) => (
-                <option key={r} value={r}>
-                  {r}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="col-span-full flex justify-end">
-            <button
-              onClick={handleSave}
-              disabled={saving}
-              className="rounded-md bg-teal-600 px-4 py-2 text-sm font-medium text-white hover:bg-teal-700 disabled:opacity-50"
-            >
-              {saving ? 'Saving...' : 'Save Changes'}
-            </button>
+        <div className="bento-card mb-6 p-6 sm:p-8">
+          <SectionHeader title="Edit user" caption="Profile & access" icon={Pencil} />
+          <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+            <div>
+              <label className="field-label" htmlFor="user-first-name">
+                First Name
+              </label>
+              <input
+                id="user-first-name"
+                type="text"
+                value={form.firstName}
+                onChange={(e) => setForm({ ...form, firstName: e.target.value })}
+                className="field-input"
+              />
+            </div>
+            <div>
+              <label className="field-label" htmlFor="user-last-name">
+                Last Name
+              </label>
+              <input
+                id="user-last-name"
+                type="text"
+                value={form.lastName}
+                onChange={(e) => setForm({ ...form, lastName: e.target.value })}
+                className="field-input"
+              />
+            </div>
+            <div>
+              <label className="field-label" htmlFor="user-email">
+                Email
+              </label>
+              <input
+                id="user-email"
+                type="email"
+                value={form.email}
+                onChange={(e) => setForm({ ...form, email: e.target.value })}
+                className="field-input"
+              />
+            </div>
+            <div>
+              <label className="field-label" htmlFor="user-phone">
+                Phone
+              </label>
+              <input
+                id="user-phone"
+                type="tel"
+                value={form.phone}
+                onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                className="field-input"
+                placeholder="+880 1XXX-XXXXXX"
+              />
+            </div>
+            <div>
+              <label className="field-label" htmlFor="user-role">
+                Role
+              </label>
+              <select
+                id="user-role"
+                value={form.role}
+                onChange={(e) => setForm({ ...form, role: e.target.value })}
+                className="field-input"
+              >
+                {ROLES.map((r) => (
+                  <option key={r} value={r}>
+                    {r}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="col-span-full flex justify-end border-t border-foreground/[0.04] pt-5">
+              <button
+                type="button"
+                onClick={handleSave}
+                disabled={saving}
+                className="btn btn-primary"
+              >
+                {saving ? 'Saving...' : 'Save Changes'}
+              </button>
+            </div>
           </div>
         </div>
       ) : (
-        <div className="grid grid-cols-2 gap-4 rounded-lg border p-4 md:grid-cols-4">
-          <div>
-            <dt className="text-xs text-gray-500">Role</dt>
-            <dd className="mt-1 text-sm font-medium">{user.role}</dd>
+        <div className="mb-6 grid grid-cols-2 gap-4 sm:gap-6 lg:grid-cols-6">
+          <div className="bento-card flex flex-col justify-between gap-3 p-5">
+            <p className="eyebrow">Role</p>
+            <RolePill role={user.role} className="w-fit" />
           </div>
-          <div>
-            <dt className="text-xs text-gray-500">Status</dt>
-            <dd className="mt-1">
-              <span
-                className={`rounded-full px-2 py-0.5 text-xs font-medium ${user.status === 'ACTIVE' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}
-              >
-                {user.status === 'ACTIVE' ? 'Active' : user.status}
-              </span>
-            </dd>
+          <div className="bento-card flex flex-col justify-between gap-3 p-5">
+            <p className="eyebrow">Status</p>
+            <AccountStatusPill status={user.status} className="w-fit" />
           </div>
-          <div>
-            <dt className="text-xs text-gray-500">Orders</dt>
-            <dd className="mt-1 text-sm font-medium">{user._count.orders}</dd>
+          <div className="bento-card flex flex-col justify-between gap-2 p-5">
+            <p className="eyebrow">Orders</p>
+            <p className="stat-value text-3xl">{user._count.orders}</p>
           </div>
-          <div>
-            <dt className="text-xs text-gray-500">Reviews</dt>
-            <dd className="mt-1 text-sm font-medium">{user._count.reviews}</dd>
+          <div className="bento-card flex flex-col justify-between gap-2 p-5">
+            <p className="eyebrow">Reviews</p>
+            <p className="stat-value text-3xl">{user._count.reviews}</p>
           </div>
-          <div>
-            <dt className="text-xs text-gray-500">Joined</dt>
-            <dd className="mt-1 text-sm">{new Date(user.createdAt).toLocaleDateString()}</dd>
+          <div className="bento-card flex flex-col justify-between gap-2 p-5">
+            <p className="eyebrow">Joined</p>
+            <p className="text-sm font-black text-gray-900">
+              {new Date(user.createdAt).toLocaleDateString()}
+            </p>
           </div>
-          <div>
-            <dt className="text-xs text-gray-500">Last Login</dt>
-            <dd className="mt-1 text-sm">
+          <div className="bento-card flex flex-col justify-between gap-2 p-5">
+            <p className="eyebrow">Last Login</p>
+            <p className="text-sm font-black text-gray-900">
               {user.lastLoginAt ? new Date(user.lastLoginAt).toLocaleString() : 'Never'}
-            </dd>
+            </p>
           </div>
         </div>
       )}
 
       {/* Recent Orders */}
-      <section>
-        <h2 className="mb-3 text-lg font-semibold text-gray-900">Recent Orders</h2>
+      <section className="bento-card p-6 sm:p-8">
+        <SectionHeader title="Recent Orders" caption="Order history" icon={ShoppingBag} />
         {user.orders.length === 0 ? (
-          <p className="text-sm text-gray-400">No orders yet</p>
+          <p className="rounded-[1.5rem] bg-gray-50 py-10 text-center text-sm font-bold text-gray-400">
+            No orders yet
+          </p>
         ) : (
-          <div className="overflow-x-auto rounded-lg border">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
+          <div className="-mx-3 overflow-x-auto">
+            <table className="bento-table min-w-[520px]">
+              <thead>
                 <tr>
-                  <th className="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500">
-                    Order #
-                  </th>
-                  <th className="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500">
-                    Total
-                  </th>
-                  <th className="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500">
-                    Status
-                  </th>
-                  <th className="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500">
-                    Date
-                  </th>
+                  <th>Order #</th>
+                  <th className="text-right">Total</th>
+                  <th className="text-center">Status</th>
+                  <th>Date</th>
                 </tr>
               </thead>
-              <tbody className="divide-y bg-white">
+              <tbody>
                 {user.orders.map((order) => (
                   <tr key={order.id}>
-                    <td className="px-4 py-2 text-sm font-medium text-teal-600">
+                    <td className="whitespace-nowrap text-sm font-black text-gray-900">
                       {order.orderNumber}
                     </td>
-                    <td className="px-4 py-2 text-sm">
+                    <td className="whitespace-nowrap text-right text-sm font-black tabular-nums text-gray-900">
                       ৳{Number(order.totalAmount ?? 0).toLocaleString('en-BD')}
                     </td>
-                    <td className="px-4 py-2 text-sm">{order.status}</td>
-                    <td className="px-4 py-2 text-sm text-gray-500">
+                    <td className="text-center">
+                      <OrderStatusPill status={order.status} />
+                    </td>
+                    <td className="whitespace-nowrap text-xs font-bold text-gray-500">
                       {new Date(order.createdAt).toLocaleDateString()}
                     </td>
                   </tr>

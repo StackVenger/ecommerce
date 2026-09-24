@@ -237,7 +237,7 @@ export default function AdminThemePage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-teal-600" />
+        <div className="h-10 w-10 animate-spin rounded-full border-4 border-brand-100 border-t-primary" />
       </div>
     );
   }
@@ -260,41 +260,32 @@ export default function AdminThemePage() {
     <div className="space-y-6">
       {confirmDialog}
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Theme Settings</h1>
-          <p className="text-sm text-gray-500 mt-1">Customize colors, typography, and layout</p>
+          <h1 className="page-title">Theme Settings</h1>
+          <p className="page-subtitle">Customize colors, typography, and layout</p>
         </div>
-        <div className="flex items-center gap-3">
-          <button
-            onClick={resetTheme}
-            disabled={saving}
-            className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
-          >
+        <div className="flex flex-wrap items-center gap-3">
+          <button onClick={resetTheme} disabled={saving} className="btn btn-secondary">
             Reset to Defaults
           </button>
-          <button
-            onClick={saveTheme}
-            disabled={saving}
-            className="px-4 py-2 bg-teal-600 text-white rounded-lg text-sm font-medium hover:bg-teal-700 disabled:opacity-50"
-          >
+          <button onClick={saveTheme} disabled={saving} className="btn btn-primary">
             {saving ? 'Saving...' : 'Save Changes'}
           </button>
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="border-b border-gray-200">
-        <nav className="flex gap-6">
+      <div>
+        <nav
+          className="flex w-fit max-w-full gap-1 overflow-x-auto rounded-[1.5rem] border border-foreground/[0.04] bg-card p-2 shadow-bento scrollbar-none"
+          aria-label="Theme sections"
+        >
           {tabs.map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`pb-3 text-sm font-medium border-b-2 transition-colors ${
-                activeTab === tab.id
-                  ? 'border-teal-600 text-teal-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700'
-              }`}
+              className={`chip ${activeTab === tab.id ? 'chip-active' : ''}`}
             >
               {tab.label}
             </button>
@@ -304,8 +295,8 @@ export default function AdminThemePage() {
 
       {/* Colors Tab */}
       {activeTab === 'colors' && (
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Color Palette</h2>
+        <div className="bento-card p-6 sm:p-8">
+          <h2 className="text-lg font-black text-gray-900 mb-4 tracking-tight">Color Palette</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {(Object.entries(COLOR_LABELS) as [keyof ThemeColors, string][]).map(([key, label]) => (
               <div key={key}>
@@ -321,7 +312,7 @@ export default function AdminThemePage() {
                     type="text"
                     value={theme.colors[key]}
                     onChange={(e) => updateColor(key, e.target.value)}
-                    className="flex-1 px-2 py-1.5 border border-gray-300 rounded text-sm font-mono"
+                    className="field-input flex-1 font-mono py-2.5"
                   />
                 </div>
               </div>
@@ -330,37 +321,37 @@ export default function AdminThemePage() {
 
           {/* Preview */}
           <div
-            className="mt-6 p-4 rounded-lg border border-gray-200"
+            className="mt-6 p-4 rounded-[1.5rem] border border-foreground/[0.05]"
             style={{ backgroundColor: theme.colors.surface }}
           >
-            <h3 className="text-sm font-medium text-gray-700 mb-3">Preview</h3>
-            <div className="flex items-center gap-3">
+            <h3 className="text-lg font-black tracking-tight text-gray-900 mb-3">Preview</h3>
+            <div className="flex flex-wrap items-center gap-3">
               <button
-                className="px-4 py-2 rounded-lg text-sm text-white"
+                className="rounded-2xl px-4 py-2 text-sm font-black text-white"
                 style={{ backgroundColor: theme.colors.primary }}
               >
                 Primary Button
               </button>
               <button
-                className="px-4 py-2 rounded-lg text-sm text-white"
+                className="rounded-2xl px-4 py-2 text-sm font-black text-white"
                 style={{ backgroundColor: theme.colors.secondary }}
               >
                 Secondary
               </button>
               <button
-                className="px-4 py-2 rounded-lg text-sm text-white"
+                className="rounded-2xl px-4 py-2 text-sm font-black text-white"
                 style={{ backgroundColor: theme.colors.accent }}
               >
                 Accent
               </button>
               <span
-                className="px-3 py-1 rounded-full text-xs text-white"
+                className="rounded-xl px-3 py-1 text-[10px] font-black uppercase tracking-widest text-white"
                 style={{ backgroundColor: theme.colors.success }}
               >
                 Success
               </span>
               <span
-                className="px-3 py-1 rounded-full text-xs text-white"
+                className="rounded-xl px-3 py-1 text-[10px] font-black uppercase tracking-widest text-white"
                 style={{ backgroundColor: theme.colors.error }}
               >
                 Error
@@ -372,15 +363,15 @@ export default function AdminThemePage() {
 
       {/* Typography Tab */}
       {activeTab === 'typography' && (
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Typography</h2>
+        <div className="bento-card p-6 sm:p-8">
+          <h2 className="text-lg font-black text-gray-900 mb-4 tracking-tight">Typography</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Heading Font</label>
+              <label className="field-label">Heading Font</label>
               <select
                 value={theme.typography.headingFont}
                 onChange={(e) => updateTypography('headingFont', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                className="field-input w-full"
               >
                 {FONT_OPTIONS.map((f) => (
                   <option key={f} value={f}>
@@ -390,11 +381,11 @@ export default function AdminThemePage() {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Body Font</label>
+              <label className="field-label">Body Font</label>
               <select
                 value={theme.typography.bodyFont}
                 onChange={(e) => updateTypography('bodyFont', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                className="field-input w-full"
               >
                 {FONT_OPTIONS.map((f) => (
                   <option key={f} value={f}>
@@ -404,11 +395,11 @@ export default function AdminThemePage() {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Bangla Font</label>
+              <label className="field-label">Bangla Font</label>
               <select
                 value={theme.typography.banglaFont}
                 onChange={(e) => updateTypography('banglaFont', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                className="field-input w-full"
               >
                 {BANGLA_FONT_OPTIONS.map((f) => (
                   <option key={f} value={f}>
@@ -418,11 +409,11 @@ export default function AdminThemePage() {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Base Font Size</label>
+              <label className="field-label">Base Font Size</label>
               <select
                 value={theme.typography.baseFontSize}
                 onChange={(e) => updateTypography('baseFontSize', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                className="field-input w-full"
               >
                 {['14px', '15px', '16px', '17px', '18px'].map((s) => (
                   <option key={s} value={s}>
@@ -432,11 +423,11 @@ export default function AdminThemePage() {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Heading Weight</label>
+              <label className="field-label">Heading Weight</label>
               <select
                 value={theme.typography.headingWeight}
                 onChange={(e) => updateTypography('headingWeight', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                className="field-input w-full"
               >
                 {['400', '500', '600', '700', '800'].map((w) => (
                   <option key={w} value={w}>
@@ -446,11 +437,11 @@ export default function AdminThemePage() {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Line Height</label>
+              <label className="field-label">Line Height</label>
               <select
                 value={theme.typography.lineHeight}
                 onChange={(e) => updateTypography('lineHeight', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                className="field-input w-full"
               >
                 {['1.4', '1.5', '1.6', '1.7', '1.8'].map((l) => (
                   <option key={l} value={l}>
@@ -462,8 +453,8 @@ export default function AdminThemePage() {
           </div>
 
           {/* Typography Preview */}
-          <div className="mt-6 p-4 rounded-lg border border-gray-200">
-            <h3 className="text-sm font-medium text-gray-700 mb-3">Preview</h3>
+          <div className="mt-6 p-4 rounded-[1.5rem] border border-foreground/[0.05]">
+            <h3 className="text-lg font-black tracking-tight text-gray-900 mb-3">Preview</h3>
             <h2
               style={{
                 fontFamily: theme.typography.headingFont,
@@ -499,8 +490,8 @@ export default function AdminThemePage() {
 
       {/* Borders Tab */}
       {activeTab === 'borders' && (
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Borders & Radius</h2>
+        <div className="bento-card p-6 sm:p-8">
+          <h2 className="text-lg font-black text-gray-900 mb-4 tracking-tight">Borders & Radius</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {(
               [
@@ -512,17 +503,17 @@ export default function AdminThemePage() {
               ] as [keyof ThemeBorders, string][]
             ).map(([key, label]) => (
               <div key={key}>
-                <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
+                <label className="field-label">{label}</label>
                 <input
                   type="text"
                   value={theme.borders[key]}
                   onChange={(e) => updateBorders(key, e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                  className="field-input w-full"
                 />
               </div>
             ))}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Border Color</label>
+              <label className="field-label">Border Color</label>
               <div className="flex items-center gap-2">
                 <input
                   type="color"
@@ -534,7 +525,7 @@ export default function AdminThemePage() {
                   type="text"
                   value={theme.borders.color}
                   onChange={(e) => updateBorders('color', e.target.value)}
-                  className="flex-1 px-2 py-1.5 border border-gray-300 rounded text-sm font-mono"
+                  className="field-input flex-1 font-mono py-2.5"
                 />
               </div>
             </div>
@@ -561,17 +552,15 @@ export default function AdminThemePage() {
 
       {/* Layout Tab */}
       {activeTab === 'layout' && (
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Layout Options</h2>
+        <div className="bento-card p-6 sm:p-8">
+          <h2 className="text-lg font-black text-gray-900 mb-4 tracking-tight">Layout Options</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Container Max Width
-              </label>
+              <label className="field-label">Container Max Width</label>
               <select
                 value={theme.layout.containerMaxWidth}
                 onChange={(e) => updateLayout('containerMaxWidth', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                className="field-input w-full"
               >
                 <option value="1024px">1024px</option>
                 <option value="1152px">1152px</option>
@@ -588,12 +577,12 @@ export default function AdminThemePage() {
       {activeTab === 'advanced' && (
         <div className="space-y-6">
           {/* Logo & Favicon */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Branding</h2>
+          <div className="bento-card p-6 sm:p-8">
+            <h2 className="text-lg font-black text-gray-900 mb-4 tracking-tight">Branding</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Logo uploader */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Logo</label>
+                <label className="field-label">Logo</label>
                 <input
                   ref={logoInputRef}
                   type="file"
@@ -606,7 +595,7 @@ export default function AdminThemePage() {
                     <img
                       src={theme.logoUrl}
                       alt="Logo preview"
-                      className="h-14 max-w-[160px] object-contain rounded border border-gray-200 bg-white p-1"
+                      className="h-14 max-w-[160px] object-contain rounded border border-gray-200 bg-card p-1"
                     />
                   ) : (
                     <div className="flex h-14 w-14 items-center justify-center rounded border border-dashed border-gray-300 text-xs text-gray-400">
@@ -618,7 +607,7 @@ export default function AdminThemePage() {
                       type="button"
                       onClick={() => logoInputRef.current?.click()}
                       disabled={uploadingLogo || saving}
-                      className="px-3 py-1.5 text-sm font-medium text-white bg-teal-600 rounded-lg hover:bg-teal-700 disabled:opacity-50"
+                      className="btn btn-primary btn-sm"
                     >
                       {uploadingLogo ? 'Uploading…' : theme.logoUrl ? 'Replace' : 'Upload logo'}
                     </button>
@@ -627,7 +616,7 @@ export default function AdminThemePage() {
                         type="button"
                         onClick={() => clearBrandingImage('logo')}
                         disabled={saving}
-                        className="px-3 py-1.5 text-sm font-medium text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50"
+                        className="btn btn-secondary btn-sm"
                       >
                         Remove
                       </button>
@@ -641,7 +630,7 @@ export default function AdminThemePage() {
 
               {/* Favicon uploader */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Favicon</label>
+                <label className="field-label">Favicon</label>
                 <input
                   ref={faviconInputRef}
                   type="file"
@@ -654,7 +643,7 @@ export default function AdminThemePage() {
                     <img
                       src={theme.faviconUrl}
                       alt="Favicon preview"
-                      className="h-10 w-10 object-contain rounded border border-gray-200 bg-white p-1"
+                      className="h-10 w-10 object-contain rounded border border-gray-200 bg-card p-1"
                     />
                   ) : (
                     <div className="flex h-10 w-10 items-center justify-center rounded border border-dashed border-gray-300 text-xs text-gray-400">
@@ -666,7 +655,7 @@ export default function AdminThemePage() {
                       type="button"
                       onClick={() => faviconInputRef.current?.click()}
                       disabled={uploadingFavicon || saving}
-                      className="px-3 py-1.5 text-sm font-medium text-white bg-teal-600 rounded-lg hover:bg-teal-700 disabled:opacity-50"
+                      className="btn btn-primary btn-sm"
                     >
                       {uploadingFavicon
                         ? 'Uploading…'
@@ -679,7 +668,7 @@ export default function AdminThemePage() {
                         type="button"
                         onClick={() => clearBrandingImage('favicon')}
                         disabled={saving}
-                        className="px-3 py-1.5 text-sm font-medium text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50"
+                        className="btn btn-secondary btn-sm"
                       >
                         Remove
                       </button>
@@ -694,14 +683,14 @@ export default function AdminThemePage() {
           </div>
 
           {/* Custom CSS */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Custom CSS</h2>
+          <div className="bento-card p-6 sm:p-8">
+            <h2 className="text-lg font-black text-gray-900 mb-4 tracking-tight">Custom CSS</h2>
             <textarea
               value={theme.customCSS}
               onChange={(e) => setTheme({ ...theme, customCSS: e.target.value })}
               rows={12}
               placeholder="/* Add your custom CSS here */&#10;.my-class {&#10;  color: red;&#10;}"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm font-mono"
+              className="field-input w-full font-mono rounded-[1.25rem]"
             />
             <p className="text-xs text-gray-500 mt-2">
               Custom CSS will be injected into every storefront page. Use with caution.

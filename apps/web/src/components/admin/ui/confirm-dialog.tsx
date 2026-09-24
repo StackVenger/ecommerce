@@ -69,10 +69,7 @@ export function ConfirmDialog({
     return null;
   }
 
-  const confirmClass =
-    tone === 'danger'
-      ? 'bg-red-600 hover:bg-red-700 focus-visible:ring-red-500'
-      : 'bg-primary hover:bg-primary/90 focus-visible:ring-primary';
+  const confirmClass = tone === 'danger' ? 'btn-danger' : 'btn-primary';
 
   const handleConfirm = async () => {
     setBusy(true);
@@ -98,11 +95,11 @@ export function ConfirmDialog({
         onClick={onCancel}
         className="absolute inset-0 h-full w-full cursor-default bg-transparent"
       />
-      <div className="relative z-10 w-full max-w-md rounded-xl bg-white p-6 shadow-xl">
+      <div className="relative z-10 w-[calc(100%-2rem)] max-w-md rounded-[2rem] border border-foreground/[0.04] bg-card p-6 shadow-2xl sm:p-8">
         <button
           type="button"
           onClick={onCancel}
-          className="absolute right-4 top-4 rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+          className="absolute right-5 top-5 rounded-xl p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-all"
           aria-label="Close"
         >
           <X className="h-4 w-4" />
@@ -110,25 +107,22 @@ export function ConfirmDialog({
 
         <div className="flex items-start gap-3">
           {tone === 'danger' && (
-            <div className="rounded-full bg-red-100 p-2 text-red-600">
-              <AlertTriangle className="h-5 w-5" />
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-rose-50 text-rose-500">
+              <AlertTriangle className="h-6 w-6" strokeWidth={2.25} />
             </div>
           )}
-          <div className="flex-1">
-            <h2 id="confirm-title" className="text-lg font-semibold text-gray-900">
+          <div className="flex-1 pr-6">
+            <h2 id="confirm-title" className="text-xl font-black tracking-tight text-gray-900">
               {title}
             </h2>
-            {description && <p className="mt-1 text-sm text-gray-600">{description}</p>}
+            {description && (
+              <p className="mt-1.5 text-sm font-medium text-gray-500">{description}</p>
+            )}
           </div>
         </div>
 
-        <div className="mt-6 flex justify-end gap-2">
-          <button
-            type="button"
-            onClick={onCancel}
-            disabled={busy}
-            className="rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
-          >
+        <div className="mt-8 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+          <button type="button" onClick={onCancel} disabled={busy} className="btn btn-secondary">
             {cancelLabel}
           </button>
           <button
@@ -136,7 +130,7 @@ export function ConfirmDialog({
             type="button"
             onClick={handleConfirm}
             disabled={busy}
-            className={`rounded-lg px-4 py-2 text-sm font-medium text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:opacity-50 ${confirmClass}`}
+            className={`btn ${confirmClass}`}
           >
             {busy ? 'Working…' : confirmLabel}
           </button>

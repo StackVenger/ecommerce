@@ -1,8 +1,11 @@
 'use client';
 
+import { ChevronRight, Flame, Percent, Tag } from 'lucide-react';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 
+import { ProductCard, ProductCardSkeleton, ProductGrid } from '@/components/products/product-card';
+import { BentoGlow, EmptyState, StatCard } from '@/components/ui/bento';
 import { apiClient } from '@/lib/api/client';
 
 interface Product {
@@ -55,103 +58,98 @@ export default function DealsPage() {
 
   const formatPrice = (price: number) => `৳${price.toLocaleString('en-BD')}`;
 
+  const dealPercent = (product: Product) =>
+    product.compareAtPrice
+      ? Math.round(((product.compareAtPrice - product.price) / product.compareAtPrice) * 100)
+      : 0;
+  const biggestDiscount = products.reduce((max, p) => Math.max(max, dealPercent(p)), 0);
+
   return (
-    <div className="site-container px-4 py-6">
-      <nav className="mb-4 text-sm text-gray-500">
-        <Link href="/" className="hover:text-gray-700">
+    <div className="site-container px-4 py-6 sm:py-8">
+      <nav className="mb-4 flex items-center gap-2 text-xs font-bold text-gray-400">
+        <Link href="/" className="transition-colors hover:text-gray-900">
           Home
         </Link>
-        <span className="mx-2">/</span>
+        <ChevronRight className="h-3.5 w-3.5" />
         <span className="text-gray-900">Deals</span>
       </nav>
 
-      {/* Banner */}
-      <div className="mb-8 rounded-xl bg-gradient-to-r from-orange-500 to-red-600 p-8 text-white">
-        <h1 className="text-3xl font-bold">Hot Deals & Offers</h1>
-        <p className="mt-2 text-orange-100">
-          Grab the best discounts on top products — limited time only!
-        </p>
+      {/* Bento hero: coral banner + deal stats */}
+      <div className="mb-6 grid grid-cols-2 gap-4 sm:mb-8 sm:gap-6 lg:grid-cols-12">
+        <div className="bento-primary col-span-2 flex flex-col justify-between p-8 sm:p-10 lg:col-span-8">
+          <BentoGlow />
+          <div className="relative z-10">
+            <div className="mb-6 flex h-12 w-12 items-center justify-center rounded-2xl bg-white/20 backdrop-blur-md">
+              <Flame className="h-6 w-6" strokeWidth={2.25} />
+            </div>
+            <p className="mb-2 text-[10px] font-black uppercase tracking-widest text-white/70">
+              Limited time only
+            </p>
+            <h1 className="text-3xl font-black leading-none tracking-tighter sm:text-5xl">
+              Hot Deals & Offers
+            </h1>
+            <p className="mt-3 max-w-lg text-sm font-bold text-white/80 sm:text-base">
+              Grab the best discounts on top products — limited time only!
+            </p>
+          </div>
+        </div>
+        <StatCard
+          className="lg:col-span-2"
+          icon={Tag}
+          tone="rose"
+          label="Live deals"
+          value={loading ? '—' : products.length}
+          loading={loading}
+        />
+        <StatCard
+          className="lg:col-span-2"
+          icon={Percent}
+          tone="emerald"
+          label="Max savings"
+          value={loading ? '—' : `${biggestDiscount}%`}
+          loading={loading}
+        />
       </div>
 
       {loading ? (
-        <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
+        <ProductGrid>
           {Array.from({ length: 8 }).map((_, i) => (
-            <div key={i} className="h-72 animate-pulse rounded-lg bg-gray-100" />
+            <ProductCardSkeleton key={i} />
           ))}
-        </div>
+        </ProductGrid>
       ) : products.length === 0 ? (
-        <div className="py-16 text-center">
-          <p className="text-lg text-gray-500">No deals available right now.</p>
-          <p className="mt-2 text-sm text-gray-400">Check back soon for exciting offers!</p>
-          <Link href="/shop" className="mt-4 inline-block text-sm text-primary hover:underline">
-            Browse all products
-          </Link>
-        </div>
+        <EmptyState
+          icon={Tag}
+          title="No deals available right now."
+          description="Check back soon for exciting offers!"
+          action={
+            <Link href="/shop" className="btn btn-primary">
+              Browse all products
+            </Link>
+          }
+        />
       ) : (
-        <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
+        <ProductGrid>
           {products.map((product) => (
-            <Link
+            <ProductCard
               key={product.id}
               href={`/products/${product.slug}`}
-              className="group rounded-lg border border-gray-200 bg-white p-3 transition-shadow hover:shadow-md"
-            >
-              <div className="relative aspect-square overflow-hidden rounded-md bg-gray-100">
-                {product.images?.[0] ? (
-                  <img
-                    src={product.images[0]}
-                    alt={product.name}
-                    className="h-full w-full object-cover transition-transform group-hover:scale-105"
-                  />
-                ) : (
-                  <div className="flex h-full items-center justify-center text-gray-400">
-                    No Image
-                  </div>
-                )}
-                {product.compareAtPrice && (
-                  <span className="absolute left-2 top-2 rounded-md bg-red-500 px-1.5 py-0.5 text-xs font-bold text-white">
-                    {Math.round(
-                      ((product.compareAtPrice - product.price) / product.compareAtPrice) * 100,
-                    )}
-                    % OFF
-                  </span>
-                )}
-              </div>
-              <div className="mt-3">
-                {product.brandName && <p className="text-xs text-gray-500">{product.brandName}</p>}
-                <h3 className="mt-0.5 line-clamp-2 text-sm font-medium text-gray-900">
-                  {product.name}
-                </h3>
-                {product.reviewCount > 0 && (
-                  <div className="mt-1 flex items-center gap-1">
-                    <div className="flex text-xs">
-                      {[1, 2, 3, 4, 5].map((s) => (
-                        <span
-                          key={s}
-                          className={
-                            s <= Math.round(product.averageRating)
-                              ? 'text-yellow-400'
-                              : 'text-gray-300'
-                          }
-                        >
-                          ★
-                        </span>
-                      ))}
-                    </div>
-                    <span className="text-xs text-gray-400">({product.reviewCount})</span>
-                  </div>
-                )}
-                <div className="mt-2 flex items-center gap-2">
-                  <span className="text-sm font-bold text-red-600">
-                    {formatPrice(product.price)}
-                  </span>
-                  <span className="text-xs text-gray-400 line-through">
-                    {formatPrice(product.compareAtPrice!)}
-                  </span>
-                </div>
-              </div>
-            </Link>
+              name={product.name}
+              image={product.images?.[0]}
+              brand={product.brandName}
+              rating={product.reviewCount > 0 ? product.averageRating : null}
+              reviewCount={product.reviewCount}
+              price={product.price}
+              originalPrice={product.compareAtPrice}
+              formatPrice={formatPrice}
+              badges={
+                product.compareAtPrice
+                  ? [{ label: `${dealPercent(product)}% OFF`, tone: 'sale' }]
+                  : []
+              }
+            />
           ))}
-        </div>
+        </ProductGrid>
       )}
     </div>
   );

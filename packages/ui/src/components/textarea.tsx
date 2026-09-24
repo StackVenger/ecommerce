@@ -2,8 +2,7 @@ import * as React from 'react';
 
 import { cn } from '../lib/utils';
 
-export interface TextareaProps
-  extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
+export interface TextareaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
   /**
    * If `true`, applies error styling (red border & focus ring).
    */
@@ -35,10 +34,10 @@ const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
         if (typeof ref === 'function') {
           ref(node);
         } else if (ref) {
-          (ref as React.MutableRefObject<HTMLTextAreaElement | null>).current = node;
+          ref.current = node;
         }
       },
-      [ref]
+      [ref],
     );
 
     const handleAutoResize = React.useCallback(
@@ -49,16 +48,16 @@ const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
         }
         onInput?.(event);
       },
-      [autoResize, onInput]
+      [autoResize, onInput],
     );
 
     return (
       <textarea
         className={cn(
-          'flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-colors',
+          'flex min-h-[80px] w-full rounded-[1.25rem] border border-foreground/[0.06] bg-card px-4 py-3 text-sm font-medium shadow-sm placeholder:text-muted-foreground/70 focus-visible:outline-none focus-visible:border-primary/40 focus-visible:ring-4 focus-visible:ring-ring/10 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-colors',
           autoResize && 'resize-none overflow-hidden',
           error && 'border-destructive focus-visible:ring-destructive',
-          className
+          className,
         )}
         ref={handleRef}
         onInput={handleAutoResize}
@@ -66,7 +65,7 @@ const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
         {...props}
       />
     );
-  }
+  },
 );
 Textarea.displayName = 'Textarea';
 

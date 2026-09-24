@@ -107,7 +107,7 @@ function CategoryTreeNode({
         </button>
 
         {/* Category Image */}
-        <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center overflow-hidden rounded-lg border border-gray-200 bg-gray-50">
+        <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center overflow-hidden rounded-[12px] border border-foreground/[0.04] bg-gray-50">
           {category.image ? (
             <img src={category.image} alt={category.name} className="h-full w-full object-cover" />
           ) : (
@@ -144,21 +144,21 @@ function CategoryTreeNode({
         >
           <button
             onClick={() => onAddChild(category.id)}
-            className="rounded p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-600"
+            className="rounded-xl p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-600 transition-all"
             title="Add subcategory"
           >
             <Plus className="h-4 w-4" />
           </button>
           <button
             onClick={() => onEdit(category)}
-            className="rounded p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-600"
+            className="rounded-xl p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-600 transition-all"
             title="Edit"
           >
             <Edit className="h-4 w-4" />
           </button>
           <button
             onClick={() => onDelete(category.id)}
-            className="rounded p-1 text-gray-400 hover:bg-red-50 hover:text-red-600"
+            className="rounded-xl p-1 text-gray-400 hover:bg-red-50 hover:text-red-600 transition-all"
             title="Delete"
           >
             <Trash2 className="h-4 w-4" />
@@ -321,10 +321,10 @@ export default function AdminCategoriesPage() {
     <div className="space-y-6">
       {confirmDialog}
       {/* Page Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Categories</h1>
-          <p className="text-sm text-gray-500">
+          <h1 className="page-title">Categories</h1>
+          <p className="page-subtitle">
             Manage your product categories ({totalCategories} categories)
           </p>
         </div>
@@ -334,7 +334,7 @@ export default function AdminCategoriesPage() {
             setParentIdForNew(null);
             setShowCreateDialog(true);
           }}
-          className="inline-flex items-center gap-2 rounded-lg bg-teal-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-teal-700"
+          className="btn btn-primary gap-2"
         >
           <Plus className="h-4 w-4" />
           Add Category
@@ -349,14 +349,14 @@ export default function AdminCategoriesPage() {
           placeholder="Search categories..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full rounded-lg border border-gray-300 bg-white py-2 pl-10 pr-4 text-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
+          className="field-input w-full pl-11 pr-4"
         />
       </div>
 
       {/* Category Tree */}
-      <div className="rounded-xl border border-gray-200 bg-white shadow-sm">
-        <div className="border-b border-gray-200 px-6 py-4">
-          <h2 className="text-sm font-medium text-gray-700">Category Hierarchy</h2>
+      <div className="bento-card">
+        <div className="border-b border-foreground/[0.04] px-6 py-4">
+          <h2 className="text-lg font-black tracking-tight text-gray-900">Category Hierarchy</h2>
           <p className="text-xs text-gray-500">
             Drag categories to reorder. Click the arrow to expand/collapse.
           </p>
@@ -365,7 +365,7 @@ export default function AdminCategoriesPage() {
         <div className="p-4">
           {isLoading ? (
             <div className="flex items-center justify-center py-12">
-              <Loader2 className="h-6 w-6 animate-spin text-teal-600" />
+              <Loader2 className="h-6 w-6 animate-spin text-brand-600" />
             </div>
           ) : displayCategories.length === 0 ? (
             <div className="py-12 text-center">

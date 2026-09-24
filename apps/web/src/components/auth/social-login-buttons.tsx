@@ -95,7 +95,7 @@ export function SocialLoginButtons({ mode = 'login' }: SocialLoginButtonsProps) 
         <Button
           type="button"
           variant="outline"
-          className="w-full"
+          className="h-12 w-full"
           disabled={isLoading}
           onClick={handleGoogleSignIn}
         >
@@ -106,10 +106,10 @@ export function SocialLoginButtons({ mode = 'login' }: SocialLoginButtonsProps) 
 
       <div className="relative my-6">
         <div className="absolute inset-0 flex items-center">
-          <span className="w-full border-t" />
+          <span className="w-full border-t border-foreground/[0.05]" />
         </div>
-        <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-background px-2 text-muted-foreground">or continue with email</span>
+        <div className="relative flex justify-center">
+          <span className="eyebrow bg-card px-3">or continue with email</span>
         </div>
       </div>
     </>

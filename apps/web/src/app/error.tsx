@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
+
 import { reportError } from '@/lib/error-reporting';
 
 interface ErrorPageProps {
@@ -18,54 +19,45 @@ export default function Error({ error, reset }: ErrorPageProps) {
   }, [error]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-      <div className="max-w-md w-full text-center">
-        <div className="mb-8">
-          <div className="mx-auto h-24 w-24 rounded-full bg-red-100 flex items-center justify-center">
-            <svg
-              className="h-12 w-12 text-red-600"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth={1.5}
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"
-              />
-            </svg>
-          </div>
+    <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-10">
+      <div className="bento-card w-full max-w-md p-8 text-center sm:p-10">
+        <div className="mx-auto mb-8 flex h-20 w-20 items-center justify-center rounded-[1.75rem] bg-rose-50">
+          <svg
+            className="h-10 w-10 text-rose-500"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth={2}
+            stroke="currentColor"
+            aria-hidden="true"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"
+            />
+          </svg>
         </div>
 
-        <h1 className="text-2xl font-bold text-gray-900 mb-4">
+        <p className="eyebrow mb-3">Unexpected error</p>
+        <h1 className="mb-3 text-3xl font-black tracking-tighter text-gray-900">
           Something went wrong!
         </h1>
-        <p className="text-gray-600 mb-2">
-          কিছু একটা সমস্যা হয়েছে!
-        </p>
-        <p className="text-sm text-gray-500 mb-8">
-          We apologize for the inconvenience. Our team has been notified and is
-          working on a fix.
+        <p className="mb-2 font-bold text-gray-600">কিছু একটা সমস্যা হয়েছে!</p>
+        <p className="mb-8 text-sm font-medium text-gray-500">
+          We apologize for the inconvenience. Our team has been notified and is working on a fix.
         </p>
 
         {error.digest && (
-          <p className="text-xs text-gray-400 mb-4">
+          <p className="mb-6 inline-block rounded-xl bg-gray-100 px-3 py-1 font-mono text-[11px] font-bold text-gray-500">
             Error ID: {error.digest}
           </p>
         )}
 
-        <div className="flex flex-col sm:flex-row gap-3 justify-center">
-          <button
-            onClick={reset}
-            className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
-          >
+        <div className="flex flex-col justify-center gap-3 sm:flex-row">
+          <button onClick={reset} className="btn btn-primary">
             Try Again
           </button>
-          <a
-            href="/"
-            className="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors font-medium"
-          >
+          <a href="/" className="btn btn-soft">
             Go Home
           </a>
         </div>

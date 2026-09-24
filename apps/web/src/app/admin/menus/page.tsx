@@ -77,7 +77,7 @@ function MenuItemNode({
         onDragStart={() => onDragStart(item.id)}
         onDragOver={(e) => onDragOver(e, item.id)}
         onDrop={(e) => onDrop(e, item.id)}
-        className={`flex items-center gap-3 px-4 py-2.5 bg-white border border-gray-200 rounded-lg mb-2 cursor-grab active:cursor-grabbing hover:shadow-sm transition-shadow ${
+        className={`mb-2 flex cursor-grab items-center gap-3 rounded-2xl border border-foreground/[0.05] bg-card px-4 py-3 shadow-sm transition-all hover:shadow-bento-hover active:cursor-grabbing ${
           draggedId === item.id ? 'opacity-50' : ''
         } ${!item.isVisible ? 'opacity-60' : ''}`}
       >
@@ -120,12 +120,12 @@ function MenuItemNode({
             <span
               className={`text-xs px-1.5 py-0.5 rounded ${
                 item.type === 'category'
-                  ? 'bg-teal-100 text-teal-700'
+                  ? 'bg-brand-50 text-brand-600'
                   : item.type === 'page'
-                    ? 'bg-green-100 text-green-700'
+                    ? 'bg-emerald-50 text-emerald-600'
                     : item.type === 'link'
-                      ? 'bg-purple-100 text-purple-700'
-                      : 'bg-gray-100 text-gray-700'
+                      ? 'bg-purple-50 text-purple-600'
+                      : 'bg-gray-100 text-gray-600'
               }`}
             >
               {item.type}
@@ -143,7 +143,7 @@ function MenuItemNode({
         <div className="flex items-center gap-1">
           <button
             onClick={() => onEdit(item)}
-            className="p-1 text-gray-400 hover:text-teal-600"
+            className="p-1 text-gray-400 hover:text-brand-600"
             title="Edit"
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -215,7 +215,7 @@ export default function AdminMenusPage() {
       }
     } catch (error) {
       console.error('Fetch menus error:', error);
-      toast.error(getApiErrorMessage(err, 'Failed to load menus'));
+      toast.error(getApiErrorMessage(error, 'Failed to load menus'));
     } finally {
       setLoading(false);
     }
@@ -263,7 +263,7 @@ export default function AdminMenusPage() {
       fetchMenus();
     } catch (error) {
       console.error('Save item error:', error);
-      toast.error(getApiErrorMessage(err, 'Failed to save menu item'));
+      toast.error(getApiErrorMessage(error, 'Failed to save menu item'));
     } finally {
       setSaving(false);
     }
@@ -284,7 +284,7 @@ export default function AdminMenusPage() {
       fetchMenus();
     } catch (error) {
       console.error('Delete item error:', error);
-      toast.error(getApiErrorMessage(err, 'Failed to delete menu item'));
+      toast.error(getApiErrorMessage(error, 'Failed to delete menu item'));
     }
   };
 
@@ -309,7 +309,7 @@ export default function AdminMenusPage() {
       fetchMenus();
     } catch (error) {
       console.error('Move item error:', error);
-      toast.error(getApiErrorMessage(err, 'Failed to reorder menu'));
+      toast.error(getApiErrorMessage(error, 'Failed to reorder menu'));
     }
 
     setDraggedId(null);
@@ -333,30 +333,27 @@ export default function AdminMenusPage() {
       setActiveMenuId(data.data?.id ?? data.id);
     } catch (error) {
       console.error('Create menu error:', error);
-      toast.error(getApiErrorMessage(err, 'Failed to create menu'));
+      toast.error(getApiErrorMessage(error, 'Failed to create menu'));
     }
   };
 
   return (
     <div className="space-y-6">
       {confirmDialog}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Navigation Menus</h1>
-          <p className="text-sm text-gray-500 mt-1">Build and organize your site navigation</p>
+          <h1 className="page-title">Navigation Menus</h1>
+          <p className="page-subtitle">Build and organize your site navigation</p>
         </div>
-        <button
-          onClick={handleCreateMenu}
-          className="px-4 py-2 bg-teal-600 text-white rounded-lg text-sm font-medium hover:bg-teal-700"
-        >
+        <button onClick={handleCreateMenu} className="btn btn-primary">
           + Create Menu
         </button>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         {/* Menu List */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-          <h2 className="text-sm font-semibold text-gray-700 mb-3">Menus</h2>
+        <div className="bento-card p-4">
+          <h2 className="text-sm font-black text-gray-900 mb-3 tracking-tight">Menus</h2>
           {loading ? (
             <p className="text-sm text-gray-500">Loading...</p>
           ) : menus.length === 0 ? (
@@ -369,7 +366,7 @@ export default function AdminMenusPage() {
                   onClick={() => setActiveMenuId(menu.id)}
                   className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
                     activeMenuId === menu.id
-                      ? 'bg-teal-50 text-teal-700 font-medium'
+                      ? 'bg-brand-50 text-brand-700 font-medium'
                       : 'text-gray-700 hover:bg-gray-50'
                   }`}
                 >
@@ -387,15 +384,14 @@ export default function AdminMenusPage() {
             <>
               <div className="flex items-center justify-between">
                 <div>
-                  <h2 className="text-lg font-semibold text-gray-900">{activeMenu.name}</h2>
+                  <h2 className="text-lg font-black text-gray-900 tracking-tight">
+                    {activeMenu.name}
+                  </h2>
                   <p className="text-sm text-gray-500 capitalize">
                     Location: {activeMenu.location}
                   </p>
                 </div>
-                <button
-                  onClick={handleAddItem}
-                  className="px-4 py-2 bg-teal-600 text-white rounded-lg text-sm font-medium hover:bg-teal-700"
-                >
+                <button onClick={handleAddItem} className="btn btn-primary">
                   + Add Item
                 </button>
               </div>
@@ -403,7 +399,7 @@ export default function AdminMenusPage() {
               {/* Menu Tree */}
               <div className="space-y-0">
                 {activeMenu.items.length === 0 ? (
-                  <div className="bg-white rounded-lg border-2 border-dashed border-gray-300 p-12 text-center">
+                  <div className="rounded-[2rem] border-2 border-dashed border-gray-300 bg-card p-12 text-center">
                     <p className="text-gray-500">No menu items yet. Add your first item!</p>
                   </div>
                 ) : (
@@ -428,7 +424,7 @@ export default function AdminMenusPage() {
               </p>
             </>
           ) : (
-            <div className="bg-white rounded-lg border border-gray-200 p-12 text-center">
+            <div className="bento-card p-12 text-center">
               <p className="text-gray-500">Select a menu from the left or create a new one.</p>
             </div>
           )}
@@ -439,45 +435,41 @@ export default function AdminMenusPage() {
       {showItemForm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div className="absolute inset-0 bg-black/50" onClick={() => setShowItemForm(false)} />
-          <div className="relative bg-white rounded-xl shadow-2xl w-full max-w-md mx-4">
-            <div className="px-6 py-4 border-b border-gray-200">
-              <h2 className="text-lg font-semibold text-gray-900">
+          <div className="relative bg-card rounded-[2rem] shadow-2xl w-full max-w-md mx-4">
+            <div className="px-6 py-4 border-b border-foreground/[0.04]">
+              <h2 className="text-lg font-black text-gray-900 tracking-tight">
                 {editingItem ? 'Edit Menu Item' : 'Add Menu Item'}
               </h2>
             </div>
 
             <form onSubmit={handleSaveItem} className="p-6 space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Label (English)
-                </label>
+                <label className="field-label">Label (English)</label>
                 <input
                   type="text"
                   value={itemForm.label}
                   onChange={(e) => setItemForm((prev) => ({ ...prev, label: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                  className="field-input w-full"
                   required
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  লেবেল (বাংলা)
-                </label>
+                <label className="field-label">লেবেল (বাংলা)</label>
                 <input
                   type="text"
                   value={itemForm.labelBn}
                   onChange={(e) => setItemForm((prev) => ({ ...prev, labelBn: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                  className="field-input w-full"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
+                <label className="field-label">Type</label>
                 <select
                   value={itemForm.type}
                   onChange={(e) =>
                     setItemForm((prev) => ({ ...prev, type: e.target.value as any }))
                   }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                  className="field-input w-full"
                 >
                   <option value="custom">Custom Link</option>
                   <option value="category">Category</option>
@@ -486,38 +478,36 @@ export default function AdminMenusPage() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">URL</label>
+                <label className="field-label">URL</label>
                 <input
                   type="text"
                   value={itemForm.url}
                   onChange={(e) => setItemForm((prev) => ({ ...prev, url: e.target.value }))}
                   placeholder="/categories/electronics"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                  className="field-input w-full"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Target</label>
+                <label className="field-label">Target</label>
                 <select
                   value={itemForm.target}
                   onChange={(e) =>
                     setItemForm((prev) => ({ ...prev, target: e.target.value as any }))
                   }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                  className="field-input w-full"
                 >
                   <option value="_self">Same Window</option>
                   <option value="_blank">New Tab</option>
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Icon (optional)
-                </label>
+                <label className="field-label">Icon (optional)</label>
                 <input
                   type="text"
                   value={itemForm.icon}
                   onChange={(e) => setItemForm((prev) => ({ ...prev, icon: e.target.value }))}
                   placeholder="e.g., home, shopping-cart"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                  className="field-input w-full"
                 />
               </div>
               <label className="flex items-center gap-2">
@@ -527,24 +517,20 @@ export default function AdminMenusPage() {
                   onChange={(e) =>
                     setItemForm((prev) => ({ ...prev, isVisible: e.target.checked }))
                   }
-                  className="rounded border-gray-300 text-teal-600"
+                  className="rounded border-gray-300 text-brand-600"
                 />
                 <span className="text-sm text-gray-700">Visible</span>
               </label>
 
-              <div className="flex gap-3 justify-end pt-4 border-t border-gray-200">
+              <div className="flex gap-3 justify-end pt-4 border-t border-foreground/[0.04]">
                 <button
                   type="button"
                   onClick={() => setShowItemForm(false)}
-                  className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50"
+                  className="btn btn-secondary"
                 >
                   Cancel
                 </button>
-                <button
-                  type="submit"
-                  disabled={saving}
-                  className="px-4 py-2 bg-teal-600 text-white rounded-lg text-sm font-medium hover:bg-teal-700 disabled:opacity-50"
-                >
+                <button type="submit" disabled={saving} className="btn btn-primary">
                   {saving ? 'Saving...' : editingItem ? 'Update' : 'Add Item'}
                 </button>
               </div>

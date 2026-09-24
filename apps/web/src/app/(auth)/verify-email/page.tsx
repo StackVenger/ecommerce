@@ -170,12 +170,14 @@ function VerifyEmailContent() {
   if (tokenFromUrl && isVerifying) {
     return (
       <div className="w-full max-w-md space-y-6 text-center">
-        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
+        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-brand-50">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
         <div className="space-y-2">
-          <h1 className="text-2xl font-bold tracking-tight">Verifying your email...</h1>
-          <p className="text-sm text-muted-foreground">
+          <h1 className="text-3xl font-black tracking-tighter text-gray-900">
+            Verifying your email...
+          </h1>
+          <p className="text-sm font-medium text-gray-500">
             Please wait while we verify your email address.
           </p>
         </div>
@@ -188,12 +190,12 @@ function VerifyEmailContent() {
   if (status === 'success') {
     return (
       <div className="w-full max-w-md space-y-6 text-center">
-        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/30">
-          <CheckCircle2 className="h-8 w-8 text-green-600 dark:text-green-400" />
+        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-emerald-50">
+          <CheckCircle2 className="h-8 w-8 text-emerald-500" />
         </div>
         <div className="space-y-2">
-          <h1 className="text-2xl font-bold tracking-tight">Email verified!</h1>
-          <p className="text-sm text-muted-foreground">
+          <h1 className="text-3xl font-black tracking-tighter text-gray-900">Email verified!</h1>
+          <p className="text-sm font-medium text-gray-500">
             Your email has been successfully verified. You&apos;ll be redirected to the homepage
             shortly.
           </p>
@@ -210,12 +212,14 @@ function VerifyEmailContent() {
   if (status === 'error' && tokenFromUrl) {
     return (
       <div className="w-full max-w-md space-y-6 text-center">
-        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-destructive/10">
-          <XCircle className="h-8 w-8 text-destructive" />
+        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-rose-50">
+          <XCircle className="h-8 w-8 text-rose-500" />
         </div>
         <div className="space-y-2">
-          <h1 className="text-2xl font-bold tracking-tight">Verification failed</h1>
-          <p className="text-sm text-muted-foreground">
+          <h1 className="text-3xl font-black tracking-tighter text-gray-900">
+            Verification failed
+          </h1>
+          <p className="text-sm font-medium text-gray-500">
             {errorMessage ?? 'We could not verify your email address.'}
           </p>
         </div>
@@ -231,7 +235,7 @@ function VerifyEmailContent() {
                 ? `Resend in ${resendCountdown}s`
                 : 'Resend verification email'}
           </Button>
-          <Link href="/login" className="block text-sm font-medium text-primary hover:underline">
+          <Link href="/login" className="block text-sm font-black text-primary hover:underline">
             Back to sign in
           </Link>
         </div>
@@ -245,14 +249,15 @@ function VerifyEmailContent() {
     <div className="w-full max-w-md space-y-8">
       {/* Header */}
       <div className="text-center">
-        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
+        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-brand-50">
           <Mail className="h-8 w-8 text-primary" />
         </div>
-        <h1 className="text-2xl font-bold tracking-tight">Verify your email</h1>
-        <p className="mt-2 text-sm text-muted-foreground">
+        <p className="eyebrow mb-3">One last step</p>
+        <h1 className="text-3xl font-black tracking-tighter text-gray-900">Verify your email</h1>
+        <p className="mt-2 text-sm font-bold text-gray-500">
           We sent a verification code to{' '}
           {user?.email ? (
-            <span className="font-medium text-foreground">{user.email}</span>
+            <span className="font-black text-gray-900">{user.email}</span>
           ) : (
             'your email'
           )}
@@ -262,13 +267,13 @@ function VerifyEmailContent() {
 
       {/* Error */}
       {errorMessage && !tokenFromUrl && (
-        <div className="rounded-md border border-destructive/50 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+        <div className="rounded-2xl border border-rose-100 bg-rose-50 px-4 py-3 text-sm font-bold text-rose-600">
           {errorMessage}
         </div>
       )}
 
       {/* OTP inputs */}
-      <div className="flex justify-center gap-3">
+      <div className="flex justify-center gap-2 sm:gap-3">
         {otp.map((digit, index) => (
           <Input
             key={index}
@@ -282,7 +287,7 @@ function VerifyEmailContent() {
             onChange={(e) => handleOtpChange(index, e.target.value)}
             onKeyDown={(e) => handleOtpKeyDown(index, e)}
             onPaste={index === 0 ? handleOtpPaste : undefined}
-            className="h-14 w-12 text-center text-xl font-semibold"
+            className="h-14 w-11 px-0 text-center text-xl font-black tabular-nums sm:w-12"
             disabled={isVerifying}
             aria-label={`Digit ${index + 1}`}
           />
@@ -300,11 +305,11 @@ function VerifyEmailContent() {
 
       {/* Resend */}
       <div className="text-center">
-        <p className="text-sm text-muted-foreground">
+        <p className="text-sm font-medium text-gray-500">
           Didn&apos;t receive a code?{' '}
           <button
             type="button"
-            className="font-medium text-primary hover:underline disabled:cursor-not-allowed disabled:opacity-50"
+            className="font-black text-primary hover:underline disabled:cursor-not-allowed disabled:opacity-50"
             onClick={handleResend}
             disabled={isResending || resendCountdown > 0}
           >

@@ -64,14 +64,14 @@ export function NewsletterSignup({ variant = 'card', className = '' }: Newslette
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           placeholder="Enter your email"
-          className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          className="field-input flex-1"
           required
           disabled={status === 'loading' || status === 'success'}
         />
         <button
           type="submit"
           disabled={status === 'loading' || status === 'success'}
-          className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          className="btn btn-primary"
         >
           {status === 'loading'
             ? 'Subscribing...'
@@ -86,16 +86,18 @@ export function NewsletterSignup({ variant = 'card', className = '' }: Newslette
   if (variant === 'footer') {
     return (
       <div className={`${className}`}>
-        <h3 className="text-lg font-semibold text-white mb-1">Subscribe to our newsletter</h3>
-        <p className="text-sm text-gray-400 mb-1 font-bengali">
+        <h3 className="mb-1 text-lg font-black tracking-tight text-white">
+          Subscribe to our newsletter
+        </h3>
+        <p className="mb-1 text-sm font-medium text-white/50 font-bengali">
           আমাদের নিউজলেটারে সাবস্ক্রাইব করুন
         </p>
-        <p className="text-sm text-gray-400 mb-4">
+        <p className="mb-4 text-sm font-bold text-white/60">
           Get the latest deals and new arrivals delivered to your inbox.
         </p>
 
         {status === 'success' ? (
-          <div className="flex items-center gap-2 text-green-400">
+          <div className="flex items-center gap-2 rounded-2xl bg-emerald-500/10 px-4 py-3 text-emerald-400">
             <svg
               className="h-5 w-5"
               fill="none"
@@ -109,7 +111,7 @@ export function NewsletterSignup({ variant = 'card', className = '' }: Newslette
                 d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
               />
             </svg>
-            <span className="text-sm">
+            <span className="text-sm font-bold">
               Thank you for subscribing! / সাবস্ক্রাইব করার জন্য ধন্যবাদ!
             </span>
           </div>
@@ -120,22 +122,18 @@ export function NewsletterSignup({ variant = 'card', className = '' }: Newslette
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="your@email.com"
-              className="flex-1 px-4 py-2.5 bg-gray-800 border border-gray-700 rounded-lg text-sm text-white placeholder-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="min-w-0 flex-1 rounded-2xl border border-white/10 bg-white/10 px-4 py-3 text-sm font-medium text-white outline-none backdrop-blur-md transition-all placeholder:text-white/40 focus:border-white/30 focus:ring-4 focus:ring-primary/20"
               required
               disabled={status === 'loading'}
             />
-            <button
-              type="submit"
-              disabled={status === 'loading'}
-              className="px-5 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors whitespace-nowrap"
-            >
+            <button type="submit" disabled={status === 'loading'} className="btn btn-primary">
               {status === 'loading' ? '...' : 'Subscribe'}
             </button>
           </form>
         )}
 
         {status === 'error' && errorMessage && (
-          <p className="mt-2 text-sm text-red-400">{errorMessage}</p>
+          <p className="mt-2 text-xs font-bold text-rose-400">{errorMessage}</p>
         )}
       </div>
     );
@@ -143,13 +141,13 @@ export function NewsletterSignup({ variant = 'card', className = '' }: Newslette
 
   // Card variant (default)
   return (
-    <div
-      className={`bg-gradient-to-r from-blue-600 to-blue-800 rounded-2xl p-8 text-white ${className}`}
-    >
-      <div className="max-w-xl mx-auto text-center">
-        <div className="mb-4">
+    <div className={`bento-primary p-8 sm:p-10 ${className}`}>
+      <div className="pointer-events-none absolute -right-12 -top-12 h-48 w-48 rounded-full bg-white/10 blur-3xl" />
+      <div className="pointer-events-none absolute -bottom-12 -left-12 h-48 w-48 rounded-full bg-black/10 blur-3xl" />
+      <div className="relative z-10 mx-auto max-w-xl text-center">
+        <div className="mx-auto mb-6 flex h-14 w-14 items-center justify-center rounded-2xl bg-white/20 backdrop-blur-md">
           <svg
-            className="h-12 w-12 mx-auto opacity-90"
+            className="h-7 w-7"
             fill="none"
             viewBox="0 0 24 24"
             strokeWidth={1.5}
@@ -163,18 +161,20 @@ export function NewsletterSignup({ variant = 'card', className = '' }: Newslette
           </svg>
         </div>
 
-        <h2 className="text-2xl font-bold mb-2">Stay in the Loop</h2>
-        <p className="text-blue-100 mb-1 font-bengali">সর্বশেষ আপডেট পেতে সাবস্ক্রাইব করুন</p>
-        <p className="text-blue-100 mb-6">
+        <h2 className="mb-2 text-3xl font-black tracking-tighter">Stay in the Loop</h2>
+        <p className="mb-1 text-sm font-medium text-white/70 font-bengali">
+          সর্বশেষ আপডেট পেতে সাবস্ক্রাইব করুন
+        </p>
+        <p className="mb-6 text-sm font-bold text-white/80">
           Subscribe for exclusive deals, new arrivals, and special offers delivered straight to your
           inbox.
         </p>
 
         {status === 'success' ? (
-          <div className="bg-white/10 rounded-xl p-6">
+          <div className="rounded-[1.5rem] bg-white/15 p-6 backdrop-blur-md">
             <div className="flex items-center justify-center gap-2 mb-2">
               <svg
-                className="h-6 w-6 text-green-300"
+                className="h-6 w-6 text-white"
                 fill="none"
                 viewBox="0 0 24 24"
                 strokeWidth={2}
@@ -186,12 +186,12 @@ export function NewsletterSignup({ variant = 'card', className = '' }: Newslette
                   d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
                 />
               </svg>
-              <span className="text-lg font-semibold">You&apos;re subscribed!</span>
+              <span className="text-lg font-black tracking-tight">You&apos;re subscribed!</span>
             </div>
-            <p className="text-sm text-blue-100">
+            <p className="text-sm font-bold text-white/80">
               Thank you! Check your inbox for a confirmation email.
             </p>
-            <p className="text-sm text-blue-200 font-bengali mt-1">
+            <p className="mt-1 text-sm font-medium text-white/70 font-bengali">
               ধন্যবাদ! নিশ্চিতকরণ ইমেইল পরীক্ষা করুন।
             </p>
           </div>
@@ -206,14 +206,14 @@ export function NewsletterSignup({ variant = 'card', className = '' }: Newslette
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="Enter your email address"
-                className="flex-1 px-5 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-blue-200 focus:ring-2 focus:ring-white/50 focus:border-transparent backdrop-blur-sm"
+                className="min-w-0 flex-1 rounded-2xl border border-white/20 bg-white/15 px-5 py-3 text-sm font-medium text-white outline-none backdrop-blur-md transition-all placeholder:text-white/60 focus:border-white/40 focus:ring-4 focus:ring-white/20"
                 required
                 disabled={status === 'loading'}
               />
               <button
                 type="submit"
                 disabled={status === 'loading'}
-                className="px-8 py-3 bg-white text-blue-700 font-semibold rounded-xl hover:bg-blue-50 disabled:opacity-50 transition-colors shadow-lg"
+                className="btn bg-card px-8 py-3 text-primary shadow-xl shadow-black/10 hover:scale-[1.02]"
               >
                 {status === 'loading' ? (
                   <span className="flex items-center gap-2">
@@ -241,10 +241,10 @@ export function NewsletterSignup({ variant = 'card', className = '' }: Newslette
             </form>
 
             {status === 'error' && errorMessage && (
-              <p className="mt-3 text-sm text-red-200">{errorMessage}</p>
+              <p className="mt-3 text-xs font-bold text-white">{errorMessage}</p>
             )}
 
-            <p className="mt-4 text-xs text-blue-200">
+            <p className="mt-4 text-[11px] font-bold text-white/60">
               No spam, unsubscribe anytime. By subscribing you agree to our Privacy Policy.
             </p>
           </>

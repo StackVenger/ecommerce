@@ -26,7 +26,10 @@ export function RichText({ html, className, as: Tag = 'div' }: RichTextProps) {
   }
   return (
     <Tag
-      className={cn('prose prose-sm max-w-none sm:prose-base', className)}
+      className={cn(
+        'prose prose-sm max-w-none dark:prose-invert sm:prose-base prose-headings:font-black prose-headings:tracking-tight prose-a:font-bold prose-a:text-brand-700 prose-strong:font-black prose-img:rounded-3xl',
+        className,
+      )}
       dangerouslySetInnerHTML={{ __html: safe }}
     />
   );

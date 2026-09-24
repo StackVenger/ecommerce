@@ -67,73 +67,67 @@ export default function SeoSettingsPage() {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-8">
-      <h2 className="text-lg font-semibold text-gray-900">SEO Settings</h2>
+      <h2 className="text-lg font-black text-gray-900 tracking-tight">SEO Settings</h2>
 
       {/* Meta Tags */}
       <section className="space-y-4">
         <h3 className="font-medium text-gray-800">Meta Tags</h3>
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <div>
-            <label className="block text-sm font-medium text-gray-700">Meta Title (English)</label>
+            <label className="field-label">Meta Title (English)</label>
             <input
               type="text"
               maxLength={70}
               value={form.meta_title}
               onChange={(e) => handleChange('meta_title', e.target.value)}
-              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-teal-500 focus:ring-teal-500"
+              className="field-input block w-full"
             />
-            <p className="mt-1 text-xs text-gray-400">{form.meta_title.length}/70 characters</p>
+            <p className="field-hint">{form.meta_title.length}/70 characters</p>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700">মেটা টাইটেল (বাংলা)</label>
+            <label className="field-label">মেটা টাইটেল (বাংলা)</label>
             <input
               type="text"
               maxLength={70}
               value={form.meta_title_bn}
               onChange={(e) => handleChange('meta_title_bn', e.target.value)}
-              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-teal-500 focus:ring-teal-500"
+              className="field-input block w-full"
             />
-            <p className="mt-1 text-xs text-gray-400">{form.meta_title_bn.length}/70 characters</p>
+            <p className="field-hint">{form.meta_title_bn.length}/70 characters</p>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Meta Description (English)
-            </label>
+            <label className="field-label">Meta Description (English)</label>
             <textarea
               maxLength={160}
               rows={3}
               value={form.meta_description}
               onChange={(e) => handleChange('meta_description', e.target.value)}
-              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-teal-500 focus:ring-teal-500"
+              className="field-input block w-full rounded-[1.25rem]"
             />
-            <p className="mt-1 text-xs text-gray-400">
-              {form.meta_description.length}/160 characters
-            </p>
+            <p className="field-hint">{form.meta_description.length}/160 characters</p>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700">মেটা বিবরণ (বাংলা)</label>
+            <label className="field-label">মেটা বিবরণ (বাংলা)</label>
             <textarea
               maxLength={160}
               rows={3}
               value={form.meta_description_bn}
               onChange={(e) => handleChange('meta_description_bn', e.target.value)}
-              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-teal-500 focus:ring-teal-500"
+              className="field-input block w-full rounded-[1.25rem]"
             />
-            <p className="mt-1 text-xs text-gray-400">
-              {form.meta_description_bn.length}/160 characters
-            </p>
+            <p className="field-hint">{form.meta_description_bn.length}/160 characters</p>
           </div>
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700">Keywords</label>
+          <label className="field-label">Keywords</label>
           <input
             type="text"
             value={form.meta_keywords}
             onChange={(e) => handleChange('meta_keywords', e.target.value)}
-            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-teal-500 focus:ring-teal-500"
+            className="field-input block w-full"
             placeholder="online shopping, bangladesh, ecommerce"
           />
-          <p className="mt-1 text-xs text-gray-400">Comma-separated keywords</p>
+          <p className="field-hint">Comma-separated keywords</p>
         </div>
       </section>
 
@@ -144,7 +138,7 @@ export default function SeoSettingsPage() {
           type="url"
           value={form.og_image}
           onChange={(e) => handleChange('og_image', e.target.value)}
-          className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-teal-500 focus:ring-teal-500"
+          className="field-input block w-full"
           placeholder="https://example.com/og-image.jpg"
         />
         <p className="text-xs text-gray-400">Recommended: 1200 x 630 pixels</p>
@@ -155,22 +149,22 @@ export default function SeoSettingsPage() {
         <h3 className="font-medium text-gray-800">Analytics & Tracking</h3>
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <div>
-            <label className="block text-sm font-medium text-gray-700">Google Analytics ID</label>
+            <label className="field-label">Google Analytics ID</label>
             <input
               type="text"
               value={form.google_analytics_id}
               onChange={(e) => handleChange('google_analytics_id', e.target.value)}
-              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-teal-500 focus:ring-teal-500"
+              className="field-input block w-full"
               placeholder="G-XXXXXXXXXX"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700">Facebook Pixel ID</label>
+            <label className="field-label">Facebook Pixel ID</label>
             <input
               type="text"
               value={form.facebook_pixel_id}
               onChange={(e) => handleChange('facebook_pixel_id', e.target.value)}
-              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-teal-500 focus:ring-teal-500"
+              className="field-input block w-full"
               placeholder="123456789012345"
             />
           </div>
@@ -184,7 +178,7 @@ export default function SeoSettingsPage() {
           rows={5}
           value={form.robots_txt}
           onChange={(e) => handleChange('robots_txt', e.target.value)}
-          className="block w-full font-mono text-sm rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-teal-500 focus:ring-teal-500"
+          className="field-input block w-full font-mono rounded-[1.25rem]"
         />
       </section>
 
@@ -195,17 +189,13 @@ export default function SeoSettingsPage() {
           type="url"
           value={form.canonical_url}
           onChange={(e) => handleChange('canonical_url', e.target.value)}
-          className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-teal-500 focus:ring-teal-500"
+          className="field-input block w-full"
           placeholder="https://www.example.com"
         />
       </section>
 
       <div className="flex justify-end">
-        <button
-          type="submit"
-          disabled={saving}
-          className="rounded-md bg-teal-600 px-4 py-2 text-sm font-medium text-white hover:bg-teal-700 disabled:opacity-50"
-        >
+        <button type="submit" disabled={saving} className="btn btn-primary">
           {saving ? 'Saving...' : 'Save SEO Settings'}
         </button>
       </div>

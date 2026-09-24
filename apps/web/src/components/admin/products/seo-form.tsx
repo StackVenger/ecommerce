@@ -76,17 +76,19 @@ export function SeoForm({
   return (
     <div className="space-y-6">
       {/* SEO Fields */}
-      <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+      <div className="bento-card p-6 sm:p-8">
         <div className="mb-6 flex items-center gap-2">
           <Search className="h-5 w-5 text-gray-400" />
-          <h2 className="text-lg font-semibold text-gray-900">Search Engine Optimization</h2>
+          <h2 className="text-lg font-black text-gray-900 tracking-tight">
+            Search Engine Optimization
+          </h2>
         </div>
 
         <div className="space-y-5">
           {/* Meta Title */}
           <div>
             <div className="mb-1.5 flex items-center justify-between">
-              <label htmlFor="metaTitle" className="text-sm font-medium text-gray-700">
+              <label htmlFor="metaTitle" className="field-label">
                 Meta Title
               </label>
               <CharacterCount current={metaTitle.length} max={70} recommended={50} />
@@ -98,9 +100,9 @@ export function SeoForm({
               onChange={(e) => onMetaTitleChange(e.target.value)}
               placeholder={productName || 'Enter a SEO-friendly title'}
               maxLength={70}
-              className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
+              className="field-input w-full"
             />
-            <p className="mt-1 text-xs text-gray-500">
+            <p className="field-hint">
               Recommended: 50-60 characters. Leave empty to use the product name.
             </p>
           </div>
@@ -108,7 +110,7 @@ export function SeoForm({
           {/* Meta Description */}
           <div>
             <div className="mb-1.5 flex items-center justify-between">
-              <label htmlFor="metaDescription" className="text-sm font-medium text-gray-700">
+              <label htmlFor="metaDescription" className="field-label">
                 Meta Description
               </label>
               <CharacterCount current={metaDescription.length} max={160} recommended={120} />
@@ -120,9 +122,9 @@ export function SeoForm({
               onChange={(e) => onMetaDescriptionChange(e.target.value)}
               placeholder="Write a compelling description that summarizes this product for search results..."
               maxLength={160}
-              className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
+              className="field-input w-full rounded-[1.25rem]"
             />
-            <p className="mt-1 text-xs text-gray-500">
+            <p className="field-hint">
               Recommended: 120-155 characters for optimal display in search results.
             </p>
           </div>
@@ -130,11 +132,11 @@ export function SeoForm({
       </div>
 
       {/* Search Preview */}
-      <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+      <div className="bento-card p-6 sm:p-8">
         <div className="mb-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Globe className="h-5 w-5 text-gray-400" />
-            <h3 className="text-lg font-semibold text-gray-900">Search Preview</h3>
+            <h3 className="text-lg font-black text-gray-900 tracking-tight">Search Preview</h3>
           </div>
           <button
             onClick={() => setShowPreview(!showPreview)}
@@ -146,11 +148,11 @@ export function SeoForm({
         </div>
 
         {showPreview && (
-          <div className="rounded-lg border border-gray-200 bg-white p-4">
+          <div className="bento-card p-4">
             {/* Google-style preview */}
             <div className="space-y-1">
               <p className="truncate text-sm text-green-700">{displayUrl}</p>
-              <h4 className="truncate text-xl text-teal-800 hover:underline">{displayTitle}</h4>
+              <h4 className="truncate text-xl text-brand-800 hover:underline">{displayTitle}</h4>
               <p className="line-clamp-2 text-sm text-gray-600">{displayDescription}</p>
             </div>
           </div>
@@ -186,7 +188,7 @@ export function SeoForm({
                 <span
                   className={cn(
                     'flex h-4 w-4 items-center justify-center rounded-full text-xs',
-                    item.ok ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-400',
+                    item.ok ? 'bg-emerald-50 text-emerald-600' : 'bg-gray-100 text-gray-400',
                   )}
                 >
                   {item.ok ? '✓' : '○'}

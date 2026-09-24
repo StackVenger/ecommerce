@@ -13,12 +13,15 @@ import {
 } from 'recharts';
 
 import { fetchDashboardCharts, formatBDT, type TopProduct } from '@/lib/api/admin';
+import { chartNeutrals } from '@/lib/theme/chart-colors';
+import { useIsDark } from '@/lib/theme/color-mode';
 
 // ──────────────────────────────────────────────────────────
 // Colors
 // ──────────────────────────────────────────────────────────
 
 const BAR_COLORS = [
+  '#f46e54',
   '#4f46e5',
   '#7c3aed',
   '#2563eb',
@@ -28,7 +31,7 @@ const BAR_COLORS = [
   '#dc2626',
   '#db2777',
   '#4338ca',
-  '#0d9488',
+  '#f46e54',
 ];
 
 // ──────────────────────────────────────────────────────────
@@ -54,12 +57,12 @@ function CustomTooltip({ active, payload }: CustomTooltipProps) {
   }
 
   return (
-    <div className="rounded-lg border border-gray-200 bg-white p-3 shadow-lg">
-      <p className="mb-1 text-sm font-medium text-gray-900">{product.name}</p>
-      <p className="text-sm text-gray-600">
+    <div className="rounded-2xl bg-ink px-4 py-3 text-white shadow-xl shadow-black/10">
+      <p className="mb-1 text-xs font-black text-white">{product.name}</p>
+      <p className="text-[11px] font-bold text-white/60">
         Sold: <span className="font-medium">{product.totalSold} units</span>
       </p>
-      <p className="text-sm text-gray-600">
+      <p className="text-[11px] font-bold text-white/60">
         Revenue: <span className="font-medium">{formatBDT(product.revenue)}</span>
       </p>
     </div>
@@ -75,6 +78,7 @@ function CustomTooltip({ active, payload }: CustomTooltipProps) {
  * Revenue values displayed in BDT (৳).
  */
 export function TopProductsChart() {
+  const neutral = chartNeutrals(useIsDark());
   const [products, setProducts] = useState<TopProduct[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -94,18 +98,20 @@ export function TopProductsChart() {
 
   if (isLoading) {
     return (
-      <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-        <div className="mb-4 h-6 w-40 animate-pulse rounded bg-gray-200" />
-        <div className="h-80 animate-pulse rounded-lg bg-gray-100" />
+      <div className="bento-card p-6 sm:p-8">
+        <div className="mb-4 h-6 w-40 animate-pulse rounded-xl bg-gray-100" />
+        <div className="h-80 animate-pulse rounded-[1.5rem] bg-gray-50" />
       </div>
     );
   }
 
   if (products.length === 0) {
     return (
-      <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-        <h3 className="text-lg font-semibold text-gray-900">Top Products</h3>
-        <p className="mt-4 text-center text-sm text-gray-500">No sales data available yet.</p>
+      <div className="bento-card p-6 sm:p-8">
+        <h3 className="section-title">Top Products</h3>
+        <p className="mt-4 rounded-[1.5rem] bg-gray-50 py-10 text-center text-sm font-bold text-gray-400">
+          No sales data available yet.
+        </p>
       </div>
     );
   }
@@ -117,18 +123,18 @@ export function TopProductsChart() {
   }));
 
   return (
-    <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+    <div className="bento-card p-6 sm:p-8">
       <div className="mb-6">
-        <h3 className="text-lg font-semibold text-gray-900">Top Products</h3>
-        <p className="text-sm text-gray-500">Best sellers in the last 30 days</p>
+        <h3 className="section-title">Top Products</h3>
+        <p className="eyebrow mt-1">Best sellers in the last 30 days</p>
       </div>
 
       <ResponsiveContainer width="100%" height={320}>
         <BarChart data={chartData} layout="vertical" margin={{ left: 20 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" horizontal={false} />
+          <CartesianGrid stroke={neutral.grid} horizontal={false} />
           <XAxis
             type="number"
-            tick={{ fontSize: 12, fill: '#6b7280' }}
+            tick={{ fontSize: 10, fill: neutral.tick, fontWeight: 700 }}
             tickLine={false}
             axisLine={false}
           />
@@ -136,7 +142,7 @@ export function TopProductsChart() {
             dataKey="shortName"
             type="category"
             width={140}
-            tick={{ fontSize: 11, fill: '#6b7280' }}
+            tick={{ fontSize: 11, fill: neutral.tick, fontWeight: 700 }}
             tickLine={false}
             axisLine={false}
           />

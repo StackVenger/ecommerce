@@ -91,17 +91,19 @@ export default function TypographySettings({ typography, onChange }: TypographyS
     <div className="space-y-8">
       {/* Font Families */}
       <div>
-        <h3 className="text-sm font-semibold text-gray-700 mb-4">Font Families</h3>
+        <h3 className="text-sm font-black text-gray-900 mb-4 tracking-tight">Font Families</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Heading Font</label>
+            <label className="field-label">Heading Font</label>
             <select
               value={typography.headingFont}
               onChange={(e) => handleChange('headingFont', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+              className="field-input w-full"
             >
               {GOOGLE_FONTS.map((font) => (
-                <option key={font} value={font}>{font}</option>
+                <option key={font} value={font}>
+                  {font}
+                </option>
               ))}
             </select>
             <div className="mt-2 p-3 bg-gray-50 rounded-lg">
@@ -115,14 +117,16 @@ export default function TypographySettings({ typography, onChange }: TypographyS
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Body Font</label>
+            <label className="field-label">Body Font</label>
             <select
               value={typography.bodyFont}
               onChange={(e) => handleChange('bodyFont', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+              className="field-input w-full"
             >
               {GOOGLE_FONTS.map((font) => (
-                <option key={font} value={font}>{font}</option>
+                <option key={font} value={font}>
+                  {font}
+                </option>
               ))}
             </select>
             <div className="mt-2 p-3 bg-gray-50 rounded-lg">
@@ -133,14 +137,16 @@ export default function TypographySettings({ typography, onChange }: TypographyS
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Bangla Font / বাংলা ফন্ট</label>
+            <label className="field-label">Bangla Font / বাংলা ফন্ট</label>
             <select
               value={typography.banglaFont}
               onChange={(e) => handleChange('banglaFont', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+              className="field-input w-full"
             >
               {BANGLA_FONTS.map((font) => (
-                <option key={font} value={font}>{font}</option>
+                <option key={font} value={font}>
+                  {font}
+                </option>
               ))}
             </select>
             <div className="mt-2 p-3 bg-gray-50 rounded-lg">
@@ -151,14 +157,16 @@ export default function TypographySettings({ typography, onChange }: TypographyS
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Monospace Font</label>
+            <label className="field-label">Monospace Font</label>
             <select
               value={typography.monoFont}
               onChange={(e) => handleChange('monoFont', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+              className="field-input w-full"
             >
               {MONO_FONTS.map((font) => (
-                <option key={font} value={font}>{font}</option>
+                <option key={font} value={font}>
+                  {font}
+                </option>
               ))}
             </select>
             <div className="mt-2 p-3 bg-gray-50 rounded-lg">
@@ -172,56 +180,64 @@ export default function TypographySettings({ typography, onChange }: TypographyS
 
       {/* Font Settings */}
       <div>
-        <h3 className="text-sm font-semibold text-gray-700 mb-4">Font Settings</h3>
+        <h3 className="text-sm font-black text-gray-900 mb-4 tracking-tight">Font Settings</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Base Font Size</label>
+            <label className="field-label">Base Font Size</label>
             <select
               value={typography.baseFontSize}
               onChange={(e) => handleChange('baseFontSize', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+              className="field-input w-full"
             >
               {FONT_SIZES.map((size) => (
-                <option key={size.value} value={size.value}>{size.label}</option>
+                <option key={size.value} value={size.value}>
+                  {size.label}
+                </option>
               ))}
             </select>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Line Height</label>
+            <label className="field-label">Line Height</label>
             <select
               value={typography.lineHeight}
               onChange={(e) => handleChange('lineHeight', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+              className="field-input w-full"
             >
               {LINE_HEIGHTS.map((lh) => (
-                <option key={lh.value} value={lh.value}>{lh.label}</option>
+                <option key={lh.value} value={lh.value}>
+                  {lh.label}
+                </option>
               ))}
             </select>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Heading Weight</label>
+            <label className="field-label">Heading Weight</label>
             <select
               value={typography.headingWeight}
               onChange={(e) => handleChange('headingWeight', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+              className="field-input w-full"
             >
               {FONT_WEIGHTS.map((weight) => (
-                <option key={weight.value} value={weight.value}>{weight.label}</option>
+                <option key={weight.value} value={weight.value}>
+                  {weight.label}
+                </option>
               ))}
             </select>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Body Weight</label>
+            <label className="field-label">Body Weight</label>
             <select
               value={typography.bodyWeight}
               onChange={(e) => handleChange('bodyWeight', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+              className="field-input w-full"
             >
               {FONT_WEIGHTS.map((weight) => (
-                <option key={weight.value} value={weight.value}>{weight.label}</option>
+                <option key={weight.value} value={weight.value}>
+                  {weight.label}
+                </option>
               ))}
             </select>
           </div>
@@ -230,7 +246,9 @@ export default function TypographySettings({ typography, onChange }: TypographyS
 
       {/* Typography Scale Preview */}
       <div>
-        <h3 className="text-sm font-semibold text-gray-700 mb-4">Typography Scale Preview</h3>
+        <h3 className="text-sm font-black text-gray-900 mb-4 tracking-tight">
+          Typography Scale Preview
+        </h3>
         <div
           className="p-6 bg-gray-50 rounded-lg space-y-4"
           style={{
@@ -239,21 +257,45 @@ export default function TypographySettings({ typography, onChange }: TypographyS
             lineHeight: typography.lineHeight,
           }}
         >
-          <h1 style={{ fontFamily: `'${typography.headingFont}', sans-serif`, fontWeight: Number(typography.headingWeight), fontSize: '2.5rem' }}>
+          <h1
+            style={{
+              fontFamily: `'${typography.headingFont}', sans-serif`,
+              fontWeight: Number(typography.headingWeight),
+              fontSize: '2.5rem',
+            }}
+          >
             Heading 1 / শিরোনাম ১
           </h1>
-          <h2 style={{ fontFamily: `'${typography.headingFont}', sans-serif`, fontWeight: Number(typography.headingWeight), fontSize: '2rem' }}>
+          <h2
+            style={{
+              fontFamily: `'${typography.headingFont}', sans-serif`,
+              fontWeight: Number(typography.headingWeight),
+              fontSize: '2rem',
+            }}
+          >
             Heading 2 / শিরোনাম ২
           </h2>
-          <h3 style={{ fontFamily: `'${typography.headingFont}', sans-serif`, fontWeight: Number(typography.headingWeight), fontSize: '1.5rem' }}>
+          <h3
+            style={{
+              fontFamily: `'${typography.headingFont}', sans-serif`,
+              fontWeight: Number(typography.headingWeight),
+              fontSize: '1.5rem',
+            }}
+          >
             Heading 3 / শিরোনাম ৩
           </h3>
           <p style={{ fontWeight: Number(typography.bodyWeight) }}>
-            Body text paragraph. This is a sample paragraph to preview how your body text will appear on the storefront.
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+            Body text paragraph. This is a sample paragraph to preview how your body text will
+            appear on the storefront. Lorem ipsum dolor sit amet, consectetur adipiscing elit.
           </p>
-          <p style={{ fontFamily: `'${typography.banglaFont}', sans-serif`, fontWeight: Number(typography.bodyWeight) }}>
-            বাংলা প্যারাগ্রাফ। এটি একটি নমুনা প্যারাগ্রাফ যা দেখাবে আপনার বাংলা বডি টেক্সট স্টোরফ্রন্টে কেমন দেখাবে।
+          <p
+            style={{
+              fontFamily: `'${typography.banglaFont}', sans-serif`,
+              fontWeight: Number(typography.bodyWeight),
+            }}
+          >
+            বাংলা প্যারাগ্রাফ। এটি একটি নমুনা প্যারাগ্রাফ যা দেখাবে আপনার বাংলা বডি টেক্সট
+            স্টোরফ্রন্টে কেমন দেখাবে।
           </p>
           <p className="text-sm text-gray-500">
             Small text / caption: Product details, meta information, and more.

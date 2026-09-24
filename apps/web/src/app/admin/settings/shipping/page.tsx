@@ -126,7 +126,7 @@ export default function ShippingSettingsPage() {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-8">
-      <h2 className="text-lg font-semibold text-gray-900">Shipping Settings</h2>
+      <h2 className="text-lg font-black text-gray-900 tracking-tight">Shipping Settings</h2>
 
       {/* Shipping Methods */}
       <section className="space-y-4">
@@ -135,13 +135,13 @@ export default function ShippingSettingsPage() {
           {methods.map((method) => (
             <div
               key={method.id}
-              className="flex items-center gap-4 rounded-md border border-gray-200 p-3"
+              className="flex items-center gap-4 rounded-[1.5rem] border border-foreground/[0.05] p-3"
             >
               <input
                 type="checkbox"
                 checked={method.enabled}
                 onChange={() => toggleMethod(method.id)}
-                className="rounded border-gray-300 text-teal-600"
+                className="rounded border-gray-300 text-brand-600"
               />
               <span className="flex-1 text-sm font-medium">{method.name}</span>
               <div className="flex items-center gap-1">
@@ -150,7 +150,7 @@ export default function ShippingSettingsPage() {
                   type="number"
                   value={method.baseCost}
                   onChange={(e) => updateMethodCost(method.id, Number(e.target.value))}
-                  className="w-24 rounded-md border border-gray-300 px-2 py-1.5 text-sm shadow-sm"
+                  className="field-input w-24 py-2.5"
                 />
               </div>
             </div>
@@ -163,7 +163,7 @@ export default function ShippingSettingsPage() {
         <h3 className="font-medium text-gray-800">Shipping Zones</h3>
         <div className="space-y-4">
           {zones.map((zone, idx) => (
-            <div key={zone.name} className="rounded-md border border-gray-200 p-4">
+            <div key={zone.name} className="rounded-[1.5rem] border border-foreground/[0.05] p-4">
               <div className="flex items-center justify-between">
                 <h4 className="font-medium text-gray-700">{zone.name}</h4>
                 <div className="flex items-center gap-1">
@@ -172,11 +172,11 @@ export default function ShippingSettingsPage() {
                     type="number"
                     value={zone.flatRate}
                     onChange={(e) => updateZoneRate(idx, Number(e.target.value))}
-                    className="w-24 rounded-md border border-gray-300 px-2 py-1.5 text-sm shadow-sm"
+                    className="field-input w-24 py-2.5"
                   />
                 </div>
               </div>
-              <p className="mt-1 text-xs text-gray-500">Divisions: {zone.divisions.join(', ')}</p>
+              <p className="field-hint">Divisions: {zone.divisions.join(', ')}</p>
               {zone.estimatedDays && (
                 <p className="text-xs text-gray-500">
                   Estimated delivery: {zone.estimatedDays} days
@@ -194,7 +194,7 @@ export default function ShippingSettingsPage() {
             type="checkbox"
             checked={enableFreeShipping}
             onChange={(e) => setEnableFreeShipping(e.target.checked)}
-            className="rounded border-gray-300 text-teal-600"
+            className="rounded border-gray-300 text-brand-600"
           />
           <span className="text-sm font-medium text-gray-700">
             Enable free shipping above threshold
@@ -207,7 +207,7 @@ export default function ShippingSettingsPage() {
               type="number"
               value={freeThreshold}
               onChange={(e) => setFreeThreshold(Number(e.target.value))}
-              className="w-32 rounded-md border border-gray-300 px-2 py-1.5 text-sm shadow-sm"
+              className="field-input w-32 py-2.5"
             />
           </div>
         )}
@@ -217,7 +217,7 @@ export default function ShippingSettingsPage() {
           <select
             value={defaultWeightUnit}
             onChange={(e) => setDefaultWeightUnit(e.target.value)}
-            className="rounded-md border border-gray-300 px-2 py-1.5 text-sm shadow-sm"
+            className="field-input w-auto py-2.5"
           >
             <option value="kg">Kilograms (kg)</option>
             <option value="g">Grams (g)</option>
@@ -227,11 +227,7 @@ export default function ShippingSettingsPage() {
       </section>
 
       <div className="flex justify-end">
-        <button
-          type="submit"
-          disabled={saving}
-          className="rounded-md bg-teal-600 px-4 py-2 text-sm font-medium text-white hover:bg-teal-700 disabled:opacity-50"
-        >
+        <button type="submit" disabled={saving} className="btn btn-primary">
           {saving ? 'Saving...' : 'Save Shipping Settings'}
         </button>
       </div>

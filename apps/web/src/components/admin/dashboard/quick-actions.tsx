@@ -14,8 +14,7 @@ interface QuickAction {
   description: string;
   href: string;
   icon: LucideIcon;
-  iconColor: string;
-  iconBg: string;
+  toneClass: string;
 }
 
 const quickActions: QuickAction[] = [
@@ -24,48 +23,42 @@ const quickActions: QuickAction[] = [
     description: 'Create a new product listing',
     href: '/admin/products/new',
     icon: Plus,
-    iconColor: 'text-green-600',
-    iconBg: 'bg-green-100',
+    toneClass: 'bg-emerald-50 text-emerald-500',
   },
   {
-    label: 'View Orders',
+    label: 'Orders',
     description: 'Manage pending orders',
     href: '/admin/orders',
     icon: ShoppingCart,
-    iconColor: 'text-teal-600',
-    iconBg: 'bg-teal-100',
+    toneClass: 'bg-brand-50 text-brand-600',
   },
   {
     label: 'Products',
     description: 'Manage your product catalog',
     href: '/admin/products',
     icon: Package,
-    iconColor: 'text-purple-600',
-    iconBg: 'bg-purple-100',
+    toneClass: 'bg-purple-50 text-purple-500',
   },
   {
     label: 'Customers',
     description: 'View customer accounts',
     href: '/admin/customers',
     icon: Users,
-    iconColor: 'text-orange-600',
-    iconBg: 'bg-orange-100',
+    toneClass: 'bg-blue-50 text-blue-500',
   },
   {
     label: 'Coupons',
     description: 'Create discount coupons',
     href: '/admin/coupons',
     icon: Tag,
-    iconColor: 'text-pink-600',
-    iconBg: 'bg-pink-100',
+    toneClass: 'bg-rose-50 text-rose-500',
   },
   {
-    label: 'Reports',
+    label: 'Analytics',
     description: 'View sales reports',
-    href: '/admin/reports',
+    href: '/admin/analytics',
     icon: BarChart3,
-    iconColor: 'text-teal-600',
-    iconBg: 'bg-teal-100',
+    toneClass: 'bg-orange-50 text-orange-500',
   },
 ];
 
@@ -74,45 +67,31 @@ const quickActions: QuickAction[] = [
 // ──────────────────────────────────────────────────────────
 
 /**
- * Quick actions grid for the admin dashboard.
- * Provides shortcuts to common admin tasks.
+ * Compact quick-action hub (icon tiles + micro labels) for the admin
+ * dashboard. Provides shortcuts to common admin tasks.
  */
-export function QuickActions() {
+export function QuickActions({ className }: { className?: string } = {}) {
   return (
-    <div className="rounded-xl border border-gray-200 bg-white shadow-sm">
-      {/* Header */}
-      <div className="border-b border-gray-200 px-6 py-4">
-        <h3 className="text-lg font-semibold text-gray-900">Quick Actions</h3>
-        <p className="text-sm text-gray-500">Common tasks and shortcuts</p>
-      </div>
-
-      {/* Actions Grid */}
-      <div className="grid grid-cols-2 gap-3 p-4 sm:grid-cols-3">
+    <div className={cn('bento-card p-4 sm:p-5', className)}>
+      <div className="grid grid-cols-3 gap-2 sm:grid-cols-6 lg:grid-cols-3">
         {quickActions.map((action) => (
           <Link
             key={action.href}
             href={action.href}
-            className="group flex flex-col items-center rounded-lg border border-gray-200 p-4 text-center transition-all hover:border-teal-200 hover:bg-teal-50 hover:shadow-sm"
+            title={action.description}
+            className="group/btn flex flex-col items-center gap-3 rounded-[1.5rem] p-3 text-center transition-all hover:bg-gray-50"
           >
             <div
               className={cn(
-                'mb-2 flex h-10 w-10 items-center justify-center rounded-lg transition-colors',
-                action.iconBg,
-                'group-hover:bg-teal-100',
+                'flex h-11 w-11 items-center justify-center rounded-xl shadow-sm transition-transform group-hover/btn:scale-110',
+                action.toneClass,
               )}
             >
-              <action.icon
-                className={cn(
-                  'h-5 w-5 transition-colors',
-                  action.iconColor,
-                  'group-hover:text-teal-600',
-                )}
-              />
+              <action.icon className="h-5 w-5" strokeWidth={2.25} />
             </div>
-            <p className="text-sm font-medium text-gray-900 group-hover:text-teal-700">
+            <span className="w-full truncate text-[9px] font-black uppercase tracking-widest text-gray-600">
               {action.label}
-            </p>
-            <p className="mt-0.5 text-xs text-gray-500">{action.description}</p>
+            </span>
           </Link>
         ))}
       </div>

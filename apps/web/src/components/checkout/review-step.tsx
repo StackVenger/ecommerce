@@ -81,12 +81,12 @@ interface SectionHeaderProps {
 function SectionHeader({ title, onEdit }: SectionHeaderProps) {
   return (
     <div className="flex items-center justify-between mb-3">
-      <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wider">{title}</h3>
+      <h3 className="eyebrow">{title}</h3>
       {onEdit && (
         <button
           type="button"
           onClick={onEdit}
-          className="text-xs text-primary hover:text-teal-800 font-medium transition-colors"
+          className="text-xs text-primary hover:text-brand-800 font-medium transition-colors"
         >
           Edit
         </button>
@@ -128,7 +128,7 @@ export default function ReviewStep({
 
   return (
     <div>
-      <h2 className="text-xl font-semibold text-gray-900 mb-2">Review Your Order</h2>
+      <h2 className="section-title mb-1">Review Your Order</h2>
       <p className="text-sm text-gray-500 mb-6">
         Please verify everything before placing your order
       </p>
@@ -138,7 +138,7 @@ export default function ReviewStep({
         <SectionHeader title="Items" />
         <div className="rounded-xl border border-gray-200 divide-y divide-gray-100 overflow-hidden">
           {items.map((item) => (
-            <div key={item.id} className="flex items-center gap-4 p-4 bg-white">
+            <div key={item.id} className="flex items-center gap-4 p-4 bg-card">
               {/* Image */}
               <div className="relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-lg bg-gray-100">
                 <Image
@@ -172,7 +172,7 @@ export default function ReviewStep({
       <div className="mb-6">
         <SectionHeader title="Shipping Address" onEdit={() => onEditStep('address')} />
         {address && (
-          <div className="rounded-xl border border-gray-200 bg-white p-4 text-sm">
+          <div className="bento-tile p-4 text-sm">
             <p className="font-medium text-gray-900">{address.name}</p>
             <p className="text-gray-600 mt-1">{address.phone}</p>
             <p className="text-gray-500 mt-1">
@@ -189,7 +189,7 @@ export default function ReviewStep({
       {/* ─── Shipping Method ───────────────────────────────────── */}
       <div className="mb-6">
         <SectionHeader title="Delivery Method" onEdit={() => onEditStep('shipping')} />
-        <div className="rounded-xl border border-gray-200 bg-white p-4 text-sm">
+        <div className="bento-tile p-4 text-sm">
           <div className="flex items-center justify-between">
             <span className="font-medium text-gray-900">{shippingMethodName}</span>
             <span className="font-semibold text-gray-900">
@@ -206,7 +206,7 @@ export default function ReviewStep({
       {/* ─── Payment Method ────────────────────────────────────── */}
       <div className="mb-6">
         <SectionHeader title="Payment Method" onEdit={() => onEditStep('payment')} />
-        <div className="rounded-xl border border-gray-200 bg-white p-4 text-sm">
+        <div className="bento-tile p-4 text-sm">
           <span className="font-medium text-gray-900">{getPaymentMethodLabel(paymentMethod)}</span>
         </div>
       </div>
@@ -214,7 +214,7 @@ export default function ReviewStep({
       {/* ─── Cost Breakdown ────────────────────────────────────── */}
       <div className="mb-6">
         <SectionHeader title="Order Total" />
-        <div className="rounded-xl border border-gray-200 bg-white p-4">
+        <div className="bento-tile p-4">
           <div className="space-y-2 text-sm">
             <div className="flex justify-between text-gray-600">
               <span>
@@ -288,11 +288,7 @@ export default function ReviewStep({
 
       {/* ─── Actions ───────────────────────────────────────────── */}
       <div className="flex justify-between pt-6 border-t border-gray-100">
-        <button
-          type="button"
-          onClick={onBack}
-          className="text-sm text-gray-600 hover:text-gray-900 transition-colors"
-        >
+        <button type="button" onClick={onBack} className="btn btn-soft">
           Back to Payment
         </button>
         <button
@@ -305,7 +301,7 @@ export default function ReviewStep({
         >
           {isSubmitting ? (
             <span className="flex items-center gap-2">
-              <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+              <span className="h-4 w-4 animate-spin rounded-full border-2 border-card border-t-transparent" />
               Processing...
             </span>
           ) : (

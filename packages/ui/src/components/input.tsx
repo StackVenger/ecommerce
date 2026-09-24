@@ -1,26 +1,27 @@
-import * as React from 'react';
 import { cva, type VariantProps } from 'class-variance-authority';
+import * as React from 'react';
 
 import { cn } from '../lib/utils';
 
 const inputVariants = cva(
-  'flex w-full rounded-md border border-input bg-background text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-colors',
+  'flex w-full rounded-2xl border border-foreground/[0.06] bg-card text-sm font-medium shadow-sm file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground/70 focus-visible:outline-none focus-visible:border-primary/40 focus-visible:ring-4 focus-visible:ring-ring/10 disabled:cursor-not-allowed disabled:opacity-50 transition-all',
   {
     variants: {
       inputSize: {
-        default: 'h-10 px-3 py-2',
-        sm: 'h-9 px-3 py-1 text-xs',
-        lg: 'h-11 px-4 py-2',
+        default: 'h-12 px-4 py-2',
+        sm: 'h-10 px-4 py-1 text-xs',
+        lg: 'h-14 px-5 py-2',
       },
     },
     defaultVariants: {
       inputSize: 'default',
     },
-  }
+  },
 );
 
 export interface InputProps
-  extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'size'>,
+  extends
+    Omit<React.InputHTMLAttributes<HTMLInputElement>, 'size'>,
     VariantProps<typeof inputVariants> {
   /**
    * If `true`, applies error styling (red border & focus ring).
@@ -52,7 +53,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
       return (
         <div className="relative">
           {startIcon && (
-            <div className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+            <div className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground">
               {startIcon}
             </div>
           )}
@@ -60,18 +61,17 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
             type={type}
             className={cn(
               inputVariants({ inputSize }),
-              error &&
-                'border-destructive focus-visible:ring-destructive',
-              startIcon && 'pl-10',
-              endIcon && 'pr-10',
-              className
+              error && 'border-destructive focus-visible:ring-destructive',
+              startIcon && 'pl-11',
+              endIcon && 'pr-11',
+              className,
             )}
             ref={ref}
             aria-invalid={error || undefined}
             {...props}
           />
           {endIcon && (
-            <div className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+            <div className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground">
               {endIcon}
             </div>
           )}
@@ -85,14 +85,14 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
         className={cn(
           inputVariants({ inputSize }),
           error && 'border-destructive focus-visible:ring-destructive',
-          className
+          className,
         )}
         ref={ref}
         aria-invalid={error || undefined}
         {...props}
       />
     );
-  }
+  },
 );
 Input.displayName = 'Input';
 

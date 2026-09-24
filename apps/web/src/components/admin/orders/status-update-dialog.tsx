@@ -203,19 +203,24 @@ export default function StatusUpdateDialog({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/50" onClick={handleClose} />
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={handleClose} />
 
       {/* Dialog */}
-      <div className="relative bg-white rounded-xl shadow-2xl w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
+      <div className="relative max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-[2rem] bg-card shadow-2xl">
         {/* Header */}
-        <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+        <div className="flex items-center justify-between border-b border-foreground/[0.04] px-6 py-5 sm:px-8">
           <div>
-            <h2 className="text-lg font-semibold text-gray-900">Update Order Status</h2>
-            <p className="text-sm text-gray-500">Order #{orderNumber}</p>
+            <h2 className="text-xl font-black tracking-tight text-gray-900">Update Order Status</h2>
+            <p className="eyebrow mt-1">Order #{orderNumber}</p>
           </div>
-          <button onClick={handleClose} className="text-gray-400 hover:text-gray-600">
+          <button
+            type="button"
+            onClick={handleClose}
+            aria-label="Close dialog"
+            className="btn-icon h-10 w-10 rounded-xl bg-gray-50 text-gray-500 hover:bg-gray-100 hover:text-gray-900"
+          >
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path
                 strokeLinecap="round"
@@ -229,11 +234,11 @@ export default function StatusUpdateDialog({
 
         {showConfirmation ? (
           /* Confirmation View */
-          <div className="px-6 py-6">
+          <div className="px-6 py-6 sm:px-8">
             <div className="text-center">
-              <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-yellow-100 mb-4">
+              <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-orange-50">
                 <svg
-                  className="h-6 w-6 text-yellow-600"
+                  className="h-6 w-6 text-orange-500"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -246,21 +251,27 @@ export default function StatusUpdateDialog({
                   />
                 </svg>
               </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">Confirm Status Change</h3>
-              <p className="text-sm text-gray-600 mb-6">{selectedOption?.confirmMessage}</p>
+              <h3 className="mb-2 text-lg font-black tracking-tight text-gray-900">
+                Confirm Status Change
+              </h3>
+              <p className="mb-6 text-sm font-medium text-gray-500">
+                {selectedOption?.confirmMessage}
+              </p>
             </div>
-            <div className="flex gap-3 justify-end">
+            <div className="flex justify-end gap-3">
               <button
+                type="button"
                 onClick={() => setShowConfirmation(false)}
-                className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50"
+                className="btn btn-soft"
                 disabled={submitting}
               >
                 Go Back
               </button>
               <button
+                type="button"
                 onClick={handleConfirmUpdate}
                 disabled={submitting}
-                className="px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 disabled:opacity-50"
+                className="btn btn-danger"
               >
                 {submitting ? 'Updating...' : 'Confirm Update'}
               </button>
@@ -268,11 +279,11 @@ export default function StatusUpdateDialog({
           </div>
         ) : (
           /* Main Form */
-          <div className="px-6 py-4 space-y-5">
+          <div className="space-y-5 px-6 py-5 sm:px-8">
             {/* Current Status */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Current Status</label>
-              <div className="text-sm text-gray-600 capitalize font-medium">
+              <span className="field-label">Current Status</span>
+              <div className="inline-flex items-center gap-1.5 rounded-xl bg-gray-100 px-3 py-1.5 text-sm font-black capitalize text-gray-700">
                 {STATUS_OPTIONS.find((o) => o.value === currentStatus)?.icon}{' '}
                 {STATUS_OPTIONS.find((o) => o.value === currentStatus)?.label}
               </div>
@@ -280,9 +291,9 @@ export default function StatusUpdateDialog({
 
             {/* New Status Selection */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">New Status</label>
+              <span className="field-label">New Status</span>
               {availableOptions.length === 0 ? (
-                <p className="text-sm text-gray-500 italic">
+                <p className="rounded-[1.25rem] bg-gray-50 p-4 text-sm font-bold text-gray-400">
                   No status transitions available from the current status.
                 </p>
               ) : (
@@ -290,10 +301,10 @@ export default function StatusUpdateDialog({
                   {availableOptions.map((option) => (
                     <label
                       key={option.value}
-                      className={`flex items-start gap-3 p-3 rounded-lg border-2 cursor-pointer transition-colors ${
+                      className={`flex cursor-pointer items-start gap-3 rounded-[1.25rem] border-2 p-4 transition-all ${
                         selectedStatus === option.value
-                          ? 'border-teal-500 bg-teal-50'
-                          : 'border-gray-200 hover:border-gray-300'
+                          ? 'border-brand-400 bg-brand-50'
+                          : 'border-foreground/[0.04] bg-gray-50/60 hover:border-gray-200 hover:bg-card'
                       }`}
                     >
                       <input
@@ -305,13 +316,15 @@ export default function StatusUpdateDialog({
                           setSelectedStatus(e.target.value as OrderStatus);
                           setError('');
                         }}
-                        className="mt-0.5 text-teal-600 focus:ring-teal-500"
+                        className="mt-0.5 h-4 w-4 border-gray-300 text-brand-600 focus:ring-brand-500"
                       />
                       <div>
-                        <span className="text-sm font-medium text-gray-900">
+                        <span className="text-sm font-black text-gray-900">
                           {option.icon} {option.label}
                         </span>
-                        <p className="text-xs text-gray-500 mt-0.5">{option.description}</p>
+                        <p className="mt-0.5 text-xs font-medium text-gray-500">
+                          {option.description}
+                        </p>
                       </div>
                     </label>
                   ))}
@@ -323,25 +336,27 @@ export default function StatusUpdateDialog({
             {selectedOption?.requiresTracking && (
               <div className="space-y-3">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Tracking Number <span className="text-red-500">*</span>
+                  <label className="field-label" htmlFor="status-tracking-number">
+                    Tracking Number <span className="text-rose-500">*</span>
                   </label>
                   <input
+                    id="status-tracking-number"
                     type="text"
                     value={trackingNumber}
                     onChange={(e) => setTrackingNumber(e.target.value)}
                     placeholder="Enter tracking number"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
+                    className="field-input"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="field-label" htmlFor="status-tracking-provider">
                     Shipping Provider
                   </label>
                   <select
+                    id="status-tracking-provider"
                     value={trackingProvider}
                     onChange={(e) => setTrackingProvider(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-teal-500"
+                    className="field-input"
                   >
                     <option value="">Select provider</option>
                     <option value="pathao">Pathao Courier</option>
@@ -358,49 +373,57 @@ export default function StatusUpdateDialog({
 
             {/* Notes */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="field-label" htmlFor="status-notes">
                 Notes (optional)
               </label>
               <textarea
+                id="status-notes"
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 placeholder="Add a note about this status change..."
                 rows={3}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500 resize-none"
+                className="field-input resize-none rounded-[1.25rem]"
               />
             </div>
 
             {/* Notify Customer */}
-            <label className="flex items-center gap-2">
+            <label className="flex cursor-pointer items-center gap-3 rounded-[1.25rem] bg-gray-50 px-4 py-3">
               <input
                 type="checkbox"
                 checked={notifyCustomer}
                 onChange={(e) => setNotifyCustomer(e.target.checked)}
-                className="rounded border-gray-300 text-teal-600 focus:ring-teal-500"
+                className="h-4 w-4 rounded border-gray-300 text-brand-600 focus:ring-brand-500"
               />
-              <span className="text-sm text-gray-700">Notify customer via email and SMS</span>
+              <span className="text-sm font-bold text-gray-700">
+                Notify customer via email and SMS
+              </span>
             </label>
 
             {/* Error */}
             {error && (
-              <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
+              <div
+                className="rounded-[1.25rem] bg-rose-50 p-4 text-sm font-bold text-rose-600"
+                role="alert"
+              >
                 {error}
               </div>
             )}
 
             {/* Actions */}
-            <div className="flex gap-3 justify-end pt-2 border-t border-gray-200">
+            <div className="flex justify-end gap-3 border-t border-foreground/[0.04] pt-5">
               <button
+                type="button"
                 onClick={handleClose}
-                className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50"
+                className="btn btn-soft"
                 disabled={submitting}
               >
                 Cancel
               </button>
               <button
+                type="button"
                 onClick={handleSubmitClick}
                 disabled={!selectedStatus || submitting}
-                className="px-4 py-2 bg-teal-600 text-white rounded-lg text-sm font-medium hover:bg-teal-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="btn btn-primary"
               >
                 {submitting ? 'Updating...' : 'Update Status'}
               </button>

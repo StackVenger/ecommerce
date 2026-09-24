@@ -50,8 +50,10 @@ function ShippingMethodCard({ method, isSelected, onSelect }: ShippingMethodCard
     <button
       type="button"
       onClick={onSelect}
-      className={`w-full text-left rounded-xl border-2 p-5 transition-colors ${
-        isSelected ? 'border-primary bg-teal-50' : 'border-gray-200 hover:border-gray-300 bg-white'
+      className={`w-full text-left rounded-[1.5rem] border-2 p-5 transition-colors ${
+        isSelected
+          ? 'border-primary bg-brand-50/60 shadow-brand-glow'
+          : 'border-foreground/[0.04] bg-card hover:border-foreground/[0.1]'
       }`}
     >
       <div className="flex items-center justify-between">
@@ -119,7 +121,7 @@ function ZoneInfo({ zone }: { zone: 'INSIDE_DHAKA' | 'OUTSIDE_DHAKA' }) {
     <div
       className={`rounded-lg px-4 py-3 text-sm mb-6 ${
         isInsideDhaka
-          ? 'bg-teal-50 text-teal-800 border border-teal-200'
+          ? 'bg-brand-50 text-brand-800 border border-brand-200'
           : 'bg-amber-50 text-amber-800 border border-amber-200'
       }`}
     >
@@ -213,14 +215,14 @@ export default function ShippingStep({
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-gray-200 border-t-teal-600" />
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-gray-200 border-t-brand-600" />
       </div>
     );
   }
 
   return (
     <div>
-      <h2 className="text-xl font-semibold text-gray-900 mb-2">Shipping Method</h2>
+      <h2 className="section-title mb-1">Shipping Method</h2>
       <p className="text-sm text-gray-500 mb-6">Choose your preferred delivery option</p>
 
       {/* Zone indicator */}
@@ -251,18 +253,14 @@ export default function ShippingStep({
 
       {/* Navigation buttons */}
       <div className="flex justify-between pt-6 mt-6 border-t border-gray-100">
-        <button
-          type="button"
-          onClick={onBack}
-          className="text-sm text-gray-600 hover:text-gray-900 transition-colors"
-        >
+        <button type="button" onClick={onBack} className="btn btn-soft">
           Back to Address
         </button>
         <button
           type="button"
           onClick={onContinue}
           disabled={!selectedMethodId}
-          className="rounded-xl bg-primary px-8 py-3 text-sm font-semibold text-white hover:bg-primary/90 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+          className="btn btn-primary btn-lg"
         >
           Continue to Payment
         </button>

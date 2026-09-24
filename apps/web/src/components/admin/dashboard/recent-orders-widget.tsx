@@ -1,191 +1,118 @@
 'use client';
 
-import { ExternalLink, Clock, CheckCircle, Truck, XCircle, Package, RotateCcw } from 'lucide-react';
+import { ArrowRight, ShoppingBag } from 'lucide-react';
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
 
-import { fetchDashboardActivity, formatBDT, type RecentOrder } from '@/lib/api/admin';
+import { useDashboardActivity } from './use-dashboard-activity';
+
+import { OrderStatusPill } from '@/components/admin/orders/order-status';
+import { EmptyState, SectionHeader } from '@/components/ui/bento';
+import { formatBDT, type ActivityData } from '@/lib/api/admin';
 import { cn } from '@/lib/utils';
-
-// ──────────────────────────────────────────────────────────
-// Status configuration
-// ──────────────────────────────────────────────────────────
-
-const statusConfig: Record<
-  string,
-  {
-    label: string;
-    color: string;
-    bgColor: string;
-    icon: React.ComponentType<{ className?: string }>;
-  }
-> = {
-  PENDING: {
-    label: 'Pending',
-    color: 'text-yellow-700',
-    bgColor: 'bg-yellow-100',
-    icon: Clock,
-  },
-  CONFIRMED: {
-    label: 'Confirmed',
-    color: 'text-teal-700',
-    bgColor: 'bg-teal-100',
-    icon: CheckCircle,
-  },
-  PROCESSING: {
-    label: 'Processing',
-    color: 'text-teal-700',
-    bgColor: 'bg-teal-100',
-    icon: Package,
-  },
-  SHIPPED: {
-    label: 'Shipped',
-    color: 'text-purple-700',
-    bgColor: 'bg-purple-100',
-    icon: Truck,
-  },
-  DELIVERED: {
-    label: 'Delivered',
-    color: 'text-green-700',
-    bgColor: 'bg-green-100',
-    icon: CheckCircle,
-  },
-  CANCELLED: {
-    label: 'Cancelled',
-    color: 'text-red-700',
-    bgColor: 'bg-red-100',
-    icon: XCircle,
-  },
-  REFUNDED: {
-    label: 'Refunded',
-    color: 'text-gray-700',
-    bgColor: 'bg-gray-100',
-    icon: RotateCcw,
-  },
-};
-
-// ──────────────────────────────────────────────────────────
-// Status Badge
-// ──────────────────────────────────────────────────────────
-
-function StatusBadge({ status }: { status: string }) {
-  const config = statusConfig[status] ?? {
-    label: status,
-    color: 'text-gray-700',
-    bgColor: 'bg-gray-100',
-    icon: Clock,
-  };
-
-  return (
-    <span
-      className={cn(
-        'inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium',
-        config.color,
-        config.bgColor,
-      )}
-    >
-      <config.icon className="h-3 w-3" />
-      {config.label}
-    </span>
-  );
-}
 
 // ──────────────────────────────────────────────────────────
 // Recent Orders Widget
 // ──────────────────────────────────────────────────────────
 
+interface RecentOrdersWidgetProps {
+  /** Pre-fetched activity; omit to let the widget fetch its own. */
+  data?: ActivityData | null;
+  loading?: boolean;
+  className?: string;
+}
+
 /**
- * Widget showing the most recent orders with status, customer, and
- * order amount in BDT (৳).
+ * Ledger of the most recent orders with status, customer, and order
+ * amount in BDT (৳).
  */
-export function RecentOrdersWidget() {
-  const [orders, setOrders] = useState<RecentOrder[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    async function loadOrders() {
-      try {
-        const data = await fetchDashboardActivity();
-        setOrders(data.recentOrders);
-      } catch (err) {
-        console.error('Failed to load recent orders:', err);
-      } finally {
-        setIsLoading(false);
-      }
-    }
-    loadOrders();
-  }, []);
-
-  if (isLoading) {
-    return (
-      <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-        <div className="mb-4 h-6 w-40 animate-pulse rounded bg-gray-200" />
-        {Array.from({ length: 5 }).map((_, i) => (
-          <div key={i} className="mb-3 h-14 animate-pulse rounded bg-gray-100" />
-        ))}
-      </div>
-    );
-  }
+export function RecentOrdersWidget({ data, loading, className }: RecentOrdersWidgetProps = {}) {
+  const { activity, isLoading } = useDashboardActivity(data, loading);
+  const orders = activity?.recentOrders ?? [];
 
   return (
-    <div className="rounded-xl border border-gray-200 bg-white shadow-sm">
-      {/* Header */}
-      <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4">
-        <div>
-          <h3 className="text-lg font-semibold text-gray-900">Recent Orders</h3>
-          <p className="text-sm text-gray-500">Latest customer orders</p>
-        </div>
-        <Link
-          href="/admin/orders"
-          className="flex items-center gap-1 text-sm font-medium text-teal-600 hover:text-teal-700"
-        >
-          View All
-          <ExternalLink className="h-3.5 w-3.5" />
-        </Link>
-      </div>
+    <div className={cn('bento-card flex flex-col p-6 sm:p-8', className)}>
+      <SectionHeader
+        title="Recent Orders"
+        caption="Latest customer orders"
+        action={
+          <Link
+            href="/admin/orders"
+            className="btn-icon h-10 w-10 rounded-xl bg-ink text-white shadow-lg shadow-black/10 hover:bg-ink-soft"
+            aria-label="View all orders"
+          >
+            <ArrowRight className="h-5 w-5" strokeWidth={2.25} />
+          </Link>
+        }
+      />
 
-      {/* Orders List */}
-      <div className="divide-y divide-gray-100">
-        {orders.length === 0 ? (
-          <div className="px-6 py-8 text-center text-sm text-gray-500">No orders yet.</div>
-        ) : (
-          orders.slice(0, 7).map((order) => (
-            <div
-              key={order.id}
-              className="flex items-center justify-between px-6 py-3 hover:bg-gray-50"
-            >
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-2">
-                  <Link
-                    href={`/admin/orders/${order.id}`}
-                    className="text-sm font-medium text-gray-900 hover:text-teal-600"
-                  >
-                    #{order.orderNumber}
-                  </Link>
-                  <StatusBadge status={order.status} />
-                </div>
-                <p className="mt-0.5 truncate text-xs text-gray-500">
-                  {order.customerName} &middot; {order.itemCount} item
-                  {order.itemCount !== 1 ? 's' : ''}
-                </p>
-              </div>
-              <div className="ml-4 text-right">
-                <p className="text-sm font-semibold text-gray-900">
-                  {formatBDT(order.totalAmount)}
-                </p>
-                <p className="text-xs text-gray-500">
-                  {new Date(order.createdAt).toLocaleDateString('en-US', {
-                    month: 'short',
-                    day: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit',
-                  })}
-                </p>
-              </div>
-            </div>
-          ))
-        )}
-      </div>
+      {isLoading ? (
+        <div className="space-y-3">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <div key={i} className="h-14 animate-pulse rounded-2xl bg-gray-50" />
+          ))}
+        </div>
+      ) : orders.length === 0 ? (
+        <EmptyState
+          bare
+          icon={ShoppingBag}
+          title="No orders yet"
+          description="New orders will show up here as they come in."
+          className="py-8"
+        />
+      ) : (
+        <div className="-mx-3 overflow-x-auto">
+          <table className="bento-table min-w-[560px]">
+            <thead>
+              <tr>
+                <th>Order</th>
+                <th>Customer</th>
+                <th className="text-center">Status</th>
+                <th className="text-right">Amount</th>
+              </tr>
+            </thead>
+            <tbody>
+              {orders.slice(0, 7).map((order) => (
+                <tr key={order.id} className="group">
+                  <td>
+                    <Link
+                      href={`/admin/orders/${order.id}`}
+                      className="flex flex-col transition-colors group-hover:text-primary"
+                    >
+                      <span className="text-sm font-black leading-none text-gray-900 group-hover:text-primary">
+                        #{order.orderNumber}
+                      </span>
+                      <span className="mt-1 text-[10px] font-bold tracking-wider text-gray-400">
+                        {new Date(order.createdAt).toLocaleDateString('en-US', {
+                          month: 'short',
+                          day: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })}
+                      </span>
+                    </Link>
+                  </td>
+                  <td>
+                    <span className="block max-w-[180px] truncate text-sm font-bold text-gray-800">
+                      {order.customerName}
+                    </span>
+                    <span className="text-[10px] font-bold text-gray-400">
+                      {order.itemCount} item{order.itemCount !== 1 ? 's' : ''}
+                    </span>
+                  </td>
+                  <td className="text-center">
+                    <OrderStatusPill status={order.status} />
+                  </td>
+                  <td className="text-right">
+                    <span className="text-sm font-black tabular-nums tracking-tight text-gray-900">
+                      {formatBDT(order.totalAmount)}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 }

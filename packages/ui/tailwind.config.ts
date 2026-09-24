@@ -1,5 +1,7 @@
 import type { Config } from 'tailwindcss';
 
+import { inkColors, paletteVarsPlugin, themeAwareColors } from './tailwind.palette';
+
 /**
  * Base Tailwind CSS configuration preset for @ecommerce/ui.
  *
@@ -36,6 +38,12 @@ const config: Config = {
         mono: ['JetBrains Mono', 'Fira Code', 'monospace'],
       },
       colors: {
+        // Bento design system palettes (see ./tailwind.palette.ts): warm
+        // `gray`, coral `brand` and the Tailwind chromatic palettes all
+        // resolve through CSS variables, so the `dark` class on <html>
+        // re-themes every existing utility (light/dark mode).
+        ...themeAwareColors,
+        ink: inkColors,
         border: 'hsl(var(--border))',
         input: 'hsl(var(--input))',
         ring: 'hsl(var(--ring))',
@@ -123,6 +131,22 @@ const config: Config = {
         md: 'var(--radius-md, calc(var(--radius) - 2px))',
         lg: 'var(--radius-lg, var(--radius))',
         full: 'var(--radius-full, 9999px)',
+        // Scaled off the 1.5rem bento base radius (x1.4 / x1.8 / x2.2 / x2.6),
+        // mirroring the reference design system, so small controls read as
+        // pills and larger surfaces as soft bento tiles.
+        xl: 'calc(var(--radius) * 1.4)',
+        '2xl': 'calc(var(--radius) * 1.8)',
+        '3xl': 'calc(var(--radius) * 2.2)',
+        '4xl': 'calc(var(--radius) * 2.6)',
+      },
+      boxShadow: {
+        // Soft, low-contrast elevation used by bento cards.
+        bento: '0 1px 2px rgba(26, 26, 26, 0.04), 0 1px 1px rgba(26, 26, 26, 0.02)',
+        'bento-hover': '0 20px 40px -12px rgba(26, 26, 26, 0.08)',
+        'brand-glow': '0 12px 28px -8px rgba(244, 110, 84, 0.35)',
+      },
+      letterSpacing: {
+        eyebrow: '0.18em',
       },
       fontSize: {
         '2xs': ['0.625rem', { lineHeight: '0.875rem' }],
@@ -197,7 +221,7 @@ const config: Config = {
       },
     },
   },
-  plugins: [require('tailwindcss-animate')],
+  plugins: [require('tailwindcss-animate'), paletteVarsPlugin],
 };
 
 export default config;

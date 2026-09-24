@@ -1,11 +1,11 @@
 'use client';
 
-import { useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import { useState, useCallback } from 'react';
 
-import { useAuth } from '@/hooks/use-auth';
 import { AdminSidebar } from '@/components/admin/admin-sidebar';
 import { AdminTopbar } from '@/components/admin/admin-topbar';
+import { useAuth } from '@/hooks/use-auth';
 import { cn } from '@/lib/utils';
 
 // ──────────────────────────────────────────────────────────
@@ -18,11 +18,7 @@ import { cn } from '@/lib/utils';
  * Only accessible to users with ADMIN or SUPER_ADMIN roles.
  * Redirects unauthorized users to the login page.
  */
-export default function AdminLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const { user, isLoading } = useAuth();
   const router = useRouter();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -44,9 +40,11 @@ export default function AdminLayout({
   if (isLoading) {
     return (
       <div className="flex h-screen items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-teal-600 border-t-transparent" />
-          <p className="mt-3 text-sm text-gray-500">Loading admin panel...</p>
+        <div className="flex flex-col items-center text-center">
+          <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-card shadow-bento">
+            <div className="h-7 w-7 animate-spin rounded-full border-[3px] border-primary border-t-transparent" />
+          </div>
+          <p className="eyebrow">Loading admin panel</p>
         </div>
       </div>
     );
@@ -63,7 +61,7 @@ export default function AdminLayout({
       {/* Mobile backdrop */}
       {mobileSidebarOpen && (
         <div
-          className="fixed inset-0 z-40 bg-black/50 lg:hidden"
+          className="fixed inset-0 z-40 bg-black/30 backdrop-blur-sm lg:hidden"
           onClick={closeMobileSidebar}
         />
       )}
@@ -80,7 +78,7 @@ export default function AdminLayout({
       <div
         className={cn(
           'flex min-h-screen flex-col transition-all duration-300',
-          sidebarCollapsed ? 'lg:ml-16' : 'lg:ml-64',
+          sidebarCollapsed ? 'lg:ml-20' : 'lg:ml-72',
         )}
       >
         {/* Top bar */}
@@ -91,7 +89,7 @@ export default function AdminLayout({
         />
 
         {/* Page content */}
-        <main className="flex-1 p-4 sm:p-6">{children}</main>
+        <main className="min-w-0 flex-1 px-4 pb-10 pt-2 sm:px-6 lg:px-8">{children}</main>
       </div>
     </div>
   );

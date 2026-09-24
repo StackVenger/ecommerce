@@ -71,18 +71,15 @@ function ResetPasswordContent() {
   if (!token) {
     return (
       <div className="w-full max-w-md space-y-6 text-center">
-        <h1 className="text-2xl font-bold tracking-tight">Invalid reset link</h1>
-        <p className="text-sm text-muted-foreground">
+        <h1 className="text-3xl font-black tracking-tighter text-gray-900">Invalid reset link</h1>
+        <p className="text-sm font-medium text-gray-500">
           This password reset link is invalid or has expired. Please request a new one.
         </p>
         <div className="flex flex-col items-center gap-3">
           <Button asChild className="w-full max-w-xs">
             <Link href="/forgot-password">Request new reset link</Link>
           </Button>
-          <Link
-            href="/login"
-            className="inline-flex items-center gap-2 text-sm font-medium text-primary hover:underline"
-          >
+          <Link href="/login" className="btn btn-soft btn-sm">
             <ArrowLeft className="h-4 w-4" />
             Back to sign in
           </Link>
@@ -129,13 +126,15 @@ function ResetPasswordContent() {
   if (isSuccess) {
     return (
       <div className="w-full max-w-md space-y-6 text-center">
-        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/30">
-          <CheckCircle2 className="h-8 w-8 text-green-600 dark:text-green-400" />
+        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-emerald-50">
+          <CheckCircle2 className="h-8 w-8 text-emerald-500" />
         </div>
 
         <div className="space-y-2">
-          <h1 className="text-2xl font-bold tracking-tight">Password reset successful</h1>
-          <p className="text-sm text-muted-foreground">
+          <h1 className="text-3xl font-black tracking-tighter text-gray-900">
+            Password reset successful
+          </h1>
+          <p className="text-sm font-medium text-gray-500">
             Your password has been updated. You can now sign in with your new password.
           </p>
         </div>
@@ -153,20 +152,21 @@ function ResetPasswordContent() {
     <div className="w-full max-w-md space-y-8">
       {/* Header */}
       <div className="text-center">
-        <h1 className="text-2xl font-bold tracking-tight">Set a new password</h1>
-        <p className="mt-2 text-sm text-muted-foreground">
+        <p className="eyebrow mb-3">Account recovery</p>
+        <h1 className="text-3xl font-black tracking-tighter text-gray-900">Set a new password</h1>
+        <p className="mt-2 text-sm font-bold text-gray-500">
           Your new password must be different from previously used passwords.
         </p>
       </div>
 
       {/* Server error */}
       {serverError && (
-        <div className="rounded-md border border-destructive/50 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+        <div className="rounded-2xl border border-rose-100 bg-rose-50 px-4 py-3 text-sm font-bold text-rose-600">
           {serverError}
           {serverError.includes('expired') && (
             <Link
               href="/forgot-password"
-              className="mt-1 block font-medium text-primary hover:underline"
+              className="mt-1 block font-black text-primary hover:underline"
             >
               Request a new link
             </Link>
@@ -190,12 +190,12 @@ function ResetPasswordContent() {
                       type={showPassword ? 'text' : 'password'}
                       placeholder="Enter your new password"
                       autoComplete="new-password"
-                      className="pr-10"
+                      className="pr-11"
                       {...field}
                     />
                     <button
                       type="button"
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 transition-colors hover:text-gray-900"
                       onClick={() => setShowPassword(!showPassword)}
                       tabIndex={-1}
                       aria-label={showPassword ? 'Hide password' : 'Show password'}
@@ -222,12 +222,12 @@ function ResetPasswordContent() {
                       type={showConfirmPassword ? 'text' : 'password'}
                       placeholder="Confirm your new password"
                       autoComplete="new-password"
-                      className="pr-10"
+                      className="pr-11"
                       {...field}
                     />
                     <button
                       type="button"
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 transition-colors hover:text-gray-900"
                       onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                       tabIndex={-1}
                       aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
@@ -253,10 +253,7 @@ function ResetPasswordContent() {
 
       {/* Back to login */}
       <div className="text-center">
-        <Link
-          href="/login"
-          className="inline-flex items-center gap-2 text-sm font-medium text-primary hover:underline"
-        >
+        <Link href="/login" className="btn btn-soft btn-sm">
           <ArrowLeft className="h-4 w-4" />
           Back to sign in
         </Link>

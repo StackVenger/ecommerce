@@ -1,9 +1,6 @@
 'use client';
 
 import {
-  ShoppingCart,
-  Star,
-  Heart,
   ChevronLeft,
   ChevronRight,
   Truck,
@@ -13,10 +10,19 @@ import {
   ArrowRight,
   Zap,
   TrendingUp,
+  type LucideIcon,
 } from 'lucide-react';
 import Link from 'next/link';
 import { useEffect, useState, useCallback } from 'react';
 
+import { ProductCard, ProductCardSkeleton, ProductGrid } from '@/components/products/product-card';
+import {
+  BentoGlow,
+  EmptyState,
+  IconTile,
+  SectionHeader,
+  type BentoTone,
+} from '@/components/ui/bento';
 import { useCart } from '@/hooks/use-cart';
 import { useWishlist } from '@/hooks/use-wishlist';
 import { apiClient } from '@/lib/api/client';
@@ -310,217 +316,223 @@ export default function HomePage() {
 
   // ── Render helpers ──
 
-  function renderStars(rating: number) {
-    return (
-      <div className="flex items-center gap-0.5">
-        {[1, 2, 3, 4, 5].map((s) => (
-          <Star
-            key={s}
-            className={`h-3 w-3 ${s <= Math.round(rating) ? 'fill-amber-400 text-amber-400' : 'text-gray-300'}`}
-          />
-        ))}
-      </div>
-    );
-  }
-
   function renderProductCard(product: Product) {
     const discount = discountPercent(product.price, product.compareAtPrice);
-    const imgUrl = product.images[0];
 
     return (
-      <div
+      <ProductCard
         key={product.id}
-        className="group relative rounded-xl border bg-white transition-all duration-300 hover:shadow-lg hover:-translate-y-1"
-      >
-        {/* Image */}
-        <Link href={`/products/${product.slug}`} className="block">
-          <div className="relative aspect-square overflow-hidden rounded-t-xl bg-gray-100">
-            {imgUrl ? (
-              <img
-                src={imgUrl}
-                alt={product.name}
-                className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
-                loading="lazy"
-              />
-            ) : (
-              <div className="flex h-full items-center justify-center text-gray-300">
-                <ShoppingCart className="h-12 w-12" />
-              </div>
-            )}
-
-            {/* Badges */}
-            {discount > 0 && (
-              <span className="absolute left-2 top-2 rounded-full bg-red-500 px-2 py-0.5 text-xs font-bold text-white shadow">
-                -{discount}%
-              </span>
-            )}
-          </div>
-        </Link>
-
-        {/* Wishlist */}
-        <button
-          onClick={() => toggleWishlist(product.id)}
-          className="absolute right-2 top-2 rounded-full bg-white/80 p-1.5 opacity-0 shadow backdrop-blur-sm transition-all group-hover:opacity-100 hover:bg-white hover:scale-110"
-        >
-          <Heart
-            className={`h-4 w-4 ${wishlist.has(product.id) ? 'fill-red-500 text-red-500' : 'text-gray-600'}`}
-          />
-        </button>
-
-        {/* Info */}
-        <div className="p-3">
-          {product.brandName && (
-            <p className="mb-0.5 text-xs font-medium text-primary">{product.brandName}</p>
-          )}
-          <Link href={`/products/${product.slug}`}>
-            <h3 className="text-sm font-medium text-gray-900 line-clamp-2 group-hover:text-primary transition-colors">
-              {product.name}
-            </h3>
-          </Link>
-
-          <div className="mt-1 flex items-center gap-1.5">
-            {renderStars(product.averageRating)}
-            <span className="text-xs text-gray-400">({product.reviewCount})</span>
-          </div>
-
-          <div className="mt-2 flex items-baseline gap-2">
-            <span className="text-lg font-bold text-gray-900">{formatBDT(product.price)}</span>
-            {product.compareAtPrice && product.compareAtPrice > product.price && (
-              <span className="text-xs text-gray-400 line-through">
-                {formatBDT(product.compareAtPrice)}
-              </span>
-            )}
-          </div>
-
-          {/* Quick add */}
-          {product.stock > 0 ? (
-            <button
-              onClick={() => handleAddToCart(product)}
-              className="mt-2 flex w-full items-center justify-center gap-1.5 rounded-lg bg-primary px-3 py-2 text-xs font-medium text-white transition-all hover:bg-primary/90"
-            >
-              <ShoppingCart className="h-3.5 w-3.5" />
-              Add to Cart
-            </button>
-          ) : (
-            <p className="mt-2 text-center text-xs font-medium text-red-500">Out of Stock</p>
-          )}
-        </div>
-      </div>
+        href={`/products/${product.slug}`}
+        name={product.name}
+        image={product.images[0]}
+        brand={product.brandName}
+        rating={product.averageRating}
+        reviewCount={product.reviewCount}
+        price={product.price}
+        originalPrice={product.compareAtPrice}
+        formatPrice={formatBDT}
+        badges={discount > 0 ? [{ label: `-${discount}%`, tone: 'sale' }] : []}
+        outOfStock={product.stock <= 0}
+        onAddToCart={() => handleAddToCart(product)}
+        wishlisted={wishlist.has(product.id)}
+        onToggleWishlist={() => toggleWishlist(product.id)}
+      />
     );
   }
 
   // ── Skeleton loaders ──
   function renderProductSkeleton() {
-    return Array.from({ length: 8 }).map((_, i) => (
-      <div key={i} className="animate-pulse rounded-xl border bg-white">
-        <div className="aspect-square rounded-t-xl bg-gray-200" />
-        <div className="p-3 space-y-2">
-          <div className="h-3 w-16 rounded bg-gray-200" />
-          <div className="h-4 w-full rounded bg-gray-200" />
-          <div className="h-3 w-24 rounded bg-gray-200" />
-          <div className="h-5 w-20 rounded bg-gray-200" />
-        </div>
-      </div>
-    ));
+    return Array.from({ length: 8 }).map((_, i) => <ProductCardSkeleton key={i} />);
   }
 
   return (
-    <div className="min-h-screen">
-      {/* ─── Hero Carousel ───────────────────────────────────────────── */}
-      <section className="relative h-[420px] overflow-hidden sm:h-[480px] md:h-[540px] lg:h-[600px]">
-        {/* Slide images — all stacked, opacity controls visibility */}
-        {heroSlides.map((slide, i) => (
-          <div
-            key={slide.id}
-            className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
-              i === heroIndex ? 'opacity-100 z-10' : 'opacity-0 z-0'
-            }`}
-          >
-            {/* Background image with zoom on active */}
-            <img
-              src={slide.image}
-              alt={slide.title}
-              className={`absolute inset-0 h-full w-full object-cover transition-transform duration-[6000ms] ease-out ${
-                i === heroIndex ? 'scale-110' : 'scale-100'
-              }`}
-            />
+    <div className="min-h-screen bg-gray-50 pb-16">
+      {/* ─── Hero bento: carousel + promo tiles ──────────────────────── */}
+      <section className="site-container px-4 pt-4 sm:pt-6">
+        <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-12">
+          {/* Carousel tile */}
+          <div className="relative h-[380px] overflow-hidden rounded-[2rem] bg-ink shadow-bento sm:h-[440px] sm:rounded-[2.5rem] lg:col-span-8 lg:h-[520px]">
+            {/* Slide images — all stacked, opacity controls visibility */}
+            {heroSlides.map((slide, i) => (
+              <div
+                key={slide.id}
+                className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
+                  i === heroIndex ? 'opacity-100 z-10' : 'opacity-0 z-0'
+                }`}
+                aria-hidden={i !== heroIndex}
+              >
+                {/* Background image with zoom on active */}
+                <img
+                  src={slide.image}
+                  alt={slide.title}
+                  className={`absolute inset-0 h-full w-full object-cover transition-transform duration-[6000ms] ease-out ${
+                    i === heroIndex ? 'scale-110' : 'scale-100'
+                  }`}
+                />
 
-            {/* Gradient overlay */}
-            <div className={`absolute inset-0 bg-gradient-to-r ${slide.overlay}`} />
+                {/* Gradient overlay */}
+                <div className={`absolute inset-0 bg-gradient-to-r ${slide.overlay}`} />
 
-            {/* Content */}
-            <div className="relative flex h-full items-center">
-              <div className="site-container w-full px-4">
-                <div className="max-w-xl">
-                  <span
-                    className={`mb-3 inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 text-xs font-medium text-white backdrop-blur-sm transition-all duration-700 delay-200 ${
-                      i === heroIndex ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'
-                    }`}
-                  >
-                    <Sparkles className="h-3 w-3" /> Limited Time Offer
-                  </span>
-                  <h1
-                    className={`mb-4 text-4xl font-bold leading-tight text-white md:text-5xl lg:text-6xl transition-all duration-700 delay-300 ${
-                      i === heroIndex ? 'translate-y-0 opacity-100' : 'translate-y-6 opacity-0'
-                    }`}
-                  >
-                    {slide.title}
-                  </h1>
-                  <p
-                    className={`mb-8 text-lg text-white/85 md:text-xl transition-all duration-700 delay-[400ms] ${
-                      i === heroIndex ? 'translate-y-0 opacity-100' : 'translate-y-6 opacity-0'
-                    }`}
-                  >
-                    {slide.subtitle}
-                  </p>
-                  <Link
-                    href={slide.href}
-                    className={`inline-flex items-center gap-2 rounded-xl bg-white px-8 py-3.5 font-semibold text-gray-900 shadow-lg transition-all duration-700 delay-500 hover:scale-105 hover:shadow-xl ${
-                      i === heroIndex ? 'translate-y-0 opacity-100' : 'translate-y-6 opacity-0'
-                    }`}
-                  >
-                    {slide.cta}
-                    <ArrowRight className="h-4 w-4" />
-                  </Link>
+                {/* Content */}
+                <div className="relative flex h-full items-end px-6 pb-16 sm:items-center sm:px-10 sm:pb-0 lg:px-14">
+                  <div className="max-w-xl">
+                    <span
+                      className={`mb-4 inline-flex items-center gap-1.5 rounded-xl bg-white/15 px-3 py-1.5 text-[10px] font-black uppercase tracking-widest text-white backdrop-blur-md transition-all duration-700 delay-200 ${
+                        i === heroIndex ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'
+                      }`}
+                    >
+                      <Sparkles className="h-3 w-3" strokeWidth={2.5} /> Limited Time Offer
+                    </span>
+                    <h1
+                      className={`mb-3 text-3xl font-black leading-[1.05] tracking-tighter text-white sm:mb-4 sm:text-5xl lg:text-6xl transition-all duration-700 delay-300 ${
+                        i === heroIndex ? 'translate-y-0 opacity-100' : 'translate-y-6 opacity-0'
+                      }`}
+                    >
+                      {slide.title}
+                    </h1>
+                    <p
+                      className={`mb-6 text-sm font-bold text-white/80 sm:mb-8 sm:text-lg transition-all duration-700 delay-[400ms] ${
+                        i === heroIndex ? 'translate-y-0 opacity-100' : 'translate-y-6 opacity-0'
+                      }`}
+                    >
+                      {slide.subtitle}
+                    </p>
+                    <Link
+                      href={slide.href}
+                      tabIndex={i === heroIndex ? undefined : -1}
+                      className={`inline-flex items-center gap-2 rounded-2xl bg-card px-6 py-3 text-sm font-black text-gray-900 shadow-xl shadow-black/10 transition-all duration-700 delay-500 hover:scale-[1.03] active:scale-95 sm:px-7 sm:py-3.5 ${
+                        i === heroIndex ? 'translate-y-0 opacity-100' : 'translate-y-6 opacity-0'
+                      }`}
+                    >
+                      {slide.cta}
+                      <ArrowRight className="h-4 w-4" strokeWidth={2.5} />
+                    </Link>
+                  </div>
                 </div>
               </div>
+            ))}
+
+            {/* Carousel controls */}
+            <div className="absolute bottom-5 right-5 z-20 flex gap-2 sm:bottom-8 sm:right-8">
+              <button
+                type="button"
+                onClick={() => setHeroIndex((i) => (i - 1 + heroSlides.length) % heroSlides.length)}
+                aria-label="Previous slide"
+                className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/15 text-white backdrop-blur-md transition-all hover:bg-white/25 active:scale-95"
+              >
+                <ChevronLeft className="h-5 w-5" strokeWidth={2.5} />
+              </button>
+              <button
+                type="button"
+                onClick={() => setHeroIndex((i) => (i + 1) % heroSlides.length)}
+                aria-label="Next slide"
+                className="flex h-11 w-11 items-center justify-center rounded-2xl bg-card text-gray-900 shadow-lg shadow-black/10 transition-all hover:scale-105 active:scale-95"
+              >
+                <ChevronRight className="h-5 w-5" strokeWidth={2.5} />
+              </button>
+            </div>
+
+            {/* Indicators */}
+            <div className="absolute bottom-9 left-6 z-20 flex gap-1.5 sm:bottom-12 sm:left-10 lg:left-14">
+              {heroSlides.map((slide, i) => (
+                <button
+                  key={slide.id}
+                  type="button"
+                  onClick={() => setHeroIndex(i)}
+                  aria-label={`Go to slide ${i + 1}`}
+                  aria-current={i === heroIndex}
+                  className={`h-2 rounded-full transition-all duration-500 ${
+                    i === heroIndex ? 'w-8 bg-card' : 'w-2 bg-white/40 hover:bg-card/60'
+                  }`}
+                />
+              ))}
             </div>
           </div>
-        ))}
 
-        {/* Carousel controls */}
-        <button
-          onClick={() => setHeroIndex((i) => (i - 1 + heroSlides.length) % heroSlides.length)}
-          className="absolute left-4 top-1/2 z-20 -translate-y-1/2 rounded-full bg-black/25 p-2.5 text-white backdrop-blur-sm transition-all hover:bg-black/40 hover:scale-110"
-        >
-          <ChevronLeft className="h-5 w-5" />
-        </button>
-        <button
-          onClick={() => setHeroIndex((i) => (i + 1) % heroSlides.length)}
-          className="absolute right-4 top-1/2 z-20 -translate-y-1/2 rounded-full bg-black/25 p-2.5 text-white backdrop-blur-sm transition-all hover:bg-black/40 hover:scale-110"
-        >
-          <ChevronRight className="h-5 w-5" />
-        </button>
+          {/* Promo tiles */}
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 lg:col-span-4 lg:grid-cols-1 lg:grid-rows-2">
+            <Link
+              href="/categories/electronics"
+              className="bento-primary group flex min-h-[220px] flex-col justify-between p-7 transition-transform duration-300 hover:scale-[1.01] sm:p-8"
+            >
+              <BentoGlow />
+              <div className="relative z-10 flex items-start justify-between">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/20 backdrop-blur-md">
+                  <Zap className="h-6 w-6" strokeWidth={2.25} />
+                </div>
+                <span className="rounded-xl bg-white/15 px-3 py-1 text-[10px] font-black uppercase tracking-widest backdrop-blur-md">
+                  Up to 50% off
+                </span>
+              </div>
+              <div className="relative z-10">
+                <p className="mb-2 text-[10px] font-black uppercase tracking-widest text-white/70">
+                  Limited time
+                </p>
+                <h3 className="mb-2 text-2xl font-black leading-tight tracking-tight">
+                  Flash Sale
+                </h3>
+                <p className="mb-5 text-sm font-bold text-white/80">
+                  Up to 50% off on electronics — limited time!
+                </p>
+                <span className="inline-flex items-center gap-1.5 rounded-xl bg-card px-5 py-2 text-xs font-black text-primary transition-transform group-hover:scale-105">
+                  View Deals <ArrowRight className="h-3.5 w-3.5" strokeWidth={2.5} />
+                </span>
+              </div>
+            </Link>
 
-        {/* Indicators */}
-        <div className="absolute bottom-6 left-1/2 z-20 flex -translate-x-1/2 gap-2">
-          {heroSlides.map((slide, i) => (
-            <button
-              key={slide.id}
-              onClick={() => setHeroIndex(i)}
-              className={`h-2.5 rounded-full transition-all duration-500 ${
-                i === heroIndex ? 'w-10 bg-white shadow-lg' : 'w-2.5 bg-white/40 hover:bg-white/60'
-              }`}
-            />
+            <Link
+              href="/categories/fashion"
+              className="bento-dark group flex min-h-[220px] flex-col justify-between rounded-[2rem] p-7 transition-transform duration-300 hover:scale-[1.01] sm:p-8"
+            >
+              <BentoGlow variant="dark" />
+              <div className="relative z-10 flex items-center gap-3 text-white/50">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/10 backdrop-blur-md">
+                  <Sparkles className="h-5 w-5" strokeWidth={2.25} />
+                </div>
+                <span className="text-[10px] font-black uppercase tracking-widest">Collection</span>
+              </div>
+              <div className="relative z-10">
+                <h3 className="mb-2 text-2xl font-black leading-none tracking-tighter sm:text-3xl">
+                  Traditional Wear
+                </h3>
+                <p className="mb-5 text-sm font-bold text-white/60">
+                  Authentic Bangladeshi clothing for every occasion
+                </p>
+                <span className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-5 py-2 text-xs font-black text-white shadow-lg shadow-primary/25 transition-transform group-hover:scale-105">
+                  Shop Now <ArrowRight className="h-3.5 w-3.5" strokeWidth={2.5} />
+                </span>
+              </div>
+            </Link>
+          </div>
+        </div>
+
+        {/* ─── Trust tiles ────────────────────────────────────────────── */}
+        <div className="mt-4 grid grid-cols-2 gap-3 sm:mt-6 sm:gap-6 lg:grid-cols-4">
+          {TRUST_ITEMS.map((item) => (
+            <div
+              key={item.title}
+              className="bento-card bento-card-hover group flex flex-col items-start gap-3 p-4 sm:flex-row sm:items-center sm:gap-4 sm:p-5"
+            >
+              <IconTile
+                icon={item.icon}
+                tone={item.tone}
+                size="sm"
+                className="group-hover:scale-110"
+              />
+              <div className="min-w-0">
+                <p className="text-sm font-black tracking-tight text-gray-900">{item.title}</p>
+                <p className="text-[11px] font-bold text-gray-500">{item.caption}</p>
+              </div>
+            </div>
           ))}
         </div>
       </section>
 
       {/* ─── Sidebar promo banners (SIDEBAR position) ────────────────── */}
       {sidebarBanners.length > 0 && (
-        <section className="site-container px-4 pt-8">
+        <section className="site-container px-4 pt-4 sm:pt-6">
           <div
-            className={`grid gap-4 ${
+            className={`grid gap-4 sm:gap-6 ${
               sidebarBanners.length === 1
                 ? 'grid-cols-1'
                 : sidebarBanners.length === 2
@@ -530,18 +542,20 @@ export default function HomePage() {
           >
             {sidebarBanners.slice(0, 6).map((b) => {
               const card = (
-                <div className="group relative overflow-hidden rounded-xl shadow-sm ring-1 ring-gray-200 transition hover:shadow-md">
+                <div className="group relative overflow-hidden rounded-[2rem] border border-foreground/[0.04] shadow-bento transition-all duration-300 hover:shadow-bento-hover">
                   <img
                     src={b.image}
                     alt={b.title}
-                    className="h-40 w-full object-cover transition-transform duration-500 group-hover:scale-105 sm:h-48"
+                    className="h-44 w-full object-cover transition-transform duration-500 group-hover:scale-105 sm:h-52"
                     loading="lazy"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/25 to-transparent" />
-                  <div className="absolute bottom-4 left-5 right-5 text-white">
-                    <h3 className="text-lg font-semibold drop-shadow">{b.title}</h3>
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+                  <div className="absolute bottom-5 left-6 right-6 text-white">
+                    <h3 className="text-xl font-black tracking-tight drop-shadow">{b.title}</h3>
                     {b.subtitle && (
-                      <p className="mt-0.5 text-sm opacity-90 drop-shadow">{b.subtitle}</p>
+                      <p className="mt-0.5 text-sm font-bold text-white/80 drop-shadow">
+                        {b.subtitle}
+                      </p>
                     )}
                   </div>
                 </div>
@@ -559,184 +573,120 @@ export default function HomePage() {
       )}
 
       {/* ─── Shop by Category ────────────────────────────────────────── */}
-      <section className="site-container px-4 py-14">
-        <div className="mb-8 text-center">
-          <h2 className="text-2xl font-bold text-gray-900 md:text-3xl">Shop by Categories</h2>
-          <p className="mt-2 text-gray-500">Browse our wide range of product categories</p>
-        </div>
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4">
-          {topCategories.map((cat: any) => {
-            const productCount =
-              cat.productCount ??
-              cat._count?.products ??
-              cat.children?.reduce(
-                (s: number, c: any) => s + (c.productCount ?? c._count?.products ?? 0),
-                0,
-              ) ??
-              0;
-            return (
-              <Link
-                key={cat.id}
-                href={`/categories/${cat.slug}`}
-                className="group flex items-center gap-4 rounded-xl border bg-white p-4 transition-all hover:border-primary hover:shadow-md"
-              >
-                <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-teal-50 text-2xl transition-colors group-hover:bg-teal-100">
-                  {CATEGORY_ICONS[cat.slug] || '📦'}
-                </span>
-                <div className="min-w-0">
-                  <h3 className="font-medium text-gray-900 group-hover:text-primary truncate">
+      <section className="site-container px-4 pt-4 sm:pt-6">
+        <div className="bento-card p-6 sm:p-8">
+          <SectionHeader
+            as="h2"
+            title="Shop by Categories"
+            caption="Browse our wide range of product categories"
+            action={
+              <Link href="/categories" className="btn btn-soft btn-sm">
+                View All <ArrowRight className="h-3.5 w-3.5" strokeWidth={2.5} />
+              </Link>
+            }
+          />
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4 xl:grid-cols-8">
+            {topCategories.map((cat: any) => {
+              const productCount =
+                cat.productCount ??
+                cat._count?.products ??
+                cat.children?.reduce(
+                  (s: number, c: any) => s + (c.productCount ?? c._count?.products ?? 0),
+                  0,
+                ) ??
+                0;
+              return (
+                <Link
+                  key={cat.id}
+                  href={`/categories/${cat.slug}`}
+                  className="group flex flex-col items-center rounded-[1.5rem] border border-foreground/[0.03] bg-gray-50 px-3 py-5 text-center transition-all duration-300 hover:bg-card hover:shadow-bento-hover"
+                >
+                  <span className="mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-card text-2xl shadow-sm transition-transform duration-500 group-hover:scale-110">
+                    {CATEGORY_ICONS[cat.slug] || '📦'}
+                  </span>
+                  <h3 className="w-full truncate text-sm font-black tracking-tight text-gray-900 transition-colors group-hover:text-primary">
                     {cat.name}
                   </h3>
                   {productCount > 0 && (
-                    <span className="text-xs text-gray-500">{productCount} products</span>
+                    <span className="eyebrow mt-1">{productCount} products</span>
                   )}
-                </div>
-              </Link>
-            );
-          })}
+                </Link>
+              );
+            })}
+          </div>
         </div>
       </section>
 
       {/* ─── Featured Products ───────────────────────────────────────── */}
-      <section className="bg-gray-50 py-14">
-        <div className="site-container px-4">
-          <div className="mb-8 flex items-center justify-between">
-            <div>
-              <div className="flex items-center gap-2">
-                <Zap className="h-5 w-5 text-amber-500" />
-                <h2 className="text-2xl font-bold text-gray-900 md:text-3xl">Featured Products</h2>
-              </div>
-              <p className="mt-1 text-gray-500">Hand-picked top products just for you</p>
-            </div>
-            <Link
-              href="/products?isFeatured=true"
-              className="hidden items-center gap-1 rounded-lg border border-primary px-4 py-2 text-sm font-medium text-primary transition-colors hover:bg-teal-50 sm:inline-flex"
-            >
-              View All <ArrowRight className="h-4 w-4" />
-            </Link>
-          </div>
+      <section className="site-container px-4 pt-4 sm:pt-6">
+        <div className="rounded-[2rem] border border-foreground/[0.04] bg-card p-5 shadow-bento sm:rounded-[2.5rem] sm:p-8">
+          <SectionHeader
+            as="h2"
+            icon={Zap}
+            title="Featured Products"
+            caption="Hand-picked top products just for you"
+            action={
+              <Link
+                href="/products?isFeatured=true"
+                className="btn btn-soft btn-sm hidden sm:inline-flex"
+              >
+                View All <ArrowRight className="h-3.5 w-3.5" strokeWidth={2.5} />
+              </Link>
+            }
+          />
 
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
+          <ProductGrid>
             {loading ? renderProductSkeleton() : featuredProducts.map(renderProductCard)}
-          </div>
+          </ProductGrid>
 
           {!loading && featuredProducts.length === 0 && (
-            <p className="py-12 text-center text-gray-400">No featured products available.</p>
+            <EmptyState bare icon={Zap} title="No featured products available." />
           )}
 
           <Link
             href="/products?isFeatured=true"
-            className="mt-6 flex items-center justify-center gap-1 text-sm font-medium text-primary sm:hidden"
+            className="btn btn-soft btn-sm mt-6 w-full sm:hidden"
           >
-            View All Featured <ArrowRight className="h-4 w-4" />
-          </Link>
-        </div>
-      </section>
-
-      {/* ─── Promo Banners ───────────────────────────────────────────── */}
-      <section className="site-container px-4 py-14">
-        <div className="grid gap-4 md:grid-cols-2">
-          <Link
-            href="/categories/fashion"
-            className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-teal-600 to-emerald-800 p-8 text-white transition-transform hover:scale-[1.02]"
-          >
-            <div className="pointer-events-none absolute -right-8 -top-8 h-40 w-40 rounded-full bg-white/10" />
-            <div className="pointer-events-none absolute -bottom-4 -left-4 h-28 w-28 rounded-full bg-white/10" />
-            <div className="relative">
-              <h3 className="text-2xl font-bold">Traditional Wear</h3>
-              <p className="mt-2 text-teal-100">
-                Authentic Bangladeshi clothing for every occasion
-              </p>
-              <span className="mt-4 inline-flex items-center gap-1 rounded-lg bg-white px-5 py-2 text-sm font-medium text-primary transition-transform group-hover:scale-105">
-                Shop Now <ArrowRight className="h-4 w-4" />
-              </span>
-            </div>
-          </Link>
-          <Link
-            href="/categories/electronics"
-            className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-orange-500 to-red-600 p-8 text-white transition-transform hover:scale-[1.02]"
-          >
-            <div className="pointer-events-none absolute -right-8 -top-8 h-40 w-40 rounded-full bg-white/10" />
-            <div className="pointer-events-none absolute -bottom-4 -left-4 h-28 w-28 rounded-full bg-white/10" />
-            <div className="relative">
-              <h3 className="text-2xl font-bold">Flash Sale</h3>
-              <p className="mt-2 text-orange-100">Up to 50% off on electronics — limited time!</p>
-              <span className="mt-4 inline-flex items-center gap-1 rounded-lg bg-white px-5 py-2 text-sm font-medium text-red-600 transition-transform group-hover:scale-105">
-                View Deals <Zap className="h-4 w-4" />
-              </span>
-            </div>
+            View All Featured <ArrowRight className="h-3.5 w-3.5" strokeWidth={2.5} />
           </Link>
         </div>
       </section>
 
       {/* ─── New Arrivals ────────────────────────────────────────────── */}
-      <section className="bg-white py-14">
-        <div className="site-container px-4">
-          <div className="mb-8 flex items-center justify-between">
-            <div>
-              <div className="flex items-center gap-2">
-                <TrendingUp className="h-5 w-5 text-primary" />
-                <h2 className="text-2xl font-bold text-gray-900 md:text-3xl">New Arrivals</h2>
-              </div>
-              <p className="mt-1 text-gray-500">The latest additions to our store</p>
-            </div>
-            <Link
-              href="/products?sortBy=createdAt&sortOrder=desc"
-              className="hidden items-center gap-1 rounded-lg border border-primary px-4 py-2 text-sm font-medium text-primary transition-colors hover:bg-teal-50 sm:inline-flex"
-            >
-              View All <ArrowRight className="h-4 w-4" />
-            </Link>
-          </div>
+      <section className="site-container px-4 pt-4 sm:pt-6">
+        <div className="rounded-[2rem] border border-foreground/[0.04] bg-card p-5 shadow-bento sm:rounded-[2.5rem] sm:p-8">
+          <SectionHeader
+            as="h2"
+            icon={TrendingUp}
+            title="New Arrivals"
+            caption="The latest additions to our store"
+            action={
+              <Link
+                href="/products?sortBy=createdAt&sortOrder=desc"
+                className="btn btn-soft btn-sm hidden sm:inline-flex"
+              >
+                View All <ArrowRight className="h-3.5 w-3.5" strokeWidth={2.5} />
+              </Link>
+            }
+          />
 
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
+          <ProductGrid>
             {loading ? renderProductSkeleton() : newArrivals.map(renderProductCard)}
-          </div>
-        </div>
-      </section>
-
-      {/* ─── Trust Badges ────────────────────────────────────────────── */}
-      <section className="border-t bg-gray-50 py-10">
-        <div className="site-container px-4">
-          <div className="grid grid-cols-2 gap-6 md:grid-cols-4">
-            <div className="flex items-center gap-3">
-              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-teal-100 text-primary">
-                <Truck className="h-6 w-6" />
-              </div>
-              <div>
-                <p className="text-sm font-semibold text-gray-900">Free Delivery</p>
-                <p className="text-xs text-gray-500">On orders over ৳2,000</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-100 text-blue-600">
-                <Shield className="h-6 w-6" />
-              </div>
-              <div>
-                <p className="text-sm font-semibold text-gray-900">Secure Payment</p>
-                <p className="text-xs text-gray-500">bKash, Nagad, Cards</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-amber-100 text-amber-600">
-                <RotateCcw className="h-6 w-6" />
-              </div>
-              <div>
-                <p className="text-sm font-semibold text-gray-900">Easy Returns</p>
-                <p className="text-xs text-gray-500">7-day return policy</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-green-100 text-green-600">
-                <Sparkles className="h-6 w-6" />
-              </div>
-              <div>
-                <p className="text-sm font-semibold text-gray-900">Made in Bangladesh</p>
-                <p className="text-xs text-gray-500">Supporting local businesses</p>
-              </div>
-            </div>
-          </div>
+          </ProductGrid>
         </div>
       </section>
     </div>
   );
 }
+
+const TRUST_ITEMS: { title: string; caption: string; icon: LucideIcon; tone: BentoTone }[] = [
+  { title: 'Free Delivery', caption: 'On orders over ৳2,000', icon: Truck, tone: 'brand' },
+  { title: 'Secure Payment', caption: 'bKash, Nagad, Cards', icon: Shield, tone: 'blue' },
+  { title: 'Easy Returns', caption: '7-day return policy', icon: RotateCcw, tone: 'amber' },
+  {
+    title: 'Made in Bangladesh',
+    caption: 'Supporting local businesses',
+    icon: Sparkles,
+    tone: 'emerald',
+  },
+];

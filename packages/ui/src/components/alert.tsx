@@ -1,17 +1,11 @@
-import * as React from 'react';
 import { cva, type VariantProps } from 'class-variance-authority';
-import {
-  AlertCircle,
-  AlertTriangle,
-  CheckCircle2,
-  Info,
-  type LucideIcon,
-} from 'lucide-react';
+import { AlertCircle, AlertTriangle, CheckCircle2, Info, type LucideIcon } from 'lucide-react';
+import * as React from 'react';
 
 import { cn } from '../lib/utils';
 
 const alertVariants = cva(
-  'relative w-full rounded-lg border p-4 [&>svg~*]:pl-7 [&>svg+div]:translate-y-[-3px] [&>svg]:absolute [&>svg]:left-4 [&>svg]:top-4 [&>svg]:text-foreground',
+  'relative w-full rounded-2xl border p-4 text-sm font-medium [&>svg~*]:pl-7 [&>svg+div]:translate-y-[-3px] [&>svg]:absolute [&>svg]:left-4 [&>svg]:top-4 [&>svg]:text-foreground',
   {
     variants: {
       variant: {
@@ -27,7 +21,7 @@ const alertVariants = cva(
     defaultVariants: {
       variant: 'default',
     },
-  }
+  },
 );
 
 const variantIconMap: Record<string, LucideIcon> = {
@@ -38,8 +32,7 @@ const variantIconMap: Record<string, LucideIcon> = {
 };
 
 export interface AlertProps
-  extends React.HTMLAttributes<HTMLDivElement>,
-    VariantProps<typeof alertVariants> {
+  extends React.HTMLAttributes<HTMLDivElement>, VariantProps<typeof alertVariants> {
   /**
    * Optional custom icon. If omitted, a sensible default is chosen
    * based on the `variant`.
@@ -72,33 +65,27 @@ const Alert = React.forwardRef<HTMLDivElement, AlertProps>(
     const Icon = icon ?? variantIconMap[variant ?? 'default'] ?? Info;
 
     return (
-      <div
-        ref={ref}
-        role="alert"
-        className={cn(alertVariants({ variant }), className)}
-        {...props}
-      >
+      <div ref={ref} role="alert" className={cn(alertVariants({ variant }), className)} {...props}>
         <Icon className="h-4 w-4" />
         {children}
       </div>
     );
-  }
+  },
 );
 Alert.displayName = 'Alert';
 
 /**
  * AlertTitle — heading within an Alert.
  */
-const AlertTitle = React.forwardRef<
-  HTMLParagraphElement,
-  React.HTMLAttributes<HTMLHeadingElement>
->(({ className, ...props }, ref) => (
-  <h5
-    ref={ref}
-    className={cn('mb-1 font-medium leading-none tracking-tight', className)}
-    {...props}
-  />
-));
+const AlertTitle = React.forwardRef<HTMLParagraphElement, React.HTMLAttributes<HTMLHeadingElement>>(
+  ({ className, ...props }, ref) => (
+    <h5
+      ref={ref}
+      className={cn('mb-1 font-medium leading-none tracking-tight', className)}
+      {...props}
+    />
+  ),
+);
 AlertTitle.displayName = 'AlertTitle';
 
 /**
@@ -108,11 +95,7 @@ const AlertDescription = React.forwardRef<
   HTMLParagraphElement,
   React.HTMLAttributes<HTMLParagraphElement>
 >(({ className, ...props }, ref) => (
-  <div
-    ref={ref}
-    className={cn('text-sm [&_p]:leading-relaxed', className)}
-    {...props}
-  />
+  <div ref={ref} className={cn('text-sm [&_p]:leading-relaxed', className)} {...props} />
 ));
 AlertDescription.displayName = 'AlertDescription';
 

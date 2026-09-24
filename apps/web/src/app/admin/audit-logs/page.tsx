@@ -1,8 +1,11 @@
 'use client';
 
+import { ScrollText, Search } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
+import { ListPagination } from '@/components/admin/list-pagination';
+import { EmptyState, LoadingState, PageHeader } from '@/components/ui/bento';
 import { apiClient } from '@/lib/api/client';
 import { getApiErrorMessage } from '@/lib/api/errors';
 
@@ -77,19 +80,13 @@ export default function AdminAuditLogPage() {
 
   const actionBadge = (act: string) => {
     const colors: Record<string, string> = {
-      create: 'bg-green-100 text-green-700',
-      update: 'bg-teal-100 text-teal-700',
-      delete: 'bg-red-100 text-red-700',
-      login: 'bg-purple-100 text-purple-700',
+      create: 'pill-success',
+      update: 'pill-brand',
+      delete: 'pill-danger',
+      login: 'pill-purple',
     };
     const key = Object.keys(colors).find((k) => act.toLowerCase().includes(k));
-    return (
-      <span
-        className={`rounded-full px-2 py-0.5 text-xs font-medium ${colors[key ?? ''] ?? 'bg-gray-100 text-gray-700'}`}
-      >
-        {act}
-      </span>
-    );
+    return <span className={`pill ${colors[key ?? ''] ?? 'pill-neutral'}`}>{act}</span>;
   };
 
   const formatJson = (json: string | null) => {
@@ -104,160 +101,144 @@ export default function AdminAuditLogPage() {
   };
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">Audit Logs</h1>
-        <p className="text-sm text-gray-500">
-          Track all administrative actions across the platform
-        </p>
-      </div>
+    <div>
+      <PageHeader
+        title="Audit Logs"
+        description="Track all administrative actions across the platform"
+      />
 
       {/* Filters */}
-      <div className="flex flex-wrap gap-4">
-        <select
-          value={entity}
-          onChange={(e) => {
-            setEntity(e.target.value);
-            setPage(1);
-          }}
-          className="rounded-md border-gray-300 text-sm shadow-sm"
-        >
-          <option value="">All Entities</option>
-          {ENTITY_TYPES.map((t) => (
-            <option key={t} value={t}>
-              {t}
-            </option>
-          ))}
-        </select>
-        <input
-          type="text"
-          value={action}
-          onChange={(e) => setAction(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && fetchLogs()}
-          placeholder="Filter by action..."
-          className="w-48 rounded-md border-gray-300 text-sm shadow-sm"
-        />
+      <div className="mb-6 rounded-[1.75rem] border border-foreground/[0.04] bg-card p-3 shadow-bento">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+          <select
+            value={entity}
+            aria-label="Filter by entity"
+            onChange={(e) => {
+              setEntity(e.target.value);
+              setPage(1);
+            }}
+            className="field-input border-transparent bg-gray-50 shadow-none sm:w-56"
+          >
+            <option value="">All Entities</option>
+            {ENTITY_TYPES.map((t) => (
+              <option key={t} value={t}>
+                {t}
+              </option>
+            ))}
+          </select>
+          <div className="group/search relative flex-1">
+            <Search
+              className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400 transition-colors group-focus-within/search:text-gray-700"
+              strokeWidth={2.5}
+            />
+            <input
+              type="text"
+              value={action}
+              aria-label="Filter by action"
+              onChange={(e) => setAction(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && fetchLogs()}
+              placeholder="Filter by action... (press Enter)"
+              className="field-input border-transparent bg-gray-50 pl-11 shadow-none focus:bg-card"
+            />
+          </div>
+        </div>
       </div>
 
       {/* Log Table */}
-      <div className="overflow-x-auto rounded-lg border border-gray-200">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-4 py-3 text-left text-xs font-medium uppercase text-gray-500">
-                Time
-              </th>
-              <th className="px-4 py-3 text-left text-xs font-medium uppercase text-gray-500">
-                User
-              </th>
-              <th className="px-4 py-3 text-left text-xs font-medium uppercase text-gray-500">
-                Action
-              </th>
-              <th className="px-4 py-3 text-left text-xs font-medium uppercase text-gray-500">
-                Entity
-              </th>
-              <th className="px-4 py-3 text-left text-xs font-medium uppercase text-gray-500">
-                Entity ID
-              </th>
-              <th className="px-4 py-3 text-left text-xs font-medium uppercase text-gray-500">
-                IP
-              </th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-200 bg-white">
-            {loading ? (
+      <div className="bento-card overflow-hidden p-2 sm:p-4">
+        <div className="overflow-x-auto">
+          <table className="bento-table min-w-[820px]">
+            <thead>
               <tr>
-                <td colSpan={6} className="px-4 py-8 text-center text-gray-400">
-                  Loading audit logs...
-                </td>
+                <th className="pl-4">Time</th>
+                <th>User</th>
+                <th>Action</th>
+                <th>Entity</th>
+                <th>Entity ID</th>
+                <th className="pr-4">IP</th>
               </tr>
-            ) : logs.length === 0 ? (
-              <tr>
-                <td colSpan={6} className="px-4 py-8 text-center text-gray-400">
-                  No audit logs found
-                </td>
-              </tr>
-            ) : (
-              logs.map((log) => (
-                <React.Fragment key={log.id}>
-                  <tr
-                    onClick={() => setExpandedId(expandedId === log.id ? null : log.id)}
-                    className="cursor-pointer hover:bg-gray-50"
-                  >
-                    <td className="whitespace-nowrap px-4 py-3 text-xs text-gray-500">
-                      {new Date(log.createdAt).toLocaleString()}
-                    </td>
-                    <td className="whitespace-nowrap px-4 py-3 text-sm">
-                      {log.user ? `${log.user.firstName} ${log.user.lastName}` : 'System'}
-                    </td>
-                    <td className="whitespace-nowrap px-4 py-3">{actionBadge(log.action)}</td>
-                    <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-600">
-                      {log.entity}
-                    </td>
-                    <td className="whitespace-nowrap px-4 py-3 text-xs font-mono text-gray-400">
-                      {log.entityId ? log.entityId.slice(0, 8) + '...' : '—'}
-                    </td>
-                    <td className="whitespace-nowrap px-4 py-3 text-xs text-gray-400">
-                      {log.ipAddress ?? '—'}
-                    </td>
-                  </tr>
-                  {expandedId === log.id && (log.oldValues || log.newValues) && (
-                    <tr key={`${log.id}-detail`}>
-                      <td colSpan={6} className="bg-gray-50 px-4 py-3">
-                        <div className="grid grid-cols-2 gap-4">
-                          {log.oldValues && (
-                            <div>
-                              <h4 className="mb-1 text-xs font-medium text-gray-500">
-                                Previous Values
-                              </h4>
-                              <pre className="max-h-40 overflow-auto rounded bg-white p-2 text-xs">
-                                {formatJson(log.oldValues)}
-                              </pre>
-                            </div>
-                          )}
-                          {log.newValues && (
-                            <div>
-                              <h4 className="mb-1 text-xs font-medium text-gray-500">New Values</h4>
-                              <pre className="max-h-40 overflow-auto rounded bg-white p-2 text-xs">
-                                {formatJson(log.newValues)}
-                              </pre>
-                            </div>
-                          )}
-                        </div>
+            </thead>
+            <tbody>
+              {loading ? (
+                <tr>
+                  <td colSpan={6}>
+                    <LoadingState label="Loading audit logs" />
+                  </td>
+                </tr>
+              ) : logs.length === 0 ? (
+                <tr>
+                  <td colSpan={6}>
+                    <EmptyState bare icon={ScrollText} title="No audit logs found" />
+                  </td>
+                </tr>
+              ) : (
+                logs.map((log) => (
+                  <React.Fragment key={log.id}>
+                    <tr
+                      onClick={() => setExpandedId(expandedId === log.id ? null : log.id)}
+                      className={`cursor-pointer ${expandedId === log.id ? 'bg-gray-50' : ''}`}
+                    >
+                      <td className="whitespace-nowrap pl-4 text-xs font-bold text-gray-500">
+                        {new Date(log.createdAt).toLocaleString()}
+                      </td>
+                      <td className="whitespace-nowrap text-sm font-black text-gray-900">
+                        {log.user ? `${log.user.firstName} ${log.user.lastName}` : 'System'}
+                      </td>
+                      <td className="whitespace-nowrap">{actionBadge(log.action)}</td>
+                      <td className="whitespace-nowrap">
+                        <span className="rounded-xl bg-gray-100 px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-gray-600">
+                          {log.entity}
+                        </span>
+                      </td>
+                      <td className="whitespace-nowrap font-mono text-xs text-gray-400">
+                        {log.entityId ? log.entityId.slice(0, 8) + '...' : '—'}
+                      </td>
+                      <td className="whitespace-nowrap pr-4 text-xs font-bold text-gray-400">
+                        {log.ipAddress ?? '—'}
                       </td>
                     </tr>
-                  )}
-                </React.Fragment>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
-
-      {/* Pagination */}
-      {pagination && pagination.pages > 1 && (
-        <div className="flex items-center justify-between">
-          <p className="text-sm text-gray-500">
-            Showing page {pagination.page} of {pagination.pages} ({pagination.total} entries)
-          </p>
-          <div className="flex gap-2">
-            <button
-              onClick={() => setPage((p) => Math.max(1, p - 1))}
-              disabled={page === 1}
-              className="rounded-md border px-3 py-1 text-sm disabled:opacity-50"
-            >
-              Previous
-            </button>
-            <button
-              onClick={() => setPage((p) => Math.min(pagination.pages, p + 1))}
-              disabled={page === pagination.pages}
-              className="rounded-md border px-3 py-1 text-sm disabled:opacity-50"
-            >
-              Next
-            </button>
-          </div>
+                    {expandedId === log.id && (log.oldValues || log.newValues) && (
+                      <tr key={`${log.id}-detail`} className="hover:bg-transparent">
+                        <td colSpan={6} className="px-4 pb-4">
+                          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                            {log.oldValues && (
+                              <div>
+                                <h4 className="eyebrow mb-2">Previous Values</h4>
+                                <pre className="max-h-40 overflow-auto rounded-[1.25rem] bg-gray-50 p-4 text-xs text-gray-700">
+                                  {formatJson(log.oldValues)}
+                                </pre>
+                              </div>
+                            )}
+                            {log.newValues && (
+                              <div>
+                                <h4 className="eyebrow mb-2">New Values</h4>
+                                <pre className="max-h-40 overflow-auto rounded-[1.25rem] bg-ink p-4 text-xs text-white/80">
+                                  {formatJson(log.newValues)}
+                                </pre>
+                              </div>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                  </React.Fragment>
+                ))
+              )}
+            </tbody>
+          </table>
         </div>
-      )}
+
+        {pagination && (
+          <ListPagination
+            page={page}
+            totalPages={pagination.pages}
+            total={pagination.total}
+            limit={pagination.limit}
+            noun="entries"
+            onPageChange={(p) => setPage(Math.min(Math.max(1, p), pagination.pages))}
+          />
+        )}
+      </div>
     </div>
   );
 }

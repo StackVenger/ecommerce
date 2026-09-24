@@ -20,10 +20,22 @@ interface BorderSettingsProps {
 const RADIUS_PRESETS = [
   { name: 'Sharp', values: { radius: '0px', radiusSm: '0px', radiusMd: '0px', radiusLg: '0px' } },
   { name: 'Subtle', values: { radius: '4px', radiusSm: '2px', radiusMd: '4px', radiusLg: '6px' } },
-  { name: 'Default', values: { radius: '8px', radiusSm: '4px', radiusMd: '8px', radiusLg: '12px' } },
-  { name: 'Rounded', values: { radius: '12px', radiusSm: '6px', radiusMd: '12px', radiusLg: '16px' } },
-  { name: 'Extra Round', values: { radius: '16px', radiusSm: '8px', radiusMd: '16px', radiusLg: '24px' } },
-  { name: 'Pill', values: { radius: '9999px', radiusSm: '9999px', radiusMd: '9999px', radiusLg: '9999px' } },
+  {
+    name: 'Default',
+    values: { radius: '8px', radiusSm: '4px', radiusMd: '8px', radiusLg: '12px' },
+  },
+  {
+    name: 'Rounded',
+    values: { radius: '12px', radiusSm: '6px', radiusMd: '12px', radiusLg: '16px' },
+  },
+  {
+    name: 'Extra Round',
+    values: { radius: '16px', radiusSm: '8px', radiusMd: '16px', radiusLg: '24px' },
+  },
+  {
+    name: 'Pill',
+    values: { radius: '9999px', radiusSm: '9999px', radiusMd: '9999px', radiusLg: '9999px' },
+  },
 ];
 
 const BORDER_WIDTHS = ['0px', '1px', '2px', '3px'];
@@ -33,7 +45,7 @@ export default function BorderSettings({ borders, onChange }: BorderSettingsProp
     onChange({ ...borders, [key]: value });
   };
 
-  const applyPreset = (preset: typeof RADIUS_PRESETS[0]) => {
+  const applyPreset = (preset: (typeof RADIUS_PRESETS)[0]) => {
     onChange({ ...borders, ...preset.values });
   };
 
@@ -41,16 +53,18 @@ export default function BorderSettings({ borders, onChange }: BorderSettingsProp
     <div className="space-y-8">
       {/* Radius Presets */}
       <div>
-        <h3 className="text-sm font-semibold text-gray-700 mb-4">Border Radius Presets</h3>
+        <h3 className="text-sm font-black text-gray-900 mb-4 tracking-tight">
+          Border Radius Presets
+        </h3>
         <div className="grid grid-cols-3 md:grid-cols-6 gap-3">
           {RADIUS_PRESETS.map((preset) => (
             <button
               key={preset.name}
               onClick={() => applyPreset(preset)}
-              className="p-4 border border-gray-200 rounded-lg hover:border-teal-300 hover:bg-teal-50 transition-colors text-center"
+              className="rounded-2xl border border-foreground/[0.05] bg-card p-4 text-center shadow-sm transition-all hover:border-brand-300 hover:bg-brand-50"
             >
               <div
-                className="w-12 h-12 bg-teal-500 mx-auto mb-2"
+                className="w-12 h-12 bg-brand-500 mx-auto mb-2"
                 style={{ borderRadius: preset.values.radius }}
               />
               <span className="text-xs font-medium text-gray-700">{preset.name}</span>
@@ -61,10 +75,12 @@ export default function BorderSettings({ borders, onChange }: BorderSettingsProp
 
       {/* Custom Radius Values */}
       <div>
-        <h3 className="text-sm font-semibold text-gray-700 mb-4">Custom Border Radius</h3>
+        <h3 className="text-sm font-black text-gray-900 mb-4 tracking-tight">
+          Custom Border Radius
+        </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Small (buttons, badges)</label>
+            <label className="field-label">Small (buttons, badges)</label>
             <div className="flex items-center gap-3">
               <input
                 type="range"
@@ -78,7 +94,7 @@ export default function BorderSettings({ borders, onChange }: BorderSettingsProp
             </div>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Medium (cards, inputs)</label>
+            <label className="field-label">Medium (cards, inputs)</label>
             <div className="flex items-center gap-3">
               <input
                 type="range"
@@ -92,7 +108,7 @@ export default function BorderSettings({ borders, onChange }: BorderSettingsProp
             </div>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Large (modals, sections)</label>
+            <label className="field-label">Large (modals, sections)</label>
             <div className="flex items-center gap-3">
               <input
                 type="range"
@@ -106,7 +122,7 @@ export default function BorderSettings({ borders, onChange }: BorderSettingsProp
             </div>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Default</label>
+            <label className="field-label">Default</label>
             <div className="flex items-center gap-3">
               <input
                 type="range"
@@ -124,10 +140,10 @@ export default function BorderSettings({ borders, onChange }: BorderSettingsProp
 
       {/* Border Width & Color */}
       <div>
-        <h3 className="text-sm font-semibold text-gray-700 mb-4">Border Style</h3>
+        <h3 className="text-sm font-black text-gray-900 mb-4 tracking-tight">Border Style</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Border Width</label>
+            <label className="field-label">Border Width</label>
             <div className="flex gap-2">
               {BORDER_WIDTHS.map((width) => (
                 <button
@@ -135,7 +151,7 @@ export default function BorderSettings({ borders, onChange }: BorderSettingsProp
                   onClick={() => handleChange('width', width)}
                   className={`flex-1 py-2 border-2 rounded-lg text-xs font-medium transition-colors ${
                     borders.width === width
-                      ? 'border-teal-500 bg-teal-50 text-teal-700'
+                      ? 'border-brand-500 bg-brand-50 text-brand-700'
                       : 'border-gray-200 text-gray-600 hover:border-gray-300'
                   }`}
                 >
@@ -145,7 +161,7 @@ export default function BorderSettings({ borders, onChange }: BorderSettingsProp
             </div>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Border Color</label>
+            <label className="field-label">Border Color</label>
             <div className="flex items-center gap-3">
               <input
                 type="color"
@@ -157,7 +173,7 @@ export default function BorderSettings({ borders, onChange }: BorderSettingsProp
                 type="text"
                 value={borders.color}
                 onChange={(e) => handleChange('color', e.target.value)}
-                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm font-mono"
+                className="field-input flex-1 font-mono py-2.5"
               />
             </div>
           </div>
@@ -166,11 +182,11 @@ export default function BorderSettings({ borders, onChange }: BorderSettingsProp
 
       {/* Preview */}
       <div>
-        <h3 className="text-sm font-semibold text-gray-700 mb-4">Preview</h3>
+        <h3 className="text-sm font-black text-gray-900 mb-4 tracking-tight">Preview</h3>
         <div className="p-6 bg-gray-50 rounded-lg space-y-4">
           <div className="grid grid-cols-3 gap-4">
             <div
-              className="p-4 bg-white"
+              className="p-4 bg-card"
               style={{
                 borderRadius: borders.radiusSm,
                 border: `${borders.width} solid ${borders.color}`,
@@ -180,7 +196,7 @@ export default function BorderSettings({ borders, onChange }: BorderSettingsProp
               <p className="text-sm font-medium">Button / Badge</p>
             </div>
             <div
-              className="p-4 bg-white"
+              className="p-4 bg-card"
               style={{
                 borderRadius: borders.radiusMd,
                 border: `${borders.width} solid ${borders.color}`,
@@ -190,7 +206,7 @@ export default function BorderSettings({ borders, onChange }: BorderSettingsProp
               <p className="text-sm font-medium">Card / Input</p>
             </div>
             <div
-              className="p-4 bg-white"
+              className="p-4 bg-card"
               style={{
                 borderRadius: borders.radiusLg,
                 border: `${borders.width} solid ${borders.color}`,
@@ -202,10 +218,7 @@ export default function BorderSettings({ borders, onChange }: BorderSettingsProp
           </div>
 
           <div className="flex gap-3">
-            <button
-              className="px-4 py-2 bg-teal-600 text-white text-sm font-medium"
-              style={{ borderRadius: borders.radiusSm }}
-            >
+            <button className="btn btn-primary" style={{ borderRadius: borders.radiusSm }}>
               Primary Button
             </button>
             <button
@@ -218,7 +231,7 @@ export default function BorderSettings({ borders, onChange }: BorderSettingsProp
               Secondary Button
             </button>
             <span
-              className="px-3 py-1 bg-green-100 text-green-800 text-xs font-medium inline-flex items-center"
+              className="px-3 py-1 bg-emerald-50 text-emerald-600 text-xs font-medium inline-flex items-center"
               style={{ borderRadius: borders.radiusFull }}
             >
               Badge

@@ -1,9 +1,11 @@
 'use client';
 
+import { Loader2, PackageSearch, SearchX } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 
+import { EmptyState, IconTile, PageHeader } from '@/components/ui/bento';
 import { trackGuestOrder, getStatusLabel, formatOrderAmount, type Order } from '@/lib/api/orders';
 
 // ──────────────────────────────────────────────────────────
@@ -13,19 +15,19 @@ import { trackGuestOrder, getStatusLabel, formatOrderAmount, type Order } from '
 function getStatusColor(status: string): string {
   switch (status) {
     case 'PENDING':
-      return 'bg-yellow-100 text-yellow-800';
+      return 'pill-warning';
     case 'CONFIRMED':
-      return 'bg-blue-100 text-blue-800';
+      return 'pill-info';
     case 'PROCESSING':
-      return 'bg-indigo-100 text-indigo-800';
+      return 'bg-indigo-50 text-indigo-600';
     case 'SHIPPED':
-      return 'bg-purple-100 text-purple-800';
+      return 'pill-purple';
     case 'DELIVERED':
-      return 'bg-green-100 text-green-800';
+      return 'pill-success';
     case 'CANCELLED':
-      return 'bg-red-100 text-red-800';
+      return 'pill-danger';
     default:
-      return 'bg-gray-100 text-gray-800';
+      return 'pill-neutral';
   }
 }
 
@@ -77,178 +79,174 @@ export default function TrackOrderPage() {
   };
 
   return (
-    <div className="mx-auto max-w-2xl px-4 sm:px-6 lg:px-8 py-12">
-      <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-2">Track Your Order</h1>
-      <p className="text-gray-500 mb-8">
-        Enter your order number and email address to view your order status.
-      </p>
+    <div className="mx-auto max-w-4xl px-4 py-6 sm:px-6 sm:py-10 lg:px-8">
+      <PageHeader
+        title="Track Your Order"
+        description="Enter your order number and email address to view your order status."
+      />
 
-      {/* Search Form */}
-      <form onSubmit={handleSubmit} className="rounded-xl bg-white border border-gray-200 p-6 mb-8">
-        <div className="space-y-4">
-          <div>
-            <label htmlFor="orderNumber" className="block text-sm font-medium text-gray-700 mb-1">
-              Order Number
-            </label>
-            <input
-              id="orderNumber"
-              type="text"
-              value={orderNumber}
-              onChange={(e) => setOrderNumber(e.target.value)}
-              placeholder="e.g. ORD-20260217-XXXXX"
-              className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
-              required
-            />
+      <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-12">
+        {/* Search Form */}
+        <form
+          onSubmit={handleSubmit}
+          className={`bento-card p-6 sm:p-8 ${order ? 'lg:col-span-5 lg:self-start' : 'lg:col-span-12'}`}
+        >
+          <div className="mb-6 flex items-center gap-3">
+            <IconTile icon={PackageSearch} tone="brand" size="sm" />
+            <div>
+              <h2 className="section-title">Find your order</h2>
+              <p className="eyebrow mt-1">Guest order lookup</p>
+            </div>
+          </div>
+          <div className={`grid grid-cols-1 gap-4 ${order ? '' : 'md:grid-cols-2'}`}>
+            <div>
+              <label htmlFor="orderNumber" className="field-label">
+                Order Number
+              </label>
+              <input
+                id="orderNumber"
+                type="text"
+                value={orderNumber}
+                onChange={(e) => setOrderNumber(e.target.value)}
+                placeholder="e.g. ORD-20260217-XXXXX"
+                className="field-input"
+                required
+              />
+            </div>
+
+            <div>
+              <label htmlFor="email" className="field-label">
+                Email Address
+              </label>
+              <input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="The email you used during checkout"
+                className="field-input"
+                required
+              />
+            </div>
           </div>
 
-          <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-              Email Address
-            </label>
-            <input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="The email you used during checkout"
-              className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
-              required
-            />
-          </div>
-
-          <button
-            type="submit"
-            disabled={isLoading}
-            className="w-full rounded-xl bg-primary px-6 py-3 text-sm font-semibold text-white hover:bg-primary/90 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
-          >
+          <button type="submit" disabled={isLoading} className="btn btn-primary btn-lg mt-6 w-full">
             {isLoading ? (
-              <span className="flex items-center justify-center gap-2">
-                <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" strokeWidth={2.5} />
                 Searching...
-              </span>
+              </>
             ) : (
               'Track Order'
             )}
           </button>
-        </div>
-      </form>
+        </form>
 
-      {/* Order Details */}
-      {order && (
-        <div className="rounded-xl bg-white border border-gray-200 overflow-hidden">
-          {/* Order Header */}
-          <div className="bg-gray-50 border-b border-gray-200 px-6 py-4">
-            <div className="flex items-center justify-between flex-wrap gap-4">
-              <div>
-                <p className="text-sm text-gray-500">Order Number</p>
-                <p className="text-lg font-bold text-gray-900">{order.orderNumber}</p>
-              </div>
-              <span
-                className={`inline-flex items-center rounded-full px-3 py-1 text-sm font-semibold ${getStatusColor(order.status)}`}
-              >
-                {getStatusLabel(order.status)}
-              </span>
-            </div>
-
-            <div className="mt-3 flex items-center gap-6 text-sm text-gray-500">
-              <span>
-                Placed on{' '}
-                {new Date(order.createdAt).toLocaleDateString('en-BD', {
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric',
-                })}
-              </span>
-              {order.paymentMethod && (
-                <span>Payment: {order.paymentMethod === 'COD' ? 'Cash on Delivery' : 'Card'}</span>
-              )}
-            </div>
-          </div>
-
-          {/* Order Items */}
-          <div className="divide-y divide-gray-100">
-            {order.items.map((item) => (
-              <div key={item.id} className="flex items-center gap-4 px-6 py-4">
-                <div className="relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-lg bg-gray-100">
-                  {item.image && (
-                    <img
-                      src={item.image}
-                      alt={item.productName}
-                      className="h-full w-full object-cover"
-                    />
-                  )}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-900 line-clamp-1">
-                    {item.productName}
-                  </p>
-                  <p className="text-xs text-gray-500 mt-0.5">Qty: {item.quantity}</p>
-                </div>
-                <div className="text-right flex-shrink-0">
-                  <p className="text-sm font-semibold text-gray-900">
-                    {formatOrderAmount(item.price * item.quantity)}
+        {/* Order Details */}
+        {order && (
+          <div className="bento-card overflow-hidden lg:col-span-7">
+            {/* Order Header */}
+            <div className="border-b border-foreground/[0.04] px-5 py-5 sm:px-8 sm:py-6">
+              <div className="flex flex-wrap items-center justify-between gap-4">
+                <div className="min-w-0">
+                  <p className="eyebrow">Order Number</p>
+                  <p className="mt-1 break-all text-lg font-black tracking-tight text-gray-900">
+                    {order.orderNumber}
                   </p>
                 </div>
+                <span className={`pill ${getStatusColor(order.status)}`}>
+                  {getStatusLabel(order.status)}
+                </span>
               </div>
-            ))}
-          </div>
 
-          {/* Order Total */}
-          <div className="bg-gray-50 border-t border-gray-200 px-6 py-4">
-            <div className="space-y-2 text-sm">
-              <div className="flex justify-between text-gray-600">
-                <span>Subtotal</span>
-                <span className="font-medium text-gray-900">
-                  {formatOrderAmount(order.subtotal)}
+              <div className="mt-4 flex flex-wrap items-center gap-2 text-xs font-bold text-gray-500">
+                <span className="rounded-xl bg-gray-100 px-3 py-1.5">
+                  Placed on{' '}
+                  {new Date(order.createdAt).toLocaleDateString('en-BD', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                  })}
                 </span>
+                {order.paymentMethod && (
+                  <span className="rounded-xl bg-gray-100 px-3 py-1.5">
+                    Payment: {order.paymentMethod === 'COD' ? 'Cash on Delivery' : 'Card'}
+                  </span>
+                )}
               </div>
-              <div className="flex justify-between text-gray-600">
-                <span>Shipping</span>
-                <span className="font-medium text-gray-900">
-                  {order.shippingCost === 0 ? (
-                    <span className="text-green-600">Free</span>
-                  ) : (
-                    formatOrderAmount(order.shippingCost)
-                  )}
-                </span>
-              </div>
-              <div className="border-t border-gray-200 my-2" />
-              <div className="flex justify-between items-baseline">
-                <span className="text-base font-semibold text-gray-900">Total</span>
-                <span className="text-lg font-bold text-gray-900">
-                  {formatOrderAmount(order.total)}
-                </span>
+            </div>
+
+            {/* Order Items */}
+            <div className="divide-y divide-foreground/[0.03] px-2 sm:px-4">
+              {order.items.map((item) => (
+                <div key={item.id} className="flex items-center gap-4 px-3 py-4">
+                  <div className="relative h-14 w-14 flex-shrink-0 overflow-hidden rounded-[1rem] border border-foreground/[0.04] bg-gray-50 sm:h-16 sm:w-16">
+                    {item.image && (
+                      <img
+                        src={item.image}
+                        alt={item.productName}
+                        className="h-full w-full object-cover"
+                      />
+                    )}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="line-clamp-1 text-sm font-black text-gray-900">
+                      {item.productName}
+                    </p>
+                    <p className="mt-0.5 text-[11px] font-bold text-gray-400">
+                      Qty: {item.quantity}
+                    </p>
+                  </div>
+                  <div className="flex-shrink-0 text-right">
+                    <p className="text-sm font-black tabular-nums text-gray-900">
+                      {formatOrderAmount(item.price * item.quantity)}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Order Total */}
+            <div className="m-4 mt-2 rounded-[1.5rem] bg-gray-50 px-5 py-4 sm:m-6 sm:mt-2">
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between gap-3">
+                  <span className="font-bold text-gray-500">Subtotal</span>
+                  <span className="font-black tabular-nums text-gray-900">
+                    {formatOrderAmount(order.subtotal)}
+                  </span>
+                </div>
+                <div className="flex justify-between gap-3">
+                  <span className="font-bold text-gray-500">Shipping</span>
+                  <span className="font-black tabular-nums text-gray-900">
+                    {order.shippingCost === 0 ? (
+                      <span className="text-emerald-600">Free</span>
+                    ) : (
+                      formatOrderAmount(order.shippingCost)
+                    )}
+                  </span>
+                </div>
+                <div className="my-2 border-t-2 border-dashed border-gray-200" />
+                <div className="flex items-baseline justify-between gap-3">
+                  <span className="text-base font-black text-gray-900">Total</span>
+                  <span className="text-xl font-black tabular-nums tracking-tighter text-brand-700">
+                    {formatOrderAmount(order.total)}
+                  </span>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* Not found state */}
-      {hasSearched && !isLoading && !order && (
-        <div className="rounded-xl bg-white border border-gray-200 p-8 text-center">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="48"
-            height="48"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="mx-auto text-gray-300 mb-4"
-          >
-            <circle cx="11" cy="11" r="8" />
-            <line x1="21" y1="21" x2="16.65" y2="16.65" />
-          </svg>
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">Order Not Found</h3>
-          <p className="text-sm text-gray-500">
-            We couldn&apos;t find an order matching that order number and email. Please double-check
-            your details and try again.
-          </p>
-        </div>
-      )}
+        {/* Not found state */}
+        {hasSearched && !isLoading && !order && (
+          <EmptyState
+            icon={SearchX}
+            title="Order Not Found"
+            description="We couldn't find an order matching that order number and email. Please double-check your details and try again."
+            className="lg:col-span-12"
+          />
+        )}
+      </div>
     </div>
   );
 }

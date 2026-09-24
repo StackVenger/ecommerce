@@ -4,6 +4,7 @@ import { Heart, ShoppingCart, Trash2, Package, Tag } from 'lucide-react';
 import Link from 'next/link';
 import { useEffect, useState, useCallback } from 'react';
 
+import { EmptyState, PageHeader, SkeletonBlock } from '@/components/ui/bento';
 import { useCart } from '@/hooks/use-cart';
 import {
   getWishlist,
@@ -60,50 +61,34 @@ export default function WishlistPage() {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-xl font-bold text-gray-900">My Wishlist</h2>
-          <p className="text-sm text-gray-500 mt-1">
-            {items.length} item{items.length !== 1 ? 's' : ''} saved
-          </p>
-        </div>
-      </div>
+    <div className="space-y-4 sm:space-y-6">
+      <PageHeader
+        title="My Wishlist"
+        description={`${items.length} item${items.length !== 1 ? 's' : ''} saved`}
+        className="mb-0 sm:mb-0"
+      />
 
       {/* Wishlist Grid */}
       {isLoading ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-2 gap-3 sm:gap-6 lg:grid-cols-3">
           {[...Array(6)].map((_, i) => (
-            <div
-              key={i}
-              className="bg-white rounded-xl border border-gray-200 overflow-hidden animate-pulse"
-            >
-              <div className="h-48 bg-gray-200" />
-              <div className="p-4 space-y-2">
-                <div className="h-4 w-32 bg-gray-200 rounded" />
-                <div className="h-5 w-20 bg-gray-200 rounded" />
-              </div>
-            </div>
+            <SkeletonBlock key={i} className="h-80 rounded-[1.75rem] bg-card" />
           ))}
         </div>
       ) : items.length === 0 ? (
-        <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
-          <Heart className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-          <h3 className="text-lg font-semibold text-gray-900 mb-1">Your wishlist is empty</h3>
-          <p className="text-sm text-gray-500 mb-4">
-            Save products you love for later by clicking the heart icon.
-          </p>
-          <Link
-            href="/"
-            className="inline-flex items-center gap-2 bg-primary text-white px-6 py-2.5 rounded-lg font-medium hover:bg-primary/90 transition-colors"
-          >
-            <Package className="w-5 h-5" />
-            Browse Products
-          </Link>
-        </div>
+        <EmptyState
+          icon={Heart}
+          title="Your wishlist is empty"
+          description="Save products you love for later by clicking the heart icon."
+          action={
+            <Link href="/" className="btn btn-primary">
+              <Package className="h-4 w-4" strokeWidth={2.5} />
+              Browse Products
+            </Link>
+          }
+        />
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-2 gap-3 sm:gap-6 lg:grid-cols-3">
           {items.map((item) => {
             const { product } = item;
             const discount = getDiscountPercentage(product.price, product.compareAtPrice);
@@ -112,34 +97,32 @@ export default function WishlistPage() {
             return (
               <div
                 key={item.id}
-                className={`bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm hover:shadow-md transition-all ${
-                  isRemoving ? 'opacity-50' : ''
-                }`}
+                className={`product-card group flex flex-col ${isRemoving ? 'opacity-50' : ''}`}
               >
                 {/* Product Image */}
-                <Link href={`/products/${product.slug}`}>
-                  <div className="relative h-48 bg-gray-100">
+                <Link href={`/products/${product.slug}`} className="block">
+                  <div className="relative aspect-square overflow-hidden bg-gray-50">
                     {product.image ? (
                       <img
                         src={product.image}
                         alt={product.name}
-                        className="w-full h-full object-cover"
+                        className="product-card-image h-full w-full object-cover"
                       />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center">
-                        <Package className="w-12 h-12 text-gray-300" />
+                      <div className="flex h-full w-full items-center justify-center">
+                        <Package className="h-12 w-12 text-gray-300" />
                       </div>
                     )}
 
                     {discount && (
-                      <span className="absolute top-2 left-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full">
+                      <span className="absolute left-3 top-3 z-10 rounded-lg bg-rose-500 px-2.5 py-1 text-[9px] font-black uppercase tracking-widest text-white shadow-sm sm:left-4 sm:top-4">
                         -{discount}%
                       </span>
                     )}
 
                     {!product.inStock && (
-                      <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-                        <span className="bg-white text-gray-900 text-sm font-semibold px-3 py-1 rounded">
+                      <div className="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-[2px]">
+                        <span className="rounded-xl bg-card px-3 py-1.5 text-[10px] font-black uppercase tracking-widest text-gray-900">
                           Out of Stock
                         </span>
                       </div>
@@ -147,57 +130,55 @@ export default function WishlistPage() {
                   </div>
                 </Link>
 
+                {/* Remove */}
+                <button
+                  onClick={() => handleRemove(item.productId)}
+                  disabled={isRemoving}
+                  className="absolute right-3 top-3 z-10 flex h-9 w-9 items-center justify-center rounded-xl border border-foreground/[0.03] bg-card/90 text-gray-500 shadow-sm backdrop-blur-sm transition-all hover:text-rose-500 sm:right-4 sm:top-4 sm:translate-y-2 sm:opacity-0 sm:group-hover:translate-y-0 sm:group-hover:opacity-100"
+                  title="Remove from wishlist"
+                  aria-label={`Remove ${product.name} from wishlist`}
+                >
+                  <Trash2 className="h-4 w-4" strokeWidth={2.25} />
+                </button>
+
                 {/* Product Info */}
-                <div className="p-4">
-                  {product.brand && (
-                    <p className="text-xs text-gray-400 font-medium uppercase tracking-wide mb-1">
-                      {product.brand}
-                    </p>
-                  )}
+                <div className="flex flex-1 flex-col p-4 sm:p-5">
+                  {product.brand && <p className="eyebrow mb-1 truncate">{product.brand}</p>}
 
                   <Link href={`/products/${product.slug}`}>
-                    <h3 className="text-sm font-medium text-gray-900 line-clamp-2 hover:text-primary transition-colors">
+                    <h3 className="line-clamp-2 text-sm font-bold text-gray-900 transition-colors group-hover:text-primary">
                       {product.name}
                     </h3>
                   </Link>
 
-                  {/* Price */}
-                  <div className="flex items-center gap-2 mt-2">
-                    <span className="text-lg font-bold text-gray-900">
-                      {formatPrice(product.price)}
-                    </span>
-                    {product.compareAtPrice && product.compareAtPrice > product.price && (
-                      <span className="text-sm text-gray-400 line-through">
-                        {formatPrice(product.compareAtPrice)}
-                      </span>
-                    )}
-                  </div>
-
                   {product.category && (
-                    <p className="flex items-center gap-1 text-xs text-gray-400 mt-1">
-                      <Tag className="w-3 h-3" />
-                      {product.category}
+                    <p className="mt-1.5 flex items-center gap-1 text-[11px] font-bold text-gray-500">
+                      <Tag className="h-3 w-3" strokeWidth={2.5} />
+                      <span className="truncate">{product.category}</span>
                     </p>
                   )}
 
-                  {/* Actions */}
-                  <div className="flex items-center gap-2 mt-4">
+                  {/* Price + action */}
+                  <div className="mt-auto flex items-end justify-between gap-2 pt-4">
+                    <div className="flex min-w-0 flex-col">
+                      <span className="text-lg font-black tabular-nums tracking-tighter text-gray-900">
+                        {formatPrice(product.price)}
+                      </span>
+                      {product.compareAtPrice && product.compareAtPrice > product.price && (
+                        <span className="text-[11px] font-bold text-gray-400 line-through">
+                          {formatPrice(product.compareAtPrice)}
+                        </span>
+                      )}
+                    </div>
+
                     <button
                       onClick={() => handleAddToCart(item)}
                       disabled={!product.inStock}
-                      className="flex-1 flex items-center justify-center gap-1.5 bg-primary text-white py-2 rounded-lg text-sm font-medium hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-600 shadow-sm transition-all hover:bg-primary hover:text-white active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
+                      aria-label={`Add ${product.name} to cart`}
+                      title="Add to Cart"
                     >
-                      <ShoppingCart className="w-4 h-4" />
-                      Add to Cart
-                    </button>
-
-                    <button
-                      onClick={() => handleRemove(item.productId)}
-                      disabled={isRemoving}
-                      className="p-2 border border-gray-200 rounded-lg text-gray-400 hover:text-red-600 hover:border-red-200 transition-colors"
-                      title="Remove from wishlist"
-                    >
-                      <Trash2 className="w-4 h-4" />
+                      <ShoppingCart className="h-4 w-4" strokeWidth={2.5} />
                     </button>
                   </div>
                 </div>

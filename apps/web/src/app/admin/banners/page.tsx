@@ -258,15 +258,12 @@ export default function AdminBannersPage() {
   return (
     <div className="space-y-6">
       {confirmDialog}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Banners</h1>
-          <p className="text-sm text-gray-500 mt-1">Manage homepage and promotional banners</p>
+          <h1 className="page-title">Banners</h1>
+          <p className="page-subtitle">Manage homepage and promotional banners</p>
         </div>
-        <button
-          onClick={handleCreate}
-          className="px-4 py-2 bg-teal-600 text-white rounded-lg text-sm font-medium hover:bg-teal-700"
-        >
+        <button onClick={handleCreate} className="btn btn-primary">
           + Add Banner
         </button>
       </div>
@@ -287,7 +284,7 @@ export default function AdminBannersPage() {
               onDragStart={() => handleDragStart(banner.id)}
               onDragOver={(e) => handleDragOver(e, banner.id)}
               onDragEnd={handleDragEnd}
-              className={`bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden cursor-grab active:cursor-grabbing ${
+              className={`bento-card bento-card-hover cursor-grab overflow-hidden active:cursor-grabbing ${
                 draggedId === banner.id ? 'opacity-50' : ''
               }`}
             >
@@ -318,17 +315,13 @@ export default function AdminBannersPage() {
                 )}
                 <div className="absolute top-2 right-2 flex gap-2">
                   {banner.isActive ? (
-                    <span className="px-2 py-0.5 bg-green-100 text-green-800 text-xs font-medium rounded-full">
-                      Active
-                    </span>
+                    <span className="pill bg-emerald-50 text-emerald-600">Active</span>
                   ) : (
-                    <span className="px-2 py-0.5 bg-gray-100 text-gray-600 text-xs font-medium rounded-full">
-                      Inactive
-                    </span>
+                    <span className="pill bg-gray-100 text-gray-600">Inactive</span>
                   )}
                 </div>
                 <div className="absolute top-2 left-2">
-                  <span className="px-1.5 h-6 bg-gray-900/70 text-white text-xs flex items-center justify-center rounded">
+                  <span className="px-1.5 h-6 bg-ink/70 text-white text-xs flex items-center justify-center rounded">
                     {banner.position}
                   </span>
                 </div>
@@ -336,16 +329,16 @@ export default function AdminBannersPage() {
 
               {/* Banner Info */}
               <div className="p-4">
-                <h3 className="text-sm font-semibold text-gray-900">{banner.title}</h3>
+                <h3 className="text-lg font-black tracking-tight text-gray-900">{banner.title}</h3>
                 {banner.titleBn && <p className="text-xs text-gray-500 mt-0.5">{banner.titleBn}</p>}
                 {banner.link && (
-                  <p className="text-xs text-teal-600 mt-1 truncate">{banner.link}</p>
+                  <p className="text-xs text-brand-600 mt-1 truncate">{banner.link}</p>
                 )}
-                <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-200">
+                <div className="flex items-center justify-between mt-3 pt-3 border-t border-foreground/[0.04]">
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => handleEdit(banner)}
-                      className="text-xs text-teal-600 hover:text-teal-800 font-medium"
+                      className="text-xs text-brand-600 hover:text-brand-800 font-medium"
                     >
                       Edit
                     </button>
@@ -386,9 +379,9 @@ export default function AdminBannersPage() {
       {showForm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div className="absolute inset-0 bg-black/50" onClick={() => setShowForm(false)} />
-          <div className="relative bg-white rounded-xl shadow-2xl w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
-            <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
-              <h2 className="text-lg font-semibold text-gray-900">
+          <div className="relative bg-card rounded-[2rem] shadow-2xl w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="px-6 py-4 border-b border-foreground/[0.04] flex items-center justify-between">
+              <h2 className="text-lg font-black text-gray-900 tracking-tight">
                 {editingId ? 'Edit Banner' : 'Create Banner'}
               </h2>
               <button
@@ -409,57 +402,51 @@ export default function AdminBannersPage() {
             <form onSubmit={handleSubmit} className="p-6 space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Title (English)
-                  </label>
+                  <label className="field-label">Title (English)</label>
                   <input
                     type="text"
                     value={formData.title}
                     onChange={(e) => setFormData((prev) => ({ ...prev, title: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                    className="field-input w-full"
                     required
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    শিরোনাম (বাংলা)
-                  </label>
+                  <label className="field-label">শিরোনাম (বাংলা)</label>
                   <input
                     type="text"
                     value={formData.titleBn}
                     onChange={(e) => setFormData((prev) => ({ ...prev, titleBn: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                    className="field-input w-full"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Subtitle</label>
+                  <label className="field-label">Subtitle</label>
                   <input
                     type="text"
                     value={formData.subtitle}
                     onChange={(e) => setFormData((prev) => ({ ...prev, subtitle: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                    className="field-input w-full"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    সাবটাইটেল (বাংলা)
-                  </label>
+                  <label className="field-label">সাবটাইটেল (বাংলা)</label>
                   <input
                     type="text"
                     value={formData.subtitleBn}
                     onChange={(e) =>
                       setFormData((prev) => ({ ...prev, subtitleBn: e.target.value }))
                     }
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                    className="field-input w-full"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Position</label>
+                <label className="field-label">Position</label>
                 <select
                   value={formData.position}
                   onChange={(e) =>
@@ -468,7 +455,7 @@ export default function AdminBannersPage() {
                       position: e.target.value as BannerPosition,
                     }))
                   }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white"
+                  className="field-input w-full"
                 >
                   {BANNER_POSITIONS.map((opt) => (
                     <option key={opt.value} value={opt.value}>
@@ -476,15 +463,13 @@ export default function AdminBannersPage() {
                     </option>
                   ))}
                 </select>
-                <p className="mt-1 text-xs text-gray-500">
+                <p className="field-hint">
                   {BANNER_POSITIONS.find((o) => o.value === formData.position)?.hint}
                 </p>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Desktop Image
-                </label>
+                <label className="field-label">Desktop Image</label>
                 <input
                   ref={desktopFileRef}
                   type="file"
@@ -524,7 +509,7 @@ export default function AdminBannersPage() {
                     type="button"
                     onClick={() => desktopFileRef.current?.click()}
                     disabled={uploading === 'desktop'}
-                    className="rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                    className="btn btn-secondary btn-sm"
                   >
                     {uploading === 'desktop'
                       ? 'Uploading…'
@@ -533,15 +518,11 @@ export default function AdminBannersPage() {
                         : 'Upload image'}
                   </button>
                 </div>
-                {!formData.image && (
-                  <p className="mt-1 text-xs text-red-600">A desktop image is required.</p>
-                )}
+                {!formData.image && <p className="field-error">A desktop image is required.</p>}
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Mobile Image (optional)
-                </label>
+                <label className="field-label">Mobile Image (optional)</label>
                 <input
                   ref={mobileFileRef}
                   type="file"
@@ -581,7 +562,7 @@ export default function AdminBannersPage() {
                     type="button"
                     onClick={() => mobileFileRef.current?.click()}
                     disabled={uploading === 'mobile'}
-                    className="rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                    className="btn btn-secondary btn-sm"
                   >
                     {uploading === 'mobile'
                       ? 'Uploading…'
@@ -593,73 +574,67 @@ export default function AdminBannersPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Link URL</label>
+                <label className="field-label">Link URL</label>
                 <input
                   type="text"
                   value={formData.link}
                   onChange={(e) => setFormData((prev) => ({ ...prev, link: e.target.value }))}
                   placeholder="/collections/summer-sale"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                  className="field-input w-full"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Button Text
-                  </label>
+                  <label className="field-label">Button Text</label>
                   <input
                     type="text"
                     value={formData.buttonText}
                     onChange={(e) =>
                       setFormData((prev) => ({ ...prev, buttonText: e.target.value }))
                     }
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                    className="field-input w-full"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    বাটন টেক্সট (বাংলা)
-                  </label>
+                  <label className="field-label">বাটন টেক্সট (বাংলা)</label>
                   <input
                     type="text"
                     value={formData.buttonTextBn}
                     onChange={(e) =>
                       setFormData((prev) => ({ ...prev, buttonTextBn: e.target.value }))
                     }
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                    className="field-input w-full"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
+                  <label className="field-label">Start Date</label>
                   <input
                     type="date"
                     value={formData.startDate}
                     onChange={(e) =>
                       setFormData((prev) => ({ ...prev, startDate: e.target.value }))
                     }
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                    className="field-input w-full"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">End Date</label>
+                  <label className="field-label">End Date</label>
                   <input
                     type="date"
                     value={formData.endDate}
                     onChange={(e) => setFormData((prev) => ({ ...prev, endDate: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                    className="field-input w-full"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Background Color
-                  </label>
+                  <label className="field-label">Background Color</label>
                   <input
                     type="color"
                     value={formData.backgroundColor}
@@ -670,7 +645,7 @@ export default function AdminBannersPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Text Color</label>
+                  <label className="field-label">Text Color</label>
                   <input
                     type="color"
                     value={formData.textColor}
@@ -687,24 +662,20 @@ export default function AdminBannersPage() {
                   type="checkbox"
                   checked={formData.isActive}
                   onChange={(e) => setFormData((prev) => ({ ...prev, isActive: e.target.checked }))}
-                  className="rounded border-gray-300 text-teal-600"
+                  className="rounded border-gray-300 text-brand-600"
                 />
                 <span className="text-sm text-gray-700">Active</span>
               </label>
 
-              <div className="flex gap-3 justify-end pt-4 border-t border-gray-200">
+              <div className="flex gap-3 justify-end pt-4 border-t border-foreground/[0.04]">
                 <button
                   type="button"
                   onClick={() => setShowForm(false)}
-                  className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50"
+                  className="btn btn-secondary"
                 >
                   Cancel
                 </button>
-                <button
-                  type="submit"
-                  disabled={saving}
-                  className="px-4 py-2 bg-teal-600 text-white rounded-lg text-sm font-medium hover:bg-teal-700 disabled:opacity-50"
-                >
+                <button type="submit" disabled={saving} className="btn btn-primary">
                   {saving ? 'Saving...' : editingId ? 'Update Banner' : 'Create Banner'}
                 </button>
               </div>

@@ -1,9 +1,13 @@
 'use client';
 
+import { Search, Users } from 'lucide-react';
 import React, { useState, useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
 
+import { ListPagination } from '@/components/admin/list-pagination';
 import { useConfirm } from '@/components/admin/ui/confirm-dialog';
+import { AccountStatusPill, RolePill } from '@/components/admin/users/user-pills';
+import { EmptyState, LoadingState, PageHeader } from '@/components/ui/bento';
 import { apiClient } from '@/lib/api/client';
 import { getApiErrorMessage } from '@/lib/api/errors';
 
@@ -25,28 +29,6 @@ interface PaginationInfo {
   limit: number;
   total: number;
   pages: number;
-}
-
-const ROLE_BADGES: Record<string, { label: string; className: string }> = {
-  CUSTOMER: { label: 'Customer', className: 'bg-teal-100 text-teal-700 border-teal-200' },
-  ADMIN: { label: 'Admin', className: 'bg-purple-100 text-purple-700 border-purple-200' },
-  SUPER_ADMIN: { label: 'Super Admin', className: 'bg-red-100 text-red-700 border-red-200' },
-};
-
-const STATUS_BADGES: Record<string, { label: string; className: string }> = {
-  ACTIVE: { label: 'Active', className: 'bg-green-100 text-green-700 border-green-200' },
-  INACTIVE: { label: 'Inactive', className: 'bg-gray-100 text-gray-600 border-gray-200' },
-  SUSPENDED: { label: 'Suspended', className: 'bg-red-100 text-red-700 border-red-200' },
-};
-
-function Badge({ label, className }: { label: string; className: string }) {
-  return (
-    <span
-      className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border ${className}`}
-    >
-      {label}
-    </span>
-  );
 }
 
 export default function AdminCustomersPage() {
@@ -147,49 +129,54 @@ export default function AdminCustomersPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div>
       {confirmDialog}
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">Customers</h1>
-        <p className="text-sm text-gray-500 mt-1">{pagination.total} total users</p>
-      </div>
+      <PageHeader
+        title="Customers"
+        description={`${pagination.total} total users`}
+        actions={
+          <div className="flex items-center gap-3 rounded-2xl border border-foreground/[0.04] bg-card px-4 py-2.5 shadow-bento">
+            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-blue-50 text-blue-500">
+              <Users className="h-4 w-4" strokeWidth={2.5} />
+            </div>
+            <div>
+              <p className="text-lg font-black leading-none tabular-nums tracking-tighter text-gray-900">
+                {pagination.total}
+              </p>
+              <p className="eyebrow mt-0.5">Accounts</p>
+            </div>
+          </div>
+        }
+      />
 
       {/* Search and Filters */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-        <div className="flex items-center gap-4">
-          <div className="flex-1 relative">
-            <svg
-              className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-              />
-            </svg>
+      <div className="mb-6 rounded-[1.75rem] border border-foreground/[0.04] bg-card p-3 shadow-bento">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+          <div className="group/search relative flex-1">
+            <Search
+              className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400 transition-colors group-focus-within/search:text-gray-700"
+              strokeWidth={2.5}
+            />
             <input
               type="text"
               placeholder="Search by name, email, or phone..."
+              aria-label="Search customers"
               value={search}
               onChange={(e) => {
                 setSearch(e.target.value);
                 setPagination((prev) => ({ ...prev, page: 1 }));
               }}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
+              className="field-input border-transparent bg-gray-50 pl-11 shadow-none focus:bg-card"
             />
           </div>
           <select
             value={roleFilter}
+            aria-label="Filter by role"
             onChange={(e) => {
               setRoleFilter(e.target.value);
               setPagination((prev) => ({ ...prev, page: 1 }));
             }}
-            className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-teal-500"
+            className="field-input border-transparent bg-gray-50 shadow-none sm:w-48"
           >
             <option value="">All Roles</option>
             <option value="CUSTOMER">Customer</option>
@@ -200,192 +187,132 @@ export default function AdminCustomersPage() {
       </div>
 
       {/* Customers Table */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+      <div className="bento-card overflow-hidden p-2 sm:p-4">
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+          <table className="bento-table min-w-[1000px]">
+            <thead>
               <tr>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Customer
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Contact
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Role
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Status
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Orders
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Joined
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Last Login
-                </th>
-                <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Actions
-                </th>
+                <th className="pl-4">Customer</th>
+                <th>Contact</th>
+                <th className="text-center">Role</th>
+                <th className="text-center">Status</th>
+                <th className="text-center">Orders</th>
+                <th>Joined</th>
+                <th>Last Login</th>
+                <th className="pr-4 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={8} className="px-4 py-12 text-center">
-                    <div className="flex items-center justify-center">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-teal-600" />
-                      <span className="ml-3 text-gray-500">Loading customers...</span>
-                    </div>
+                  <td colSpan={8}>
+                    <LoadingState label="Loading customers" />
                   </td>
                 </tr>
               ) : customers.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="px-4 py-12 text-center text-gray-500">
-                    No customers found.
+                  <td colSpan={8}>
+                    <EmptyState bare icon={Users} title="No customers found." />
                   </td>
                 </tr>
               ) : (
-                customers.map((customer) => {
-                  const roleBadge = ROLE_BADGES[customer.role] ?? {
-                    label: customer.role,
-                    className: 'bg-gray-100 text-gray-700 border-gray-200',
-                  };
-                  const statusBadge = STATUS_BADGES[customer.status] ?? {
-                    label: customer.status,
-                    className: 'bg-gray-100 text-gray-700 border-gray-200',
-                  };
-                  return (
-                    <tr key={customer.id} className="hover:bg-gray-50 transition-colors">
-                      <td className="px-4 py-3">
-                        <div className="flex items-center gap-3">
-                          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-teal-100 text-sm font-medium text-teal-700">
-                            {customer.firstName.charAt(0)}
-                            {customer.lastName.charAt(0)}
-                          </div>
-                          <div>
-                            <div className="text-sm font-medium text-gray-900">
-                              {customer.firstName} {customer.lastName}
-                            </div>
-                          </div>
+                customers.map((customer) => (
+                  <tr key={customer.id} className="group">
+                    <td className="pl-4">
+                      <a
+                        href={`/admin/customers/${customer.id}`}
+                        className="flex items-center gap-3"
+                      >
+                        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[16px] bg-brand-50 text-sm font-black text-brand-700 transition-transform group-hover:scale-105">
+                          {customer.firstName.charAt(0)}
+                          {customer.lastName.charAt(0)}
                         </div>
-                      </td>
-                      <td className="px-4 py-3">
-                        <div className="text-sm text-gray-900">{customer.email}</div>
-                        {customer.phone && (
-                          <div className="text-xs text-gray-500">{customer.phone}</div>
-                        )}
-                      </td>
-                      <td className="px-4 py-3">
-                        <Badge label={roleBadge.label} className={roleBadge.className} />
-                      </td>
-                      <td className="px-4 py-3">
-                        <Badge label={statusBadge.label} className={statusBadge.className} />
-                      </td>
-                      <td className="px-4 py-3 text-sm text-gray-700">{customer.orders}</td>
-                      <td className="px-4 py-3 text-sm text-gray-500">
-                        {new Date(customer.createdAt).toLocaleDateString('en-BD', {
+                        <span className="whitespace-nowrap text-sm font-black text-gray-900 transition-colors group-hover:text-primary">
+                          {customer.firstName} {customer.lastName}
+                        </span>
+                      </a>
+                    </td>
+                    <td>
+                      <div className="max-w-[220px] truncate text-sm font-bold text-gray-800">
+                        {customer.email}
+                      </div>
+                      {customer.phone && (
+                        <div className="text-[11px] font-bold text-gray-400">{customer.phone}</div>
+                      )}
+                    </td>
+                    <td className="text-center">
+                      <RolePill role={customer.role} />
+                    </td>
+                    <td className="text-center">
+                      <AccountStatusPill status={customer.status} />
+                    </td>
+                    <td className="text-center text-sm font-black tabular-nums text-gray-900">
+                      {customer.orders}
+                    </td>
+                    <td className="whitespace-nowrap text-xs font-bold text-gray-500">
+                      {new Date(customer.createdAt).toLocaleDateString('en-BD', {
+                        day: 'numeric',
+                        month: 'short',
+                        year: 'numeric',
+                      })}
+                    </td>
+                    <td className="whitespace-nowrap text-xs font-bold text-gray-500">
+                      {customer.lastLoginAt ? (
+                        new Date(customer.lastLoginAt).toLocaleDateString('en-BD', {
                           day: 'numeric',
                           month: 'short',
                           year: 'numeric',
-                        })}
-                      </td>
-                      <td className="px-4 py-3 text-sm text-gray-500">
-                        {customer.lastLoginAt ? (
-                          new Date(customer.lastLoginAt).toLocaleDateString('en-BD', {
-                            day: 'numeric',
-                            month: 'short',
-                            year: 'numeric',
-                          })
-                        ) : (
-                          <span className="text-gray-400">Never</span>
-                        )}
-                      </td>
-                      <td className="px-4 py-3 text-right">
-                        <div className="flex items-center justify-end gap-2">
+                        })
+                      ) : (
+                        <span className="text-gray-300">Never</span>
+                      )}
+                    </td>
+                    <td className="pr-4 text-right">
+                      <div className="flex items-center justify-end gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => toggleStatus(customer.id)}
+                          className={`btn btn-sm ${
+                            customer.status === 'ACTIVE'
+                              ? 'bg-amber-50 text-amber-700 hover:bg-amber-100'
+                              : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
+                          }`}
+                        >
+                          {customer.status === 'ACTIVE' ? 'Deactivate' : 'Activate'}
+                        </button>
+                        {customer.role !== 'SUPER_ADMIN' && (
                           <button
-                            onClick={() => toggleStatus(customer.id)}
-                            className={`text-xs px-2 py-1 rounded font-medium ${
-                              customer.status === 'ACTIVE'
-                                ? 'text-amber-600 hover:bg-amber-50'
-                                : 'text-green-600 hover:bg-green-50'
-                            }`}
+                            type="button"
+                            onClick={() =>
+                              handleDelete(
+                                customer.id,
+                                `${customer.firstName} ${customer.lastName}`.trim() ||
+                                  customer.email,
+                              )
+                            }
+                            className="btn btn-danger-soft btn-sm"
+                            title="Permanently delete this customer and all their data"
                           >
-                            {customer.status === 'ACTIVE' ? 'Deactivate' : 'Activate'}
+                            Delete
                           </button>
-                          {customer.role !== 'SUPER_ADMIN' && (
-                            <button
-                              onClick={() =>
-                                handleDelete(
-                                  customer.id,
-                                  `${customer.firstName} ${customer.lastName}`.trim() ||
-                                    customer.email,
-                                )
-                              }
-                              className="text-xs px-2 py-1 rounded font-medium text-red-600 hover:bg-red-50"
-                              title="Permanently delete this customer and all their data"
-                            >
-                              Delete
-                            </button>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))
               )}
             </tbody>
           </table>
         </div>
 
-        {/* Pagination */}
-        {pagination.pages > 1 && (
-          <div className="px-4 py-3 border-t border-gray-200 flex items-center justify-between bg-gray-50">
-            <div className="text-sm text-gray-500">
-              Showing {(pagination.page - 1) * pagination.limit + 1} to{' '}
-              {Math.min(pagination.page * pagination.limit, pagination.total)} of {pagination.total}{' '}
-              customers
-            </div>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => handlePageChange(pagination.page - 1)}
-                disabled={pagination.page <= 1}
-                className="px-3 py-1 border border-gray-300 rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-white"
-              >
-                Previous
-              </button>
-              {Array.from({ length: Math.min(5, pagination.pages) }, (_, i) => {
-                const startPage = Math.max(1, pagination.page - 2);
-                const p = startPage + i;
-                if (p > pagination.pages) {
-                  return null;
-                }
-                return (
-                  <button
-                    key={p}
-                    onClick={() => handlePageChange(p)}
-                    className={`px-3 py-1 border rounded text-sm ${
-                      p === pagination.page
-                        ? 'bg-teal-600 text-white border-teal-600'
-                        : 'border-gray-300 hover:bg-white'
-                    }`}
-                  >
-                    {p}
-                  </button>
-                );
-              })}
-              <button
-                onClick={() => handlePageChange(pagination.page + 1)}
-                disabled={pagination.page >= pagination.pages}
-                className="px-3 py-1 border border-gray-300 rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-white"
-              >
-                Next
-              </button>
-            </div>
-          </div>
-        )}
+        <ListPagination
+          page={pagination.page}
+          totalPages={pagination.pages}
+          total={pagination.total}
+          limit={pagination.limit}
+          noun="customers"
+          onPageChange={handlePageChange}
+        />
       </div>
     </div>
   );

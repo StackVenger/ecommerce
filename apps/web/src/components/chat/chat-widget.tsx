@@ -69,19 +69,22 @@ export function ChatWidget() {
     <>
       {/* Chat panel */}
       {isOpen && (
-        <div className="fixed bottom-20 right-4 z-[65] flex h-[32rem] w-[calc(100%-2rem)] max-w-[22rem] flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-2xl sm:right-6 sm:max-w-96">
+        <div className="fixed bottom-20 right-4 z-[65] flex h-[32rem] w-[calc(100%-2rem)] max-w-[22rem] flex-col overflow-hidden rounded-[2rem] border border-foreground/[0.04] bg-card shadow-2xl shadow-black/10 sm:right-6 sm:max-w-96">
           {/* Header */}
-          <div className="flex items-center justify-between bg-primary px-4 py-3">
-            <div className="flex items-center gap-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white/20">
+          <div className="relative flex items-center justify-between overflow-hidden bg-ink px-5 py-4">
+            <div className="bento-glow -right-8 -top-8 h-28 w-28 bg-primary/30" aria-hidden />
+            <div className="relative flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary shadow-brand-glow">
                 <MessageCircle className="w-4 h-4 text-white" />
               </div>
               <div>
-                <h3 className="text-sm font-semibold text-white">Shopping Assistant</h3>
-                <p className="text-xs text-teal-100">Ask about our products</p>
+                <h3 className="text-sm font-black tracking-tight text-white">Shopping Assistant</h3>
+                <p className="text-[10px] font-black uppercase tracking-widest text-white/40">
+                  Ask about our products
+                </p>
               </div>
             </div>
-            <div className="flex items-center gap-1">
+            <div className="relative flex items-center gap-1">
               {messages.length > 0 && (
                 <button
                   onClick={clearMessages}
@@ -105,11 +108,13 @@ export function ChatWidget() {
           <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3">
             {messages.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full text-center px-4">
-                <div className="w-12 h-12 bg-teal-100 rounded-full flex items-center justify-center mb-3">
+                <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-50">
                   <MessageCircle className="w-6 h-6 text-primary" />
                 </div>
-                <h4 className="text-sm font-semibold text-gray-900 mb-1">Hi there!</h4>
-                <p className="text-xs text-gray-500 mb-4">
+                <h4 className="mb-1 text-base font-black tracking-tight text-gray-900">
+                  Hi there!
+                </h4>
+                <p className="mb-4 text-xs font-medium text-gray-500">
                   I can help you find products, compare prices, and answer questions about our
                   store.
                 </p>
@@ -118,7 +123,7 @@ export function ChatWidget() {
                     <button
                       key={q}
                       onClick={() => handleSuggestedQuestion(q)}
-                      className="rounded-lg border border-teal-200 bg-teal-50 px-3 py-2 text-xs text-primary hover:bg-teal-100 transition-colors text-left"
+                      className="rounded-2xl bg-gray-50 px-4 py-2.5 text-left text-xs font-bold text-gray-700 transition-colors hover:bg-brand-50 hover:text-brand-700"
                     >
                       {q}
                     </button>
@@ -150,21 +155,21 @@ export function ChatWidget() {
           </div>
 
           {/* Input area */}
-          <form onSubmit={handleSubmit} className="border-t border-gray-200 px-4 py-3">
+          <form onSubmit={handleSubmit} className="border-t border-foreground/[0.05] p-3">
             <div className="flex gap-2">
               <input
                 ref={inputRef}
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 placeholder="Ask about products..."
-                className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                className="min-w-0 flex-1 rounded-2xl border border-foreground/[0.06] bg-gray-50 px-4 py-2.5 text-sm font-medium outline-none transition-all placeholder:text-gray-400 focus:bg-card focus:ring-4 focus:ring-primary/10"
                 disabled={isLoading}
                 maxLength={500}
               />
               <button
                 type="submit"
                 disabled={!input.trim() || isLoading}
-                className="rounded-lg bg-primary px-3 py-2 text-white hover:bg-primary/90 disabled:opacity-50 transition-colors"
+                className="btn-icon bg-primary text-white shadow-brand-glow hover:bg-brand-700"
               >
                 <Send className="w-4 h-4" />
               </button>
@@ -176,7 +181,7 @@ export function ChatWidget() {
       {/* Floating trigger button */}
       <button
         onClick={toggleChat}
-        className="fixed bottom-4 right-4 z-[65] flex h-14 w-14 items-center justify-center rounded-full bg-primary text-white shadow-lg hover:bg-primary/90 transition-all hover:scale-105 sm:right-6"
+        className="fixed bottom-4 right-4 z-[65] flex h-14 w-14 items-center justify-center rounded-2xl bg-primary text-white shadow-brand-glow transition-all hover:scale-105 hover:bg-brand-700 active:scale-95 sm:right-6"
         aria-label={isOpen ? 'Close chat' : 'Open chat assistant'}
       >
         {isOpen ? <X className="w-6 h-6" /> : <MessageCircle className="w-6 h-6" />}

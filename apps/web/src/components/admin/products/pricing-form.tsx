@@ -53,19 +53,19 @@ function CurrencyInput({
 }: CurrencyInputProps) {
   return (
     <div>
-      <label htmlFor={id} className="mb-1.5 block text-sm font-medium text-gray-700">
+      <label htmlFor={id} className="field-label">
         {label}
         {required && <span className="text-red-500"> *</span>}
       </label>
       <div
         className={cn(
-          'flex rounded-lg border focus-within:ring-1',
+          'flex overflow-hidden rounded-2xl border bg-card shadow-sm transition-all focus-within:ring-4',
           error
-            ? 'border-red-300 focus-within:border-red-500 focus-within:ring-red-500'
-            : 'border-gray-300 focus-within:border-teal-500 focus-within:ring-teal-500',
+            ? 'border-rose-300 focus-within:border-rose-400 focus-within:ring-rose-500/10'
+            : 'border-foreground/[0.06] focus-within:border-brand-300 focus-within:ring-brand-500/10',
         )}
       >
-        <span className="inline-flex items-center border-r border-gray-300 bg-gray-50 px-3 text-sm font-medium text-gray-500">
+        <span className="inline-flex items-center border-r border-foreground/[0.06] bg-gray-50 px-4 text-sm font-bold text-gray-500">
           ৳
         </span>
         <input
@@ -79,11 +79,11 @@ function CurrencyInput({
             onChange(val === '' ? null : parseFloat(val));
           }}
           placeholder={placeholder}
-          className="flex-1 rounded-r-lg px-4 py-2.5 text-sm focus:outline-none"
+          className="min-w-0 flex-1 bg-transparent px-4 py-3 text-sm font-medium outline-none"
         />
       </div>
-      {error && <p className="mt-1 text-sm text-red-600">{error}</p>}
-      {helperText && !error && <p className="mt-1 text-xs text-gray-500">{helperText}</p>}
+      {error && <p className="field-error">{error}</p>}
+      {helperText && !error && <p className="field-hint">{helperText}</p>}
     </div>
   );
 }
@@ -113,10 +113,10 @@ export function PricingForm({
   return (
     <div className="space-y-8">
       {/* Pricing Section */}
-      <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+      <div className="bento-card p-6 sm:p-8">
         <div className="mb-6 flex items-center gap-2">
           <DollarSign className="h-5 w-5 text-gray-400" />
-          <h2 className="text-lg font-semibold text-gray-900">Pricing (BDT ৳)</h2>
+          <h2 className="text-lg font-black text-gray-900 tracking-tight">Pricing (BDT ৳)</h2>
         </div>
 
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -193,10 +193,10 @@ export function PricingForm({
       </div>
 
       {/* Inventory Section */}
-      <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+      <div className="bento-card p-6 sm:p-8">
         <div className="mb-6 flex items-center gap-2">
           <Package className="h-5 w-5 text-gray-400" />
-          <h2 className="text-lg font-semibold text-gray-900">Inventory</h2>
+          <h2 className="text-lg font-black text-gray-900 tracking-tight">Inventory</h2>
         </div>
 
         {hasVariants && (
@@ -214,10 +214,7 @@ export function PricingForm({
             <>
               {/* Stock Quantity */}
               <div>
-                <label
-                  htmlFor="quantity"
-                  className="mb-1.5 block text-sm font-medium text-gray-700"
-                >
+                <label htmlFor="quantity" className="field-label">
                   Stock Quantity <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -226,17 +223,14 @@ export function PricingForm({
                   min="0"
                   value={data.quantity}
                   onChange={(e) => onChange('quantity', parseInt(e.target.value, 10) || 0)}
-                  className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
+                  className="field-input w-full"
                 />
-                {errors.quantity && <p className="mt-1 text-sm text-red-600">{errors.quantity}</p>}
+                {errors.quantity && <p className="field-error">{errors.quantity}</p>}
               </div>
 
               {/* Low Stock Threshold */}
               <div>
-                <label
-                  htmlFor="lowStockThreshold"
-                  className="mb-1.5 block text-sm font-medium text-gray-700"
-                >
+                <label htmlFor="lowStockThreshold" className="field-label">
                   Low Stock Threshold
                 </label>
                 <input
@@ -245,18 +239,16 @@ export function PricingForm({
                   min="0"
                   value={data.lowStockThreshold}
                   onChange={(e) => onChange('lowStockThreshold', parseInt(e.target.value, 10) || 0)}
-                  className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
+                  className="field-input w-full"
                 />
-                <p className="mt-1 text-xs text-gray-500">
-                  Alert when stock drops below this number
-                </p>
+                <p className="field-hint">Alert when stock drops below this number</p>
               </div>
             </>
           )}
 
           {/* Weight */}
           <div>
-            <label htmlFor="weight" className="mb-1.5 block text-sm font-medium text-gray-700">
+            <label htmlFor="weight" className="field-label">
               Weight (grams)
             </label>
             <input
@@ -269,9 +261,9 @@ export function PricingForm({
                 onChange('weight', val === '' ? null : parseFloat(val));
               }}
               placeholder="e.g., 500"
-              className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
+              className="field-input w-full"
             />
-            <p className="mt-1 text-xs text-gray-500">Used for shipping cost calculation</p>
+            <p className="field-hint">Used for shipping cost calculation</p>
           </div>
         </div>
 

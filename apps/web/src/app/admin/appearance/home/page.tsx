@@ -224,18 +224,14 @@ export default function AdminHomeSectionsPage() {
     <div className="p-6">
       <div className="mb-6 flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Home page layout</h1>
-          <p className="mt-1 text-sm text-gray-500">
+          <h1 className="page-title">Home page layout</h1>
+          <p className="page-subtitle">
             Reorder, hide, or tweak the storefront home sections. Changes take effect on the next
             request once saved.
           </p>
         </div>
         <div className="flex gap-2">
-          <button
-            type="button"
-            onClick={reset}
-            className="rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
-          >
+          <button type="button" onClick={reset} className="btn btn-secondary">
             Reset to defaults
           </button>
           <button
@@ -256,24 +252,24 @@ export default function AdminHomeSectionsPage() {
           return (
             <li
               key={section.id}
-              className={`rounded-xl border border-gray-200 bg-white p-4 shadow-sm transition-opacity ${
-                section.visible ? '' : 'opacity-60'
-              }`}
+              className={`bento-card p-5 transition-opacity ${section.visible ? '' : 'opacity-60'}`}
             >
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
-                    <span className="inline-flex h-6 w-6 items-center justify-center rounded-md bg-gray-100 text-xs font-semibold text-gray-700">
+                    <span className="inline-flex h-6 w-6 items-center justify-center rounded-md bg-gray-100 text-xs font-semibold text-gray-600">
                       {index + 1}
                     </span>
-                    <h3 className="text-sm font-semibold text-gray-900">{meta.label}</h3>
+                    <h3 className="text-lg font-black tracking-tight text-gray-900">
+                      {meta.label}
+                    </h3>
                     {!section.visible && (
                       <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-500">
                         hidden
                       </span>
                     )}
                   </div>
-                  <p className="mt-1 text-xs text-gray-500">{meta.description}</p>
+                  <p className="field-hint">{meta.description}</p>
 
                   {section.type === 'categories' ||
                   section.type === 'featured_products' ||
@@ -286,7 +282,7 @@ export default function AdminHomeSectionsPage() {
                           value={(section.props?.heading as string | undefined) ?? ''}
                           onChange={(e) => updateProp(index, 'heading', e.target.value)}
                           placeholder={meta.label}
-                          className="mt-1 block w-full rounded-md border border-gray-200 px-2 py-1.5 text-sm"
+                          className="field-input block w-full"
                         />
                       </label>
                       <label className="text-xs text-gray-600">
@@ -303,7 +299,7 @@ export default function AdminHomeSectionsPage() {
                               Math.max(1, Math.min(24, Number(e.target.value) || 1)),
                             )
                           }
-                          className="mt-1 block w-full rounded-md border border-gray-200 px-2 py-1.5 text-sm"
+                          className="field-input block w-full"
                         />
                       </label>
                     </div>
@@ -315,7 +311,7 @@ export default function AdminHomeSectionsPage() {
                     type="button"
                     onClick={() => moveUp(index)}
                     disabled={index === 0}
-                    className="rounded-md p-1.5 text-gray-500 hover:bg-gray-100 hover:text-gray-900 disabled:cursor-not-allowed disabled:opacity-30"
+                    className="rounded-xl p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-900 disabled:cursor-not-allowed disabled:opacity-30 transition-all"
                     aria-label="Move up"
                   >
                     <ArrowUp className="h-4 w-4" />
@@ -324,7 +320,7 @@ export default function AdminHomeSectionsPage() {
                     type="button"
                     onClick={() => moveDown(index)}
                     disabled={index === sections.length - 1}
-                    className="rounded-md p-1.5 text-gray-500 hover:bg-gray-100 hover:text-gray-900 disabled:cursor-not-allowed disabled:opacity-30"
+                    className="rounded-xl p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-900 disabled:cursor-not-allowed disabled:opacity-30 transition-all"
                     aria-label="Move down"
                   >
                     <ArrowDown className="h-4 w-4" />
@@ -332,7 +328,7 @@ export default function AdminHomeSectionsPage() {
                   <button
                     type="button"
                     onClick={() => toggleVisible(index)}
-                    className="rounded-md p-1.5 text-gray-500 hover:bg-gray-100 hover:text-gray-900"
+                    className="rounded-xl p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-900 transition-all"
                     aria-label={section.visible ? 'Hide section' : 'Show section'}
                   >
                     {section.visible ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}

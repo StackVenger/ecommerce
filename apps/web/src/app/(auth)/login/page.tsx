@@ -97,8 +97,9 @@ function LoginContent() {
     <div className="w-full max-w-md space-y-8">
       {/* Header */}
       <div className="text-center">
-        <h1 className="text-2xl font-bold tracking-tight">Welcome back</h1>
-        <p className="mt-2 text-sm text-muted-foreground">
+        <p className="eyebrow mb-3">Sign in</p>
+        <h1 className="text-3xl font-black tracking-tighter text-gray-900">Welcome back</h1>
+        <p className="mt-2 text-sm font-bold text-gray-500">
           Sign in to your account to continue shopping.
         </p>
       </div>
@@ -108,7 +109,7 @@ function LoginContent() {
 
       {/* Server error */}
       {serverError && (
-        <div className="rounded-md border border-destructive/50 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+        <div className="rounded-2xl border border-rose-100 bg-rose-50 px-4 py-3 text-sm font-bold text-rose-600">
           {serverError}
         </div>
       )}
@@ -146,7 +147,7 @@ function LoginContent() {
                   <FormLabel>Password</FormLabel>
                   <Link
                     href="/forgot-password"
-                    className="text-xs font-medium text-primary hover:underline"
+                    className="text-xs font-black text-primary hover:underline"
                   >
                     Forgot password?
                   </Link>
@@ -157,12 +158,12 @@ function LoginContent() {
                       type={showPassword ? 'text' : 'password'}
                       placeholder="Enter your password"
                       autoComplete="current-password"
-                      className="pr-10"
+                      className="pr-11"
                       {...field}
                     />
                     <button
                       type="button"
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 transition-colors hover:text-gray-900"
                       onClick={() => setShowPassword(!showPassword)}
                       tabIndex={-1}
                       aria-label={showPassword ? 'Hide password' : 'Show password'}
@@ -198,9 +199,9 @@ function LoginContent() {
       </Form>
 
       {/* Register link */}
-      <p className="text-center text-sm text-muted-foreground">
+      <p className="text-center text-sm font-medium text-gray-500">
         Don&apos;t have an account?{' '}
-        <Link href="/register" className="font-medium text-primary hover:underline">
+        <Link href="/register" className="font-black text-primary hover:underline">
           Create one now
         </Link>
       </p>

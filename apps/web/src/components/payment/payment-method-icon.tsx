@@ -29,15 +29,15 @@ const methodConfig: Record<
     label: 'Card Payment',
     description: 'Paid via Stripe',
     icon: CreditCard,
-    color: 'text-primary',
-    bg: 'bg-teal-50',
+    color: 'text-brand-600',
+    bg: 'bg-brand-50',
   },
   COD: {
     label: 'Cash on Delivery',
     description: 'Pay ৳ when delivered',
     icon: Banknote,
-    color: 'text-green-600',
-    bg: 'bg-green-50',
+    color: 'text-emerald-500',
+    bg: 'bg-emerald-50',
   },
 };
 
@@ -48,9 +48,9 @@ const iconSizes = {
 };
 
 const containerSizes = {
-  sm: 'w-7 h-7',
-  md: 'w-9 h-9',
-  lg: 'w-11 h-11',
+  sm: 'w-8 h-8',
+  md: 'w-10 h-10',
+  lg: 'w-12 h-12',
 };
 
 export function PaymentMethodIcon({
@@ -64,7 +64,7 @@ export function PaymentMethodIcon({
     description: 'Payment method',
     icon: Wallet,
     color: 'text-gray-600',
-    bg: 'bg-gray-50',
+    bg: 'bg-gray-100',
   };
 
   const Icon = config.icon;
@@ -74,16 +74,16 @@ export function PaymentMethodIcon({
       <div className={cn('flex items-center gap-2', className)}>
         <div
           className={cn(
-            'flex items-center justify-center rounded-lg',
+            'flex shrink-0 items-center justify-center rounded-xl',
             config.bg,
             containerSizes[size],
           )}
         >
-          <Icon className={cn(iconSizes[size], config.color)} />
+          <Icon className={cn(iconSizes[size], config.color)} strokeWidth={2.25} />
         </div>
         <div>
-          <p className="text-sm font-medium text-gray-900">{config.label}</p>
-          <p className="text-xs text-gray-500">{config.description}</p>
+          <p className="text-sm font-black text-gray-900">{config.label}</p>
+          <p className="text-[11px] font-bold text-gray-500">{config.description}</p>
         </div>
       </div>
     );
@@ -92,14 +92,14 @@ export function PaymentMethodIcon({
   return (
     <div
       className={cn(
-        'flex items-center justify-center rounded-lg',
+        'flex shrink-0 items-center justify-center rounded-xl',
         config.bg,
         containerSizes[size],
         className,
       )}
       title={config.label}
     >
-      <Icon className={cn(iconSizes[size], config.color)} />
+      <Icon className={cn(iconSizes[size], config.color)} strokeWidth={2.25} />
     </div>
   );
 }

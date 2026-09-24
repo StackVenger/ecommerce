@@ -1,9 +1,12 @@
 'use client';
 
+import { ChevronRight, PackageSearch, SlidersHorizontal } from 'lucide-react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 
+import { ProductCard, ProductCardSkeleton, ProductGrid } from '@/components/products/product-card';
+import { EmptyState } from '@/components/ui/bento';
 import { RichText } from '@/components/ui/rich-text';
 import { apiClient } from '@/lib/api/client';
 
@@ -152,43 +155,52 @@ export default function CategoryPage() {
   const formatPrice = (price: number) => `৳${price.toLocaleString('en-BD')}`;
 
   return (
-    <div className="site-container px-4 py-6">
+    <div className="site-container px-4 py-6 sm:py-8">
       {/* Breadcrumb */}
-      <nav className="mb-4 text-sm text-gray-500">
-        <Link href="/" className="hover:text-gray-700">
+      <nav className="mb-4 flex items-center gap-2 text-xs font-bold text-gray-400">
+        <Link href="/" className="transition-colors hover:text-gray-900">
           Home
         </Link>
-        <span className="mx-2">/</span>
+        <ChevronRight className="h-3.5 w-3.5" />
         <span className="text-gray-900">{category?.name ?? slug}</span>
       </nav>
 
       {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">{category?.name ?? 'Category'}</h1>
+      <div className="mb-6 sm:mb-8">
+        <h1 className="page-title">{category?.name ?? 'Category'}</h1>
         {category?.description && (
-          <RichText html={category.description} className="mt-1 text-sm text-gray-500" />
+          <RichText
+            html={category.description}
+            className="mt-1 text-sm font-medium text-gray-500"
+          />
         )}
-        {pagination && <p className="mt-1 text-sm text-gray-400">{pagination.total} products</p>}
+        {pagination && <p className="page-subtitle mt-1">{pagination.total} products</p>}
       </div>
 
-      <div className="flex gap-6">
+      <div className="flex flex-col gap-6 lg:flex-row">
         {/* Sidebar Filters */}
-        <aside className={`w-64 shrink-0 space-y-6 ${showFilters ? 'block' : 'hidden lg:block'}`}>
+        <aside
+          className={`bento-card w-full shrink-0 space-y-7 self-start p-6 lg:w-64 ${
+            showFilters ? 'block' : 'hidden lg:block'
+          }`}
+        >
           {/* Brands */}
           {facets && facets.brands.length > 0 && (
             <div>
-              <h3 className="mb-2 text-sm font-semibold text-gray-800">Brand</h3>
-              <div className="space-y-1">
+              <h3 className="eyebrow mb-3">Brand</h3>
+              <div className="space-y-2">
                 {facets.brands.map((brand) => (
-                  <label key={brand.value} className="flex items-center gap-2">
+                  <label key={brand.value} className="flex cursor-pointer items-center gap-2.5">
                     <input
                       type="checkbox"
                       checked={selectedBrands.includes(brand.value)}
                       onChange={() => toggleBrand(brand.value)}
-                      className="rounded border-gray-300 text-blue-600"
+                      className="h-4 w-4 rounded border-gray-300 text-brand-600 focus:ring-brand-500"
                     />
-                    <span className="text-sm text-gray-700">{brand.label}</span>
-                    <span className="ml-auto text-xs text-gray-400">({brand.count})</span>
+                    <span className="text-sm font-bold text-gray-700">{brand.label}</span>
+                    <span className="ml-auto text-[11px] font-bold tabular-nums text-gray-400">
+                      {brand.count}
+                    </span>
                   </label>
                 ))}
               </div>
@@ -197,7 +209,7 @@ export default function CategoryPage() {
 
           {/* Price Range */}
           <div>
-            <h3 className="mb-2 text-sm font-semibold text-gray-800">Price (৳)</h3>
+            <h3 className="eyebrow mb-3">Price (৳)</h3>
             <div className="flex items-center gap-2">
               <input
                 type="number"
@@ -207,9 +219,10 @@ export default function CategoryPage() {
                   setPage(1);
                 }}
                 placeholder="Min"
-                className="w-full rounded-md border-gray-300 text-sm"
+                aria-label="Minimum price"
+                className="field-input px-3 py-2.5"
               />
-              <span className="text-gray-400">—</span>
+              <span className="font-bold text-gray-300">—</span>
               <input
                 type="number"
                 value={maxPrice}
@@ -218,11 +231,12 @@ export default function CategoryPage() {
                   setPage(1);
                 }}
                 placeholder="Max"
-                className="w-full rounded-md border-gray-300 text-sm"
+                aria-label="Maximum price"
+                className="field-input px-3 py-2.5"
               />
             </div>
             {facets && (
-              <p className="mt-1 text-xs text-gray-400">
+              <p className="field-hint">
                 Range: {formatPrice(facets.priceRange.min)} - {formatPrice(facets.priceRange.max)}
               </p>
             )}
@@ -231,10 +245,10 @@ export default function CategoryPage() {
           {/* Rating */}
           {facets && facets.ratings.length > 0 && (
             <div>
-              <h3 className="mb-2 text-sm font-semibold text-gray-800">Rating</h3>
-              <div className="space-y-1">
+              <h3 className="eyebrow mb-3">Rating</h3>
+              <div className="space-y-2">
                 {[4, 3, 2, 1].map((r) => (
-                  <label key={r} className="flex items-center gap-2">
+                  <label key={r} className="flex cursor-pointer items-center gap-2.5">
                     <input
                       type="radio"
                       name="rating"
@@ -243,16 +257,16 @@ export default function CategoryPage() {
                         setMinRating(r);
                         setPage(1);
                       }}
-                      className="border-gray-300 text-blue-600"
+                      className="h-4 w-4 border-gray-300 text-brand-600 focus:ring-brand-500"
                     />
-                    <span className="flex text-sm text-yellow-400">
+                    <span className="flex text-sm">
                       {Array.from({ length: 5 }).map((_, i) => (
-                        <span key={i} className={i < r ? 'text-yellow-400' : 'text-gray-300'}>
+                        <span key={i} className={i < r ? 'text-amber-400' : 'text-gray-300'}>
                           ★
                         </span>
                       ))}
                     </span>
-                    <span className="text-xs text-gray-500">& Up</span>
+                    <span className="text-[11px] font-bold text-gray-500">& Up</span>
                   </label>
                 ))}
               </div>
@@ -261,7 +275,7 @@ export default function CategoryPage() {
 
           {/* Availability */}
           <div>
-            <label className="flex items-center gap-2">
+            <label className="flex cursor-pointer items-center gap-2.5">
               <input
                 type="checkbox"
                 checked={inStock}
@@ -269,12 +283,12 @@ export default function CategoryPage() {
                   setInStock(e.target.checked);
                   setPage(1);
                 }}
-                className="rounded border-gray-300 text-blue-600"
+                className="h-4 w-4 rounded border-gray-300 text-brand-600 focus:ring-brand-500"
               />
-              <span className="text-sm text-gray-700">In Stock Only</span>
+              <span className="text-sm font-bold text-gray-700">In Stock Only</span>
               {facets && (
-                <span className="ml-auto text-xs text-gray-400">
-                  ({facets.availability.inStock})
+                <span className="ml-auto text-[11px] font-bold tabular-nums text-gray-400">
+                  {facets.availability.inStock}
                 </span>
               )}
             </label>
@@ -290,20 +304,21 @@ export default function CategoryPage() {
               setInStock(false);
               setPage(1);
             }}
-            className="text-sm text-blue-600 hover:text-blue-800"
+            className="btn btn-soft btn-sm w-full"
           >
             Clear All Filters
           </button>
         </aside>
 
         {/* Product Grid */}
-        <div className="flex-1">
+        <div className="min-w-0 flex-1">
           {/* Sort Bar */}
-          <div className="mb-4 flex items-center justify-between">
+          <div className="mb-5 flex items-center justify-between gap-3">
             <button
               onClick={() => setShowFilters(!showFilters)}
-              className="rounded-md border px-3 py-1.5 text-sm lg:hidden"
+              className="btn btn-secondary btn-sm lg:hidden"
             >
+              <SlidersHorizontal className="h-4 w-4" strokeWidth={2.5} />
               {showFilters ? 'Hide Filters' : 'Show Filters'}
             </button>
             <select
@@ -312,7 +327,8 @@ export default function CategoryPage() {
                 setSortBy(e.target.value);
                 setPage(1);
               }}
-              className="rounded-md border-gray-300 text-sm shadow-sm"
+              aria-label="Sort products"
+              className="field-input ml-auto w-auto cursor-pointer py-2.5 pr-9 text-xs font-bold"
             >
               {SORT_OPTIONS.map((opt) => (
                 <option key={opt.value} value={opt.value}>
@@ -323,100 +339,49 @@ export default function CategoryPage() {
           </div>
 
           {loading ? (
-            <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
+            <ProductGrid columns={3}>
               {Array.from({ length: 9 }).map((_, i) => (
-                <div key={i} className="h-72 animate-pulse rounded-lg bg-gray-100" />
+                <ProductCardSkeleton key={i} />
               ))}
-            </div>
+            </ProductGrid>
           ) : products.length === 0 ? (
-            <div className="py-16 text-center">
-              <p className="text-gray-500">No products match your filters.</p>
-            </div>
+            <EmptyState icon={PackageSearch} title="No products match your filters." />
           ) : (
-            <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
+            <ProductGrid columns={3}>
               {products.map((product) => (
-                <Link
+                <ProductCard
                   key={product.id}
                   href={`/product/${product.slug}`}
-                  className="group rounded-lg border border-gray-200 bg-white p-3 transition-shadow hover:shadow-md"
-                >
-                  <div className="relative aspect-square overflow-hidden rounded-md bg-gray-100">
-                    {product.images?.[0] ? (
-                      <img
-                        src={product.images[0]}
-                        alt={product.name}
-                        className="h-full w-full object-cover transition-transform group-hover:scale-105"
-                      />
-                    ) : (
-                      <div className="flex h-full items-center justify-center text-gray-400">
-                        No Image
-                      </div>
-                    )}
-                    {product.salePrice && (
-                      <span className="absolute left-2 top-2 rounded-md bg-red-500 px-1.5 py-0.5 text-xs font-medium text-white">
-                        {Math.round(((product.price - product.salePrice) / product.price) * 100)}%
-                        OFF
-                      </span>
-                    )}
-                  </div>
-
-                  <div className="mt-3">
-                    {product.brandName && (
-                      <p className="text-xs text-gray-500">{product.brandName}</p>
-                    )}
-                    <h3 className="mt-0.5 line-clamp-2 text-sm font-medium text-gray-900">
-                      {product.name}
-                    </h3>
-
-                    {product.reviewCount > 0 && (
-                      <div className="mt-1 flex items-center gap-1">
-                        <div className="flex text-xs">
-                          {[1, 2, 3, 4, 5].map((s) => (
-                            <span
-                              key={s}
-                              className={
-                                s <= Math.round(product.averageRating)
-                                  ? 'text-yellow-400'
-                                  : 'text-gray-300'
-                              }
-                            >
-                              ★
-                            </span>
-                          ))}
-                        </div>
-                        <span className="text-xs text-gray-400">({product.reviewCount})</span>
-                      </div>
-                    )}
-
-                    <div className="mt-2">
-                      {product.salePrice ? (
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm font-bold text-red-600">
-                            {formatPrice(product.salePrice)}
-                          </span>
-                          <span className="text-xs text-gray-400 line-through">
-                            {formatPrice(product.price)}
-                          </span>
-                        </div>
-                      ) : (
-                        <span className="text-sm font-bold text-gray-900">
-                          {formatPrice(product.price)}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                </Link>
+                  name={product.name}
+                  image={product.images?.[0]}
+                  brand={product.brandName}
+                  rating={product.reviewCount > 0 ? product.averageRating : null}
+                  reviewCount={product.reviewCount}
+                  price={product.salePrice ?? product.price}
+                  originalPrice={product.salePrice ? product.price : null}
+                  formatPrice={formatPrice}
+                  badges={
+                    product.salePrice
+                      ? [
+                          {
+                            label: `${Math.round(((product.price - product.salePrice) / product.price) * 100)}% OFF`,
+                            tone: 'sale',
+                          },
+                        ]
+                      : []
+                  }
+                />
               ))}
-            </div>
+            </ProductGrid>
           )}
 
           {/* Pagination */}
           {pagination && pagination.pages > 1 && (
-            <div className="mt-8 flex items-center justify-center gap-2">
+            <div className="mt-8 flex flex-wrap items-center justify-center gap-1.5">
               <button
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
                 disabled={page === 1}
-                className="rounded-md border px-4 py-2 text-sm disabled:opacity-50"
+                className="btn btn-soft btn-sm"
               >
                 Previous
               </button>
@@ -427,8 +392,11 @@ export default function CategoryPage() {
                   <button
                     key={pageNum}
                     onClick={() => setPage(pageNum)}
-                    className={`rounded-md px-3 py-2 text-sm ${
-                      pageNum === page ? 'bg-blue-600 text-white' : 'border hover:bg-gray-50'
+                    aria-current={pageNum === page ? 'page' : undefined}
+                    className={`h-10 min-w-[40px] rounded-xl px-3 text-xs font-black tabular-nums transition-all ${
+                      pageNum === page
+                        ? 'bg-ink text-white shadow-lg shadow-black/10'
+                        : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900'
                     }`}
                   >
                     {pageNum}
@@ -439,7 +407,7 @@ export default function CategoryPage() {
               <button
                 onClick={() => setPage((p) => Math.min(pagination.pages, p + 1))}
                 disabled={page === pagination.pages}
-                className="rounded-md border px-4 py-2 text-sm disabled:opacity-50"
+                className="btn btn-dark btn-sm"
               >
                 Next
               </button>

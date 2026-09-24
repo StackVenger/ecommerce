@@ -1,8 +1,12 @@
 'use client';
 
+import { Download, Filter, Search, ShoppingBag, X } from 'lucide-react';
 import React, { useState, useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
 
+import { ListPagination } from '@/components/admin/list-pagination';
+import { OrderStatusPill, PaymentStatusPill } from '@/components/admin/orders/order-status';
+import { EmptyState, LoadingState, PageHeader } from '@/components/ui/bento';
 import { apiClient } from '@/lib/api/client';
 import { getApiErrorMessage } from '@/lib/api/errors';
 
@@ -53,57 +57,26 @@ interface PaginationInfo {
   totalPages: number;
 }
 
-const STATUS_BADGES: Record<OrderStatus, { label: string; className: string }> = {
-  PENDING: { label: 'Pending', className: 'bg-yellow-100 text-yellow-800 border-yellow-200' },
-  CONFIRMED: { label: 'Confirmed', className: 'bg-teal-100 text-teal-800 border-teal-200' },
-  PROCESSING: { label: 'Processing', className: 'bg-teal-100 text-teal-800 border-teal-200' },
-  SHIPPED: { label: 'Shipped', className: 'bg-purple-100 text-purple-800 border-purple-200' },
-  DELIVERED: { label: 'Delivered', className: 'bg-green-100 text-green-800 border-green-200' },
-  CANCELLED: { label: 'Cancelled', className: 'bg-red-100 text-red-800 border-red-200' },
-  RETURNED: { label: 'Returned', className: 'bg-gray-100 text-gray-800 border-gray-200' },
+const STATUS_BADGES: Record<OrderStatus, { label: string }> = {
+  PENDING: { label: 'Pending' },
+  CONFIRMED: { label: 'Confirmed' },
+  PROCESSING: { label: 'Processing' },
+  SHIPPED: { label: 'Shipped' },
+  DELIVERED: { label: 'Delivered' },
+  CANCELLED: { label: 'Cancelled' },
+  RETURNED: { label: 'Returned' },
 };
 
-const PAYMENT_BADGES: Record<PaymentStatus, { label: string; className: string }> = {
-  PENDING: { label: 'Pending', className: 'bg-yellow-100 text-yellow-800 border-yellow-200' },
-  PAID: { label: 'Paid', className: 'bg-green-100 text-green-800 border-green-200' },
-  FAILED: { label: 'Failed', className: 'bg-red-100 text-red-800 border-red-200' },
-  REFUNDED: { label: 'Refunded', className: 'bg-orange-100 text-orange-800 border-orange-200' },
-  PARTIALLY_REFUNDED: {
-    label: 'Partial Refund',
-    className: 'bg-amber-100 text-amber-800 border-amber-200',
-  },
+const PAYMENT_BADGES: Record<PaymentStatus, { label: string }> = {
+  PENDING: { label: 'Pending' },
+  PAID: { label: 'Paid' },
+  FAILED: { label: 'Failed' },
+  REFUNDED: { label: 'Refunded' },
+  PARTIALLY_REFUNDED: { label: 'Partial Refund' },
 };
 
 function formatBDT(amount: number): string {
   return `৳ ${amount.toLocaleString('en-BD', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-}
-
-function StatusBadge({ status }: { status: OrderStatus }) {
-  const badge = STATUS_BADGES[status] ?? {
-    label: status,
-    className: 'bg-gray-100 text-gray-800 border-gray-200',
-  };
-  return (
-    <span
-      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${badge.className}`}
-    >
-      {badge.label}
-    </span>
-  );
-}
-
-function PaymentBadge({ status }: { status: PaymentStatus }) {
-  const badge = PAYMENT_BADGES[status] ?? {
-    label: status,
-    className: 'bg-gray-100 text-gray-800 border-gray-200',
-  };
-  return (
-    <span
-      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${badge.className}`}
-    >
-      {badge.label}
-    </span>
-  );
 }
 
 export default function AdminOrdersPage() {
@@ -329,150 +302,137 @@ export default function AdminOrdersPage() {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Orders</h1>
-          <p className="text-sm text-gray-500 mt-1">Manage and track all customer orders</p>
-        </div>
-        <div className="flex items-center gap-3">
-          <button
-            onClick={handleExportCSV}
-            className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
-          >
-            <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-              />
-            </svg>
+    <div>
+      <PageHeader
+        title="Orders"
+        description="Manage and track all customer orders"
+        actions={
+          <button type="button" onClick={handleExportCSV} className="btn btn-secondary">
+            <Download className="h-4 w-4" strokeWidth={2.5} />
             Export CSV
           </button>
-        </div>
-      </div>
+        }
+      />
 
       {/* Search and Filters */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-        <div className="flex items-center gap-4">
-          <div className="flex-1 relative">
-            <svg
-              className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-              />
-            </svg>
+      <div className="mb-6 rounded-[1.75rem] border border-foreground/[0.04] bg-card p-3 shadow-bento">
+        <div className="flex flex-col gap-2 lg:flex-row lg:items-center">
+          <div className="group/search relative flex-1">
+            <Search
+              className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400 transition-colors group-focus-within/search:text-gray-700"
+              strokeWidth={2.5}
+            />
             <input
               type="text"
               placeholder="Search by order number, customer name, email, or phone..."
+              aria-label="Search orders"
               value={filters.search}
               onChange={(e) => setFilters((prev) => ({ ...prev, search: e.target.value }))}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
+              className="field-input border-transparent bg-gray-50 pl-11 shadow-none focus:bg-card"
             />
           </div>
-          <select
-            value={filters.status}
-            onChange={(e) =>
-              setFilters((prev) => ({ ...prev, status: e.target.value as OrderStatus | '' }))
-            }
-            className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-teal-500"
-          >
-            <option value="">All Status</option>
-            {Object.entries(STATUS_BADGES).map(([key, val]) => (
-              <option key={key} value={key}>
-                {val.label}
-              </option>
-            ))}
-          </select>
-          <select
-            value={filters.paymentStatus}
-            onChange={(e) =>
-              setFilters((prev) => ({
-                ...prev,
-                paymentStatus: e.target.value as PaymentStatus | '',
-              }))
-            }
-            className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-teal-500"
-          >
-            <option value="">All Payments</option>
-            {Object.entries(PAYMENT_BADGES).map(([key, val]) => (
-              <option key={key} value={key}>
-                {val.label}
-              </option>
-            ))}
-          </select>
-          <button
-            onClick={() => setShowFilters(!showFilters)}
-            className={`inline-flex items-center px-3 py-2 border rounded-lg text-sm font-medium ${
-              showFilters
-                ? 'border-teal-500 text-teal-600 bg-teal-50'
-                : 'border-gray-300 text-gray-700 bg-white hover:bg-gray-50'
-            }`}
-          >
-            <svg className="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"
-              />
-            </svg>
-            Filters
-          </button>
+          <div className="grid grid-cols-2 gap-2 sm:flex sm:items-center">
+            <select
+              value={filters.status}
+              aria-label="Filter by order status"
+              onChange={(e) =>
+                setFilters((prev) => ({ ...prev, status: e.target.value as OrderStatus | '' }))
+              }
+              className="field-input border-transparent bg-gray-50 shadow-none sm:w-40"
+            >
+              <option value="">All Status</option>
+              {Object.entries(STATUS_BADGES).map(([key, val]) => (
+                <option key={key} value={key}>
+                  {val.label}
+                </option>
+              ))}
+            </select>
+            <select
+              value={filters.paymentStatus}
+              aria-label="Filter by payment status"
+              onChange={(e) =>
+                setFilters((prev) => ({
+                  ...prev,
+                  paymentStatus: e.target.value as PaymentStatus | '',
+                }))
+              }
+              className="field-input border-transparent bg-gray-50 shadow-none sm:w-40"
+            >
+              <option value="">All Payments</option>
+              {Object.entries(PAYMENT_BADGES).map(([key, val]) => (
+                <option key={key} value={key}>
+                  {val.label}
+                </option>
+              ))}
+            </select>
+            <button
+              type="button"
+              onClick={() => setShowFilters(!showFilters)}
+              aria-expanded={showFilters}
+              className={`btn col-span-2 ${showFilters ? 'btn-primary' : 'btn-soft'}`}
+            >
+              <Filter className="h-4 w-4" strokeWidth={2.5} />
+              Filters
+            </button>
+          </div>
         </div>
 
         {/* Advanced Filters */}
         {showFilters && (
-          <div className="mt-4 pt-4 border-t border-gray-200 grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="mt-3 grid grid-cols-1 gap-4 border-t border-foreground/[0.04] px-1 pb-1 pt-4 sm:grid-cols-2 md:grid-cols-4">
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">Date From</label>
+              <label className="field-label" htmlFor="orders-date-from">
+                Date From
+              </label>
               <input
+                id="orders-date-from"
                 type="date"
                 value={filters.dateFrom}
                 onChange={(e) => setFilters((prev) => ({ ...prev, dateFrom: e.target.value }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                className="field-input"
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">Date To</label>
+              <label className="field-label" htmlFor="orders-date-to">
+                Date To
+              </label>
               <input
+                id="orders-date-to"
                 type="date"
                 value={filters.dateTo}
                 onChange={(e) => setFilters((prev) => ({ ...prev, dateTo: e.target.value }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                className="field-input"
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">Min Amount (৳)</label>
+              <label className="field-label" htmlFor="orders-min-amount">
+                Min Amount (৳)
+              </label>
               <input
+                id="orders-min-amount"
                 type="number"
                 value={filters.minAmount}
                 onChange={(e) => setFilters((prev) => ({ ...prev, minAmount: e.target.value }))}
                 placeholder="0"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                className="field-input"
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">Max Amount (৳)</label>
+              <label className="field-label" htmlFor="orders-max-amount">
+                Max Amount (৳)
+              </label>
               <input
+                id="orders-max-amount"
                 type="number"
                 value={filters.maxAmount}
                 onChange={(e) => setFilters((prev) => ({ ...prev, maxAmount: e.target.value }))}
                 placeholder="999999"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                className="field-input"
               />
             </div>
             <div className="col-span-full flex justify-end">
-              <button onClick={resetFilters} className="text-sm text-teal-600 hover:text-teal-800">
+              <button type="button" onClick={resetFilters} className="btn btn-ghost btn-sm">
+                <X className="h-3.5 w-3.5" strokeWidth={2.5} />
                 Reset all filters
               </button>
             </div>
@@ -481,108 +441,106 @@ export default function AdminOrdersPage() {
       </div>
 
       {/* Orders Table */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+      <div className="bento-card overflow-hidden p-2 sm:p-4">
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+          <table className="bento-table min-w-[1040px]">
+            <thead>
               <tr>
-                <th className="px-4 py-3 text-left">
+                <th className="w-10 pl-4">
                   <input
                     type="checkbox"
+                    aria-label="Select all orders"
                     checked={selectedOrders.size === orders.length && orders.length > 0}
                     onChange={toggleSelectAll}
-                    className="rounded border-gray-300 text-teal-600 focus:ring-teal-500"
+                    className="h-4 w-4 rounded border-gray-300 text-brand-600 focus:ring-brand-500"
                   />
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Order
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Customer
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Items
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Total
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Status
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Payment
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Date
-                </th>
-                <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Actions
-                </th>
+                <th>Order</th>
+                <th>Customer</th>
+                <th>Items</th>
+                <th className="text-right">Total</th>
+                <th className="text-center">Status</th>
+                <th className="text-center">Payment</th>
+                <th>Date</th>
+                <th className="pr-4 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={9} className="px-4 py-12 text-center">
-                    <div className="flex items-center justify-center">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-teal-600" />
-                      <span className="ml-3 text-gray-500">Loading orders...</span>
-                    </div>
+                  <td colSpan={9}>
+                    <LoadingState label="Loading orders" />
                   </td>
                 </tr>
               ) : orders.length === 0 ? (
                 <tr>
-                  <td colSpan={9} className="px-4 py-12 text-center text-gray-500">
-                    No orders found matching your filters.
+                  <td colSpan={9}>
+                    <EmptyState
+                      bare
+                      icon={ShoppingBag}
+                      title="No orders found"
+                      description="No orders found matching your filters."
+                    />
                   </td>
                 </tr>
               ) : (
                 orders.map((order) => (
-                  <tr key={order.id} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-4 py-3">
+                  <tr key={order.id} className="group">
+                    <td className="pl-4">
                       <input
                         type="checkbox"
+                        aria-label={`Select order ${order.orderNumber}`}
                         checked={selectedOrders.has(order.id)}
                         onChange={() => toggleSelect(order.id)}
-                        className="rounded border-gray-300 text-teal-600 focus:ring-teal-500"
+                        className="h-4 w-4 rounded border-gray-300 text-brand-600 focus:ring-brand-500"
                       />
                     </td>
-                    <td className="px-4 py-3">
+                    <td>
                       <a
                         href={`/admin/orders/${order.id}`}
-                        className="text-sm font-medium text-teal-600 hover:text-teal-800"
+                        className="whitespace-nowrap text-sm font-black text-gray-900 transition-colors hover:text-primary"
                       >
                         #{order.orderNumber}
                       </a>
                     </td>
-                    <td className="px-4 py-3">
-                      <div className="text-sm font-medium text-gray-900">{order.customer.name}</div>
-                      <div className="text-xs text-gray-500">{order.customer.email}</div>
+                    <td>
+                      <div className="flex items-center gap-3">
+                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[14px] bg-brand-50 text-xs font-black text-brand-700">
+                          {(order.customer.name || '?').charAt(0).toUpperCase()}
+                        </div>
+                        <div className="min-w-0">
+                          <div className="max-w-[200px] truncate text-sm font-black leading-tight text-gray-900">
+                            {order.customer.name}
+                          </div>
+                          <div className="max-w-[200px] truncate text-[11px] font-bold text-gray-400">
+                            {order.customer.email}
+                          </div>
+                        </div>
+                      </div>
                     </td>
-                    <td className="px-4 py-3 text-sm text-gray-700">
-                      {order.items} item{order.items !== 1 ? 's' : ''}
+                    <td>
+                      <span className="whitespace-nowrap rounded-xl bg-gray-100 px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-gray-600">
+                        {order.items} item{order.items !== 1 ? 's' : ''}
+                      </span>
                     </td>
-                    <td className="px-4 py-3 text-sm font-medium text-gray-900">
+                    <td className="whitespace-nowrap text-right text-sm font-black tabular-nums tracking-tight text-gray-900">
                       {formatBDT(order.totalAmount)}
                     </td>
-                    <td className="px-4 py-3">
-                      <StatusBadge status={order.status} />
+                    <td className="text-center">
+                      <OrderStatusPill status={order.status} />
                     </td>
-                    <td className="px-4 py-3">
-                      <PaymentBadge status={order.paymentStatus} />
+                    <td className="text-center">
+                      <PaymentStatusPill status={order.paymentStatus} />
                     </td>
-                    <td className="px-4 py-3 text-sm text-gray-500">
+                    <td className="whitespace-nowrap text-xs font-bold text-gray-500">
                       {new Date(order.createdAt).toLocaleDateString('en-BD', {
                         day: 'numeric',
                         month: 'short',
                         year: 'numeric',
                       })}
                     </td>
-                    <td className="px-4 py-3 text-right">
-                      <a
-                        href={`/admin/orders/${order.id}`}
-                        className="text-sm text-teal-600 hover:text-teal-800 font-medium"
-                      >
+                    <td className="pr-4 text-right">
+                      <a href={`/admin/orders/${order.id}`} className="btn btn-soft btn-sm">
                         View
                       </a>
                     </td>
@@ -593,76 +551,40 @@ export default function AdminOrdersPage() {
           </table>
         </div>
 
-        {/* Pagination */}
-        {pagination.totalPages > 1 && (
-          <div className="px-4 py-3 border-t border-gray-200 flex items-center justify-between bg-gray-50">
-            <div className="text-sm text-gray-500">
-              Showing {(pagination.page - 1) * pagination.limit + 1} to{' '}
-              {Math.min(pagination.page * pagination.limit, pagination.total)} of {pagination.total}{' '}
-              orders
-            </div>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => handlePageChange(pagination.page - 1)}
-                disabled={pagination.page <= 1}
-                className="px-3 py-1 border border-gray-300 rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-white"
-              >
-                Previous
-              </button>
-              {Array.from({ length: Math.min(5, pagination.totalPages) }, (_, i) => {
-                const startPage = Math.max(1, pagination.page - 2);
-                const page = startPage + i;
-                if (page > pagination.totalPages) {
-                  return null;
-                }
-                return (
-                  <button
-                    key={page}
-                    onClick={() => handlePageChange(page)}
-                    className={`px-3 py-1 border rounded text-sm ${
-                      page === pagination.page
-                        ? 'bg-teal-600 text-white border-teal-600'
-                        : 'border-gray-300 hover:bg-white'
-                    }`}
-                  >
-                    {page}
-                  </button>
-                );
-              })}
-              <button
-                onClick={() => handlePageChange(pagination.page + 1)}
-                disabled={pagination.page >= pagination.totalPages}
-                className="px-3 py-1 border border-gray-300 rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-white"
-              >
-                Next
-              </button>
-            </div>
-          </div>
-        )}
+        <ListPagination
+          page={pagination.page}
+          totalPages={pagination.totalPages}
+          total={pagination.total}
+          limit={pagination.limit}
+          noun="orders"
+          onPageChange={handlePageChange}
+        />
       </div>
 
       {/* Bulk Actions */}
       {selectedOrders.size > 0 && (
-        <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white px-6 py-3 rounded-lg shadow-xl flex items-center gap-4 z-40">
-          <span className="text-sm">{selectedOrders.size} order(s) selected</span>
+        <div className="fixed bottom-4 left-1/2 z-40 flex w-[calc(100%-2rem)] max-w-max -translate-x-1/2 flex-wrap items-center justify-center gap-2 rounded-[1.75rem] bg-ink px-4 py-3 text-white shadow-2xl shadow-black/20 sm:bottom-6 sm:gap-3 sm:px-6">
+          <span className="text-xs font-black uppercase tracking-widest text-white/70">
+            {selectedOrders.size} selected
+          </span>
           <button
             type="button"
             onClick={() => setBulkStatusOpen(true)}
-            className="px-3 py-1 bg-teal-600 rounded text-sm hover:bg-teal-700"
+            className="btn btn-primary btn-sm shadow-none"
           >
             Update Status
           </button>
           <button
             type="button"
             onClick={handleExportSelected}
-            className="px-3 py-1 bg-green-600 rounded text-sm hover:bg-green-700"
+            className="btn btn-sm bg-emerald-500 text-white hover:bg-emerald-600 dark:hover:bg-emerald-500"
           >
             Export Selected
           </button>
           <button
             type="button"
             onClick={() => setSelectedOrders(new Set())}
-            className="px-3 py-1 bg-gray-700 rounded text-sm hover:bg-gray-600"
+            className="btn btn-sm bg-white/10 text-white hover:bg-white/20"
           >
             Clear
           </button>
@@ -672,7 +594,7 @@ export default function AdminOrdersPage() {
       {/* Bulk status modal */}
       {bulkStatusOpen && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm"
           role="dialog"
           aria-modal="true"
         >
@@ -682,14 +604,14 @@ export default function AdminOrdersPage() {
             onClick={() => !bulkStatusBusy && setBulkStatusOpen(false)}
             className="absolute inset-0 h-full w-full cursor-default bg-transparent"
           />
-          <div className="relative z-10 w-full max-w-md rounded-xl bg-white p-6 shadow-xl">
-            <h3 className="text-lg font-semibold text-gray-900">
+          <div className="relative z-10 w-full max-w-md rounded-[2rem] bg-card p-6 shadow-2xl sm:p-8">
+            <h3 className="text-xl font-black tracking-tight text-gray-900">
               Update status for {selectedOrders.size} order(s)
             </h3>
-            <p className="mt-1 text-sm text-gray-500">
+            <p className="mt-1 text-sm font-medium text-gray-500">
               Orders that can&apos;t legally transition to the new status will be skipped.
             </p>
-            <label className="mt-4 block text-sm font-medium text-gray-700" htmlFor="bulk-status">
+            <label className="field-label mt-5" htmlFor="bulk-status">
               New status
             </label>
             <select
@@ -697,7 +619,7 @@ export default function AdminOrdersPage() {
               value={bulkStatusValue}
               onChange={(e) => setBulkStatusValue(e.target.value as OrderStatus)}
               disabled={bulkStatusBusy}
-              className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-teal-500 focus:ring-1 focus:ring-teal-500"
+              className="field-input"
             >
               {Object.entries(STATUS_BADGES).map(([key, val]) => (
                 <option key={key} value={key}>
@@ -710,7 +632,7 @@ export default function AdminOrdersPage() {
                 type="button"
                 onClick={() => setBulkStatusOpen(false)}
                 disabled={bulkStatusBusy}
-                className="rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                className="btn btn-soft"
               >
                 Cancel
               </button>
@@ -718,7 +640,7 @@ export default function AdminOrdersPage() {
                 type="button"
                 onClick={handleBulkUpdateStatus}
                 disabled={bulkStatusBusy}
-                className="rounded-lg bg-teal-600 px-4 py-2 text-sm font-medium text-white hover:bg-teal-700 disabled:opacity-50"
+                className="btn btn-primary"
               >
                 {bulkStatusBusy ? 'Updating…' : 'Apply'}
               </button>

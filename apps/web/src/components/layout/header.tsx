@@ -1,11 +1,13 @@
 'use client';
 
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
+import { useEffect, useRef, useState } from 'react';
 
 import { CartIcon } from '@/components/cart/cart-icon';
+import { ThemeModeSwitcher, ThemeToggle } from '@/components/theme/theme-toggle';
 import { useAuth } from '@/hooks/use-auth';
+import { cn } from '@/lib/utils';
 
 // ──────────────────────────────────────────────────────────
 // Search Bar
@@ -24,8 +26,8 @@ function SearchBar() {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="relative w-full max-w-lg">
-      <div className="relative">
+    <form onSubmit={handleSubmit} className="relative w-full max-w-md">
+      <div className="group/search relative">
         {/* Search icon */}
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -34,10 +36,10 @@ function SearchBar() {
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
-          strokeWidth="2"
+          strokeWidth="2.5"
           strokeLinecap="round"
           strokeLinejoin="round"
-          className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+          className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 transition-colors group-focus-within/search:text-gray-900"
         >
           <circle cx="11" cy="11" r="8" />
           <line x1="21" y1="21" x2="16.65" y2="16.65" />
@@ -48,7 +50,7 @@ function SearchBar() {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Search products..."
-          className="w-full rounded-full border border-gray-200 bg-gray-50 py-2.5 pl-10 pr-4 text-sm placeholder:text-gray-400 focus:border-primary/40 focus:bg-white focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+          className="w-full rounded-2xl border border-foreground/[0.04] bg-card py-3 pl-11 pr-4 text-sm font-medium text-gray-900 shadow-sm outline-none transition-all placeholder:text-gray-400 focus:ring-4 focus:ring-primary/10"
           aria-label="Search products"
         />
       </div>
@@ -64,22 +66,16 @@ function AuthLinks() {
   const { user, isAuthenticated, isLoading, logout } = useAuth();
 
   if (isLoading) {
-    return <div className="h-8 w-8 animate-pulse rounded-full bg-gray-200" />;
+    return <div className="h-11 w-11 animate-pulse rounded-2xl bg-gray-200" />;
   }
 
   if (!isAuthenticated) {
     return (
-      <div className="flex items-center gap-3">
-        <Link
-          href="/login"
-          className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
-        >
+      <div className="flex items-center gap-2">
+        <Link href="/login" className="btn btn-ghost">
           Sign In
         </Link>
-        <Link
-          href="/register"
-          className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90 transition-colors"
-        >
+        <Link href="/register" className="btn btn-primary">
           Sign Up
         </Link>
       </div>
@@ -90,14 +86,14 @@ function AuthLinks() {
     <div className="relative group">
       <button
         type="button"
-        className="flex items-center gap-2 rounded-lg p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors"
+        className="flex items-center gap-2.5 rounded-2xl p-1 pr-2 text-gray-700 transition-all hover:bg-card hover:text-gray-900 hover:shadow-sm"
         aria-label="Account menu"
       >
         {/* User avatar or initial */}
-        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-teal-100 text-sm font-medium text-primary">
+        <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-ink text-sm font-black text-white">
           {user?.firstName?.charAt(0)?.toUpperCase() || 'U'}
         </div>
-        <span className="hidden md:inline text-sm font-medium">{user?.firstName}</span>
+        <span className="hidden text-sm font-black md:inline">{user?.firstName}</span>
         <svg
           xmlns="http://www.w3.org/2000/svg"
           width="14"
@@ -115,33 +111,35 @@ function AuthLinks() {
       </button>
 
       {/* Dropdown menu */}
-      <div className="invisible absolute right-0 top-full z-50 mt-2 w-48 rounded-xl border border-gray-100 bg-white py-1 shadow-lg opacity-0 group-hover:visible group-hover:opacity-100 transition-all duration-200">
-        <Link
-          href="/account"
-          className="block px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-        >
-          My Account
-        </Link>
-        <Link
-          href="/account/orders"
-          className="block px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-        >
-          My Orders
-        </Link>
-        <Link
-          href="/account/wishlist"
-          className="block px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-        >
-          Wishlist
-        </Link>
-        <hr className="my-1 border-gray-100" />
-        <button
-          type="button"
-          onClick={() => logout()}
-          className="block w-full px-4 py-2.5 text-left text-sm text-red-600 hover:bg-red-50 transition-colors"
-        >
-          Sign Out
-        </button>
+      <div className="invisible absolute right-0 top-full z-50 w-56 translate-y-1 pt-2 opacity-0 transition-all duration-200 group-focus-within:visible group-focus-within:translate-y-0 group-focus-within:opacity-100 group-hover:visible group-hover:translate-y-0 group-hover:opacity-100">
+        <div className="rounded-3xl border border-foreground/[0.04] bg-card p-2 shadow-bento-hover">
+          <Link
+            href="/account"
+            className="block rounded-2xl px-3 py-2.5 text-sm font-bold text-gray-700 transition-colors hover:bg-gray-50 hover:text-gray-900"
+          >
+            My Account
+          </Link>
+          <Link
+            href="/account/orders"
+            className="block rounded-2xl px-3 py-2.5 text-sm font-bold text-gray-700 transition-colors hover:bg-gray-50 hover:text-gray-900"
+          >
+            My Orders
+          </Link>
+          <Link
+            href="/account/wishlist"
+            className="block rounded-2xl px-3 py-2.5 text-sm font-bold text-gray-700 transition-colors hover:bg-gray-50 hover:text-gray-900"
+          >
+            Wishlist
+          </Link>
+          <hr className="mx-2 my-1.5 border-foreground/[0.05]" />
+          <button
+            type="button"
+            onClick={() => logout()}
+            className="block w-full rounded-2xl px-3 py-2.5 text-left text-sm font-bold text-rose-600 transition-colors hover:bg-rose-50"
+          >
+            Sign Out
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -160,7 +158,7 @@ function MobileMenuButton({ isOpen, onToggle }: MobileMenuButtonProps) {
   return (
     <button
       type="button"
-      className="inline-flex items-center justify-center rounded-lg p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors lg:hidden"
+      className="btn-icon border border-foreground/[0.05] bg-card text-gray-700 shadow-sm hover:bg-gray-50 lg:hidden"
       onClick={onToggle}
       aria-label={isOpen ? 'Close menu' : 'Open menu'}
       aria-expanded={isOpen}
@@ -272,6 +270,22 @@ interface HeaderProps {
  */
 export function Header({ siteName = 'Store', logoUrl, menu }: HeaderProps = {}) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  // Fall back to the brand mark when the admin logo fails to load (e.g. a
+  // deleted CDN asset) instead of showing a broken-image glyph.
+  const [logoFailed, setLogoFailed] = useState(false);
+  const showLogo = Boolean(logoUrl) && !logoFailed;
+  const logoRef = useRef<HTMLImageElement>(null);
+
+  // The SSR'd <img> can fail before hydration attaches onError; catch that case too.
+  useEffect(() => {
+    const img = logoRef.current;
+    if (img && img.complete && img.naturalWidth === 0) {
+      setLogoFailed(true);
+    }
+  }, []);
+  const pathname = usePathname();
+  const isActiveLink = (url: string) =>
+    url === '/' ? pathname === '/' : Boolean(pathname?.startsWith(url));
 
   const navItems = (() => {
     const fromMenu = flattenMenu(menu);
@@ -281,9 +295,9 @@ export function Header({ siteName = 'Store', logoUrl, menu }: HeaderProps = {}) 
   })();
 
   return (
-    <header className="sticky top-0 z-30 w-full border-b border-gray-200/80 bg-white/80 backdrop-blur-lg">
+    <header className="header-blur sticky top-0 z-30 w-full">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="flex h-16 items-center justify-between gap-4">
+        <div className="flex h-20 items-center justify-between gap-3 sm:gap-4">
           {/* Left: Logo + mobile menu */}
           <div className="flex items-center gap-3">
             <MobileMenuButton
@@ -293,45 +307,55 @@ export function Header({ siteName = 'Store', logoUrl, menu }: HeaderProps = {}) 
 
             <Link
               href="/"
-              className="flex items-center gap-2 text-xl font-bold text-gray-900"
+              className="flex items-center gap-3 text-lg font-black tracking-tight text-gray-900"
               aria-label={siteName}
             >
-              {logoUrl ? (
+              {showLogo ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={logoUrl}
                   alt={siteName}
-                  className="h-8 w-auto max-w-[180px] object-contain"
+                  ref={logoRef}
+                  onError={() => setLogoFailed(true)}
+                  className="h-9 w-auto max-w-[160px] object-contain sm:max-w-[180px]"
                 />
               ) : (
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="28"
-                  height="28"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="text-primary"
-                >
-                  <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" />
-                  <line x1="3" y1="6" x2="21" y2="6" />
-                  <path d="M16 10a4 4 0 01-8 0" />
-                </svg>
+                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-white shadow-brand-glow">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" />
+                    <line x1="3" y1="6" x2="21" y2="6" />
+                    <path d="M16 10a4 4 0 01-8 0" />
+                  </svg>
+                </span>
               )}
-              {!logoUrl && <span className="hidden sm:inline">{siteName}</span>}
+              {!showLogo && <span className="hidden sm:inline">{siteName}</span>}
             </Link>
           </div>
 
           {/* Center: Desktop navigation */}
-          <nav className="hidden lg:flex items-center gap-1" aria-label="Main navigation">
+          <nav className="hidden items-center gap-1 lg:flex" aria-label="Main navigation">
             {navItems.map((link) => (
               <Link
                 key={link.id}
                 href={link.url}
-                className="rounded-lg px-3 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors"
+                aria-current={isActiveLink(link.url) ? 'page' : undefined}
+                className={cn(
+                  'rounded-[14px] px-4 py-2.5 text-sm font-bold transition-all',
+                  isActiveLink(link.url)
+                    ? 'bg-card text-gray-900 shadow-sm'
+                    : 'text-gray-500 hover:bg-card/60 hover:text-gray-900',
+                )}
               >
                 {link.label}
               </Link>
@@ -345,6 +369,7 @@ export function Header({ siteName = 'Store', logoUrl, menu }: HeaderProps = {}) 
 
           {/* Right: Cart + Auth */}
           <div className="flex items-center gap-2">
+            <ThemeToggle className="hidden sm:inline-flex" />
             <CartIcon />
             <div className="hidden sm:block">
               <AuthLinks />
@@ -355,8 +380,8 @@ export function Header({ siteName = 'Store', logoUrl, menu }: HeaderProps = {}) 
 
       {/* Mobile menu */}
       {mobileMenuOpen && (
-        <div className="border-t border-gray-200 bg-white lg:hidden">
-          <div className="mx-auto max-w-7xl px-4 py-4 space-y-4">
+        <div className="px-4 pb-4 lg:hidden">
+          <div className="mx-auto max-w-7xl space-y-4 rounded-[2rem] border border-foreground/[0.04] bg-card p-4 shadow-bento-hover">
             {/* Mobile search */}
             <SearchBar />
 
@@ -366,7 +391,13 @@ export function Header({ siteName = 'Store', logoUrl, menu }: HeaderProps = {}) 
                 <Link
                   key={link.id}
                   href={link.url}
-                  className="rounded-lg px-3 py-2.5 text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50 transition-colors"
+                  aria-current={isActiveLink(link.url) ? 'page' : undefined}
+                  className={cn(
+                    'rounded-2xl px-4 py-3 text-sm font-bold transition-colors',
+                    isActiveLink(link.url)
+                      ? 'bg-gray-50 text-gray-900'
+                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900',
+                  )}
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   {link.label}
@@ -374,8 +405,14 @@ export function Header({ siteName = 'Store', logoUrl, menu }: HeaderProps = {}) 
               ))}
             </nav>
 
+            {/* Colour theme */}
+            <div className="space-y-2 border-t border-foreground/[0.05] pt-4 sm:hidden">
+              <p className="eyebrow px-1">Theme</p>
+              <ThemeModeSwitcher />
+            </div>
+
             {/* Mobile auth links */}
-            <div className="border-t border-gray-100 pt-4 sm:hidden">
+            <div className="border-t border-foreground/[0.05] pt-4 sm:hidden">
               <AuthLinks />
             </div>
           </div>

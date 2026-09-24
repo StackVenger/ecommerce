@@ -1,10 +1,20 @@
 'use client';
 
+import { Ban, Layers, RotateCcw, Search, Undo2, type LucideIcon } from 'lucide-react';
 import React, { useState, useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
 
+import { OrderStatusPill, PaymentStatusPill } from '@/components/admin/orders/order-status';
+import {
+  EmptyState,
+  LoadingState,
+  PageHeader,
+  TONE_CLASSES,
+  type BentoTone,
+} from '@/components/ui/bento';
 import { apiClient } from '@/lib/api/client';
 import { getApiErrorMessage } from '@/lib/api/errors';
+import { cn } from '@/lib/utils';
 
 type ReturnStatus = 'RETURNED' | 'CANCELLED' | 'REFUNDED';
 
@@ -33,36 +43,8 @@ interface PaginationInfo {
   totalPages: number;
 }
 
-const STATUS_BADGES: Record<ReturnStatus, { label: string; className: string }> = {
-  RETURNED: { label: 'Returned', className: 'bg-orange-100 text-orange-800 border-orange-200' },
-  CANCELLED: { label: 'Cancelled', className: 'bg-red-100 text-red-800 border-red-200' },
-  REFUNDED: { label: 'Refunded', className: 'bg-purple-100 text-purple-800 border-purple-200' },
-};
-
-const PAYMENT_BADGES: Record<string, { label: string; className: string }> = {
-  PENDING: { label: 'Pending', className: 'bg-yellow-100 text-yellow-800 border-yellow-200' },
-  PAID: { label: 'Paid', className: 'bg-green-100 text-green-800 border-green-200' },
-  REFUNDED: { label: 'Refunded', className: 'bg-purple-100 text-purple-800 border-purple-200' },
-  PARTIALLY_REFUNDED: {
-    label: 'Partial Refund',
-    className: 'bg-amber-100 text-amber-800 border-amber-200',
-  },
-  FAILED: { label: 'Failed', className: 'bg-red-100 text-red-800 border-red-200' },
-  CANCELLED: { label: 'Cancelled', className: 'bg-gray-100 text-gray-800 border-gray-200' },
-};
-
 function formatBDT(amount: number): string {
   return `৳ ${amount.toLocaleString('en-BD', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-}
-
-function Badge({ label, className }: { label: string; className: string }) {
-  return (
-    <span
-      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${className}`}
-    >
-      {label}
-    </span>
-  );
 }
 
 export default function AdminReturnsPage() {
@@ -141,7 +123,7 @@ export default function AdminReturnsPage() {
       }));
     } catch (error) {
       console.error('Error fetching returns:', error);
-      toast.error(getApiErrorMessage(err, 'Failed to load returns'));
+      toast.error(getApiErrorMessage(error, 'Failed to load returns'));
     } finally {
       setLoading(false);
     }
@@ -179,188 +161,158 @@ export default function AdminReturnsPage() {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">Returns & Cancellations</h1>
-        <p className="text-sm text-gray-500 mt-1">
-          Manage returned, cancelled, and refunded orders
-        </p>
-      </div>
+    <div>
+      <PageHeader
+        title="Returns & Cancellations"
+        description="Manage returned, cancelled, and refunded orders"
+      />
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+      <div className="mb-6 grid grid-cols-2 gap-4 sm:gap-6 lg:grid-cols-4">
         <SummaryCard
           label="Total"
           count={counts.all}
-          className="border-gray-200"
+          icon={Layers}
+          tone="gray"
           active={statusFilter === ''}
           onClick={() => setStatusFilter('')}
         />
         <SummaryCard
           label="Returned"
           count={counts.RETURNED}
-          className="border-orange-200"
+          icon={RotateCcw}
+          tone="orange"
           active={statusFilter === 'RETURNED'}
           onClick={() => setStatusFilter('RETURNED')}
         />
         <SummaryCard
           label="Cancelled"
           count={counts.CANCELLED}
-          className="border-red-200"
+          icon={Ban}
+          tone="rose"
           active={statusFilter === 'CANCELLED'}
           onClick={() => setStatusFilter('CANCELLED')}
         />
         <SummaryCard
           label="Refunded"
           count={counts.REFUNDED}
-          className="border-purple-200"
+          icon={Undo2}
+          tone="purple"
           active={statusFilter === 'REFUNDED'}
           onClick={() => setStatusFilter('REFUNDED')}
         />
       </div>
 
       {/* Search */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-        <div className="relative">
-          <svg
-            className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-            />
-          </svg>
+      <div className="mb-6 rounded-[1.75rem] border border-foreground/[0.04] bg-card p-3 shadow-bento">
+        <div className="group/search relative">
+          <Search
+            className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400 transition-colors group-focus-within/search:text-gray-700"
+            strokeWidth={2.5}
+          />
           <input
             type="text"
             placeholder="Search by order number, customer name, or email..."
+            aria-label="Search returns"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
+            className="field-input border-transparent bg-gray-50 pl-11 shadow-none focus:bg-card"
           />
         </div>
       </div>
 
       {/* Returns Table */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+      <div className="bento-card overflow-hidden p-2 sm:p-4">
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+          <table className="bento-table min-w-[1040px]">
+            <thead>
               <tr>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Order
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Customer
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Items
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Amount
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Status
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Payment
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Reason / Notes
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Date
-                </th>
-                <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Actions
-                </th>
+                <th className="pl-4">Order</th>
+                <th>Customer</th>
+                <th>Items</th>
+                <th className="text-right">Amount</th>
+                <th className="text-center">Status</th>
+                <th className="text-center">Payment</th>
+                <th>Reason / Notes</th>
+                <th>Date</th>
+                <th className="pr-4 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={9} className="px-4 py-12 text-center">
-                    <div className="flex items-center justify-center">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-teal-600" />
-                      <span className="ml-3 text-gray-500">Loading returns...</span>
-                    </div>
+                  <td colSpan={9}>
+                    <LoadingState label="Loading returns" />
                   </td>
                 </tr>
               ) : orders.length === 0 ? (
                 <tr>
-                  <td colSpan={9} className="px-4 py-12 text-center text-gray-500">
-                    No returns or cancellations found.
+                  <td colSpan={9}>
+                    <EmptyState
+                      bare
+                      icon={RotateCcw}
+                      title="Nothing here"
+                      description="No returns or cancellations found."
+                    />
                   </td>
                 </tr>
               ) : (
-                orders.map((order) => {
-                  const statusBadge = STATUS_BADGES[order.status] ?? {
-                    label: order.status,
-                    className: 'bg-gray-100 text-gray-800 border-gray-200',
-                  };
-                  const paymentBadge = PAYMENT_BADGES[order.paymentStatus] ?? {
-                    label: order.paymentStatus,
-                    className: 'bg-gray-100 text-gray-800 border-gray-200',
-                  };
-                  return (
-                    <tr key={order.id} className="hover:bg-gray-50 transition-colors">
-                      <td className="px-4 py-3">
-                        <a
-                          href={`/admin/orders/${order.id}`}
-                          className="text-sm font-medium text-teal-600 hover:text-teal-800"
-                        >
-                          #{order.orderNumber}
-                        </a>
-                      </td>
-                      <td className="px-4 py-3">
-                        <div className="text-sm font-medium text-gray-900">
-                          {order.customer.name}
-                        </div>
-                        <div className="text-xs text-gray-500">{order.customer.email}</div>
-                      </td>
-                      <td className="px-4 py-3 text-sm text-gray-700">
+                orders.map((order) => (
+                  <tr key={order.id} className="group">
+                    <td className="pl-4">
+                      <a
+                        href={`/admin/orders/${order.id}`}
+                        className="whitespace-nowrap text-sm font-black text-gray-900 transition-colors hover:text-primary"
+                      >
+                        #{order.orderNumber}
+                      </a>
+                    </td>
+                    <td>
+                      <div className="max-w-[200px] truncate text-sm font-black leading-tight text-gray-900">
+                        {order.customer.name}
+                      </div>
+                      <div className="max-w-[200px] truncate text-[11px] font-bold text-gray-400">
+                        {order.customer.email}
+                      </div>
+                    </td>
+                    <td>
+                      <span className="whitespace-nowrap rounded-xl bg-gray-100 px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-gray-600">
                         {order.items} item{order.items !== 1 ? 's' : ''}
-                      </td>
-                      <td className="px-4 py-3 text-sm font-medium text-gray-900">
-                        {formatBDT(order.totalAmount)}
-                      </td>
-                      <td className="px-4 py-3">
-                        <Badge label={statusBadge.label} className={statusBadge.className} />
-                      </td>
-                      <td className="px-4 py-3">
-                        <Badge label={paymentBadge.label} className={paymentBadge.className} />
-                      </td>
-                      <td className="px-4 py-3">
-                        <p
-                          className="text-sm text-gray-600 max-w-[200px] truncate"
-                          title={order.notes ?? ''}
-                        >
-                          {order.notes || <span className="text-gray-400 italic">No notes</span>}
-                        </p>
-                      </td>
-                      <td className="px-4 py-3 text-sm text-gray-500">
-                        {new Date(order.updatedAt).toLocaleDateString('en-BD', {
-                          day: 'numeric',
-                          month: 'short',
-                          year: 'numeric',
-                        })}
-                      </td>
-                      <td className="px-4 py-3 text-right">
-                        <a
-                          href={`/admin/orders/${order.id}`}
-                          className="text-sm text-teal-600 hover:text-teal-800 font-medium"
-                        >
-                          View
-                        </a>
-                      </td>
-                    </tr>
-                  );
-                })
+                      </span>
+                    </td>
+                    <td className="whitespace-nowrap text-right text-sm font-black tabular-nums tracking-tight text-gray-900">
+                      {formatBDT(order.totalAmount)}
+                    </td>
+                    <td className="text-center">
+                      <OrderStatusPill status={order.status} />
+                    </td>
+                    <td className="text-center">
+                      <PaymentStatusPill status={order.paymentStatus} />
+                    </td>
+                    <td>
+                      <p
+                        className="max-w-[200px] truncate text-sm font-medium text-gray-600"
+                        title={order.notes ?? ''}
+                      >
+                        {order.notes || (
+                          <span className="text-xs font-bold text-gray-300">No notes</span>
+                        )}
+                      </p>
+                    </td>
+                    <td className="whitespace-nowrap text-xs font-bold text-gray-500">
+                      {new Date(order.updatedAt).toLocaleDateString('en-BD', {
+                        day: 'numeric',
+                        month: 'short',
+                        year: 'numeric',
+                      })}
+                    </td>
+                    <td className="pr-4 text-right">
+                      <a href={`/admin/orders/${order.id}`} className="btn btn-soft btn-sm">
+                        View
+                      </a>
+                    </td>
+                  </tr>
+                ))
               )}
             </tbody>
           </table>
@@ -373,25 +325,56 @@ export default function AdminReturnsPage() {
 function SummaryCard({
   label,
   count,
-  className,
+  icon: Icon,
+  tone,
   active,
   onClick,
 }: {
   label: string;
   count: number;
-  className: string;
+  icon: LucideIcon;
+  tone: BentoTone;
   active: boolean;
   onClick: () => void;
 }) {
   return (
     <button
+      type="button"
       onClick={onClick}
-      className={`rounded-lg border p-4 text-left transition-all ${className} ${
-        active ? 'ring-2 ring-teal-500 bg-teal-50' : 'bg-white hover:shadow-sm'
-      }`}
+      aria-pressed={active}
+      className={cn(
+        'group flex items-center gap-4 rounded-[2rem] border p-5 text-left transition-all focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-500/20',
+        active
+          ? 'border-transparent bg-ink text-white shadow-xl shadow-black/10'
+          : 'border-foreground/[0.04] bg-card shadow-bento hover:shadow-bento-hover',
+      )}
     >
-      <p className="text-sm text-gray-500">{label}</p>
-      <p className="text-2xl font-bold text-gray-900 mt-1">{count}</p>
+      <div
+        className={cn(
+          'icon-tile h-12 w-12 group-hover:scale-110',
+          active ? 'bg-white/10 text-white' : TONE_CLASSES[tone],
+        )}
+      >
+        <Icon className="h-5 w-5" strokeWidth={2.25} />
+      </div>
+      <div>
+        <p
+          className={cn(
+            'text-2xl font-black tabular-nums tracking-tighter',
+            !active && 'text-gray-900',
+          )}
+        >
+          {count}
+        </p>
+        <p
+          className={cn(
+            'text-[10px] font-black uppercase tracking-widest',
+            active ? 'text-white/50' : 'text-gray-500',
+          )}
+        >
+          {label}
+        </p>
+      </div>
     </button>
   );
 }

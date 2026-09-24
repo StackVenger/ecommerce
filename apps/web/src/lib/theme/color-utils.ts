@@ -130,3 +130,23 @@ export function tailwindThemeVars(colors: ThemeColorsInput): Record<string, stri
   }
   return out;
 }
+
+/**
+ * Families self-hosted through next/font in the root layout. next/font
+ * registers them under a hashed family name, so a literal `'Inter'` in
+ * a CSS var would miss the loaded face; point at the next/font variable
+ * instead and keep the literal name as a fallback.
+ */
+const NEXT_FONT_VARS: Record<string, string> = {
+  Inter: '--font-inter',
+  'Noto Sans Bengali': '--font-noto-sans-bengali',
+};
+
+/** Build a CSS font-family stack for an admin-selected family. */
+export function fontStack(
+  family: string,
+  generic: 'sans-serif' | 'monospace' = 'sans-serif',
+): string {
+  const nextVar = NEXT_FONT_VARS[family];
+  return nextVar ? `var(${nextVar}), '${family}', ${generic}` : `'${family}', ${generic}`;
+}

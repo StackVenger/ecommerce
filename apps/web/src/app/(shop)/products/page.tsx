@@ -7,7 +7,6 @@ import {
   ChevronsRight,
   Filter,
   Grid3X3,
-  Heart,
   List,
   ShoppingCart,
   SlidersHorizontal,
@@ -17,6 +16,12 @@ import {
 import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
+import {
+  ProductCard,
+  ProductCardSkeleton,
+  type ProductCardBadge,
+} from '@/components/products/product-card';
+import { BentoGlow, EmptyState, PageHeader } from '@/components/ui/bento';
 import { useCart } from '@/hooks/use-cart';
 import { useWishlist } from '@/hooks/use-wishlist';
 import { apiClient } from '@/lib/api/client';
@@ -282,13 +287,22 @@ export default function ProductsPage() {
   }, [pagination, page]);
 
   // Filter sidebar content (shared between desktop and mobile)
+  const filterOptionClass = (active: boolean, sub = false) =>
+    `flex w-full items-center justify-between gap-2 rounded-xl px-3 text-left text-sm transition-all ${
+      sub ? 'py-1.5' : 'py-2'
+    } ${
+      active
+        ? 'bg-brand-50 font-black text-brand-700'
+        : sub
+          ? 'font-medium text-gray-500 hover:bg-gray-50 hover:text-gray-900'
+          : 'font-bold text-gray-700 hover:bg-gray-50 hover:text-gray-900'
+    }`;
+
   const filterContent = (
-    <div className="space-y-6">
+    <div className="space-y-7">
       {/* Category filter */}
       <div>
-        <h3 className="mb-3 text-sm font-semibold text-gray-900 uppercase tracking-wider">
-          Category
-        </h3>
+        <h3 className="eyebrow mb-3">Category</h3>
         <ul className="space-y-0.5">
           <li>
             <button
@@ -296,11 +310,7 @@ export default function ProductsPage() {
                 setSelectedCategory('');
                 setPage(1);
               }}
-              className={`w-full rounded-lg px-3 py-2 text-left text-sm transition-colors ${
-                !selectedCategory
-                  ? 'bg-teal-50 font-medium text-primary'
-                  : 'text-gray-600 hover:bg-gray-50'
-              }`}
+              className={filterOptionClass(!selectedCategory)}
             >
               All Categories
             </button>
@@ -328,21 +338,19 @@ export default function ProductsPage() {
                     setSelectedCategory(cat.slug);
                     setPage(1);
                   }}
-                  className={`w-full rounded-lg px-3 py-2 text-left text-sm font-medium transition-colors ${
-                    selectedCategory === cat.slug
-                      ? 'bg-teal-50 text-primary'
-                      : 'text-gray-800 hover:bg-gray-50'
-                  }`}
+                  className={filterOptionClass(selectedCategory === cat.slug)}
                 >
-                  <span>{cat.name}</span>
+                  <span className="truncate">{cat.name}</span>
                   {totalCount > 0 && (
-                    <span className="ml-1 text-xs font-normal text-gray-400">({totalCount})</span>
+                    <span className="shrink-0 text-[11px] font-bold tabular-nums text-gray-400">
+                      {totalCount}
+                    </span>
                   )}
                 </button>
 
                 {/* Subcategories */}
                 {hasChildren && (
-                  <ul className="ml-3 border-l border-gray-200 pl-2 space-y-0.5">
+                  <ul className="my-1 ml-4 space-y-0.5 border-l border-foreground/[0.06] pl-2">
                     {cat.children!.map((sub) => {
                       const subCount = sub.productCount ?? sub._count?.products ?? 0;
                       if (subCount === 0) {
@@ -355,14 +363,12 @@ export default function ProductsPage() {
                               setSelectedCategory(sub.slug);
                               setPage(1);
                             }}
-                            className={`w-full rounded-lg px-3 py-1.5 text-left text-sm transition-colors ${
-                              selectedCategory === sub.slug
-                                ? 'bg-teal-50 font-medium text-primary'
-                                : 'text-gray-500 hover:bg-gray-50 hover:text-gray-700'
-                            }`}
+                            className={filterOptionClass(selectedCategory === sub.slug, true)}
                           >
-                            <span>{sub.name}</span>
-                            <span className="ml-1 text-xs text-gray-400">({subCount})</span>
+                            <span className="truncate">{sub.name}</span>
+                            <span className="shrink-0 text-[11px] font-bold tabular-nums text-gray-400">
+                              {subCount}
+                            </span>
                           </button>
                         </li>
                       );
@@ -377,30 +383,30 @@ export default function ProductsPage() {
 
       {/* Price range */}
       <div>
-        <h3 className="mb-3 text-sm font-semibold text-gray-900 uppercase tracking-wider">
-          Price Range
-        </h3>
+        <h3 className="eyebrow mb-3">Price Range</h3>
         <div className="flex items-center gap-2">
           <input
             type="number"
             placeholder="Min"
+            aria-label="Minimum price"
             value={minPrice}
             onChange={(e) => {
               setMinPrice(e.target.value);
               setPage(1);
             }}
-            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+            className="field-input px-3 py-2.5"
           />
-          <span className="text-gray-400">—</span>
+          <span className="font-bold text-gray-300">—</span>
           <input
             type="number"
             placeholder="Max"
+            aria-label="Maximum price"
             value={maxPrice}
             onChange={(e) => {
               setMaxPrice(e.target.value);
               setPage(1);
             }}
-            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+            className="field-input px-3 py-2.5"
           />
         </div>
       </div>
@@ -408,21 +414,15 @@ export default function ProductsPage() {
       {/* Brand filter */}
       {brands.length > 0 && (
         <div>
-          <h3 className="mb-3 text-sm font-semibold text-gray-900 uppercase tracking-wider">
-            Brand
-          </h3>
-          <ul className="space-y-1">
+          <h3 className="eyebrow mb-3">Brand</h3>
+          <ul className="space-y-0.5">
             <li>
               <button
                 onClick={() => {
                   setSelectedBrand('');
                   setPage(1);
                 }}
-                className={`w-full rounded-lg px-3 py-2 text-left text-sm transition-colors ${
-                  !selectedBrand
-                    ? 'bg-teal-50 font-medium text-primary'
-                    : 'text-gray-600 hover:bg-gray-50'
-                }`}
+                className={filterOptionClass(!selectedBrand)}
               >
                 All Brands
               </button>
@@ -434,13 +434,9 @@ export default function ProductsPage() {
                     setSelectedBrand(brand.slug);
                     setPage(1);
                   }}
-                  className={`w-full rounded-lg px-3 py-2 text-left text-sm transition-colors ${
-                    selectedBrand === brand.slug
-                      ? 'bg-teal-50 font-medium text-primary'
-                      : 'text-gray-600 hover:bg-gray-50'
-                  }`}
+                  className={filterOptionClass(selectedBrand === brand.slug)}
                 >
-                  {brand.name}
+                  <span className="truncate">{brand.name}</span>
                 </button>
               </li>
             ))}
@@ -450,11 +446,8 @@ export default function ProductsPage() {
 
       {/* Clear all */}
       {hasActiveFilters && (
-        <button
-          onClick={clearFilters}
-          className="flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 px-4 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
-        >
-          <X className="h-4 w-4" />
+        <button onClick={clearFilters} className="btn btn-soft w-full">
+          <X className="h-4 w-4" strokeWidth={2.5} />
           Clear All Filters
         </button>
       )}
@@ -468,253 +461,84 @@ export default function ProductsPage() {
       ? Math.round(((product.price - product.salePrice!) / product.price) * 100)
       : 0;
     const rating = product.averageRating;
-    const reviews = product.reviewCount ?? product.totalReviews ?? 0;
+    const reviews = product.reviewCount ?? 0;
 
-    if (viewMode === 'list' && !isFeaturedCard) {
-      return (
-        <Link
-          key={product.id}
-          href={`/products/${product.slug}`}
-          className="group flex gap-4 rounded-xl border border-gray-200 bg-white p-4 transition-all hover:shadow-lg hover:border-primary sm:gap-6"
-        >
-          <div className="relative h-36 w-36 flex-shrink-0 overflow-hidden rounded-lg bg-gray-100 sm:h-44 sm:w-44">
-            {product.images?.[0] ? (
-              <img
-                src={product.images[0]}
-                alt={product.name}
-                className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
-              />
-            ) : (
-              <div className="flex h-full items-center justify-center text-gray-400">No Image</div>
-            )}
-            {hasDiscount && (
-              <span className="absolute left-2 top-2 rounded-md bg-red-500 px-1.5 py-0.5 text-xs font-bold text-white">
-                -{discountPercent}%
-              </span>
-            )}
-          </div>
-          <div className="flex flex-1 flex-col justify-between py-1">
-            <div>
-              {product.brandName && (
-                <p className="text-xs font-medium text-primary">{product.brandName}</p>
-              )}
-              <h3 className="mt-1 text-base font-semibold text-gray-900 group-hover:text-primary line-clamp-2">
-                {product.name}
-              </h3>
-              {product.shortDescription && (
-                <p className="mt-1 text-sm text-gray-500 line-clamp-2">
-                  {product.shortDescription}
-                </p>
-              )}
-              {reviews > 0 && (
-                <div className="mt-2 flex items-center gap-1.5">
-                  <div className="flex">
-                    {[1, 2, 3, 4, 5].map((s) => (
-                      <Star
-                        key={s}
-                        className={`h-3.5 w-3.5 ${
-                          s <= Math.round(rating)
-                            ? 'fill-amber-400 text-amber-400'
-                            : 'fill-gray-200 text-gray-200'
-                        }`}
-                      />
-                    ))}
-                  </div>
-                  <span className="text-xs text-gray-500">
-                    {rating.toFixed(1)} ({reviews})
-                  </span>
-                </div>
-              )}
-            </div>
-            <div className="flex items-center justify-between mt-3">
-              <div>
-                {hasDiscount ? (
-                  <div className="flex items-center gap-2">
-                    <span className="text-lg font-bold text-primary">
-                      {formatPrice(effectivePrice)}
-                    </span>
-                    <span className="text-sm text-gray-400 line-through">
-                      {formatPrice(product.price)}
-                    </span>
-                  </div>
-                ) : (
-                  <span className="text-lg font-bold text-primary">
-                    {formatPrice(effectivePrice)}
-                  </span>
-                )}
-              </div>
-              {product.stock > 0 ? (
-                <button
-                  onClick={(e) => handleQuickAdd(e, product)}
-                  disabled={isUpdating}
-                  className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary/90 disabled:opacity-50"
-                >
-                  <ShoppingCart className="h-4 w-4" />
-                  Add to Cart
-                </button>
-              ) : (
-                <span className="rounded-lg bg-gray-100 px-4 py-2 text-sm font-medium text-red-500">
-                  Out of Stock
-                </span>
-              )}
-            </div>
-          </div>
-        </Link>
-      );
+    const badges: ProductCardBadge[] = [];
+    if (hasDiscount) {
+      badges.push({ label: `-${discountPercent}%`, tone: 'sale' });
+    }
+    if (product.isFeatured && !(viewMode === 'list' && !isFeaturedCard)) {
+      badges.push({ label: 'NEW', tone: 'featured' });
     }
 
     return (
-      <Link
+      <ProductCard
         key={product.id}
+        layout={viewMode === 'list' && !isFeaturedCard ? 'list' : 'grid'}
         href={`/products/${product.slug}`}
-        className="group relative flex flex-col rounded-xl border border-gray-200 bg-white transition-all duration-300 hover:shadow-lg hover:border-primary hover:-translate-y-0.5"
-      >
-        {/* Image */}
-        <div className="relative aspect-square overflow-hidden rounded-t-xl bg-gray-100">
-          {product.images?.[0] ? (
-            <img
-              src={product.images[0]}
-              alt={product.name}
-              className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
-            />
-          ) : (
-            <div className="flex h-full items-center justify-center text-gray-400">No Image</div>
-          )}
-
-          {/* Badges */}
-          <div className="absolute left-2 top-2 flex flex-col gap-1.5">
-            {hasDiscount && (
-              <span className="rounded-md bg-red-500 px-2 py-0.5 text-xs font-bold text-white shadow-sm">
-                -{discountPercent}%
-              </span>
-            )}
-            {product.isFeatured && (
-              <span className="rounded-md bg-amber-500 px-2 py-0.5 text-xs font-bold text-white shadow-sm">
-                NEW
-              </span>
-            )}
-          </div>
-
-          {/* Wishlist heart */}
-          <button
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              toggleWishlist(product.id);
-            }}
-            className="absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-full bg-white/80 opacity-0 backdrop-blur-sm shadow-sm transition-all duration-200 group-hover:opacity-100 hover:bg-white hover:scale-110"
-          >
-            <Heart
-              className={`h-4 w-4 transition-colors ${
-                wishlist.has(product.id) ? 'fill-red-500 text-red-500' : 'text-gray-600'
-              }`}
-            />
-          </button>
-
-          {/* Out of stock overlay */}
-          {product.stock <= 0 && (
-            <div className="absolute inset-x-0 bottom-0 bg-gray-900/80 py-2.5 text-center text-sm font-medium text-white backdrop-blur-sm">
-              Out of Stock
-            </div>
-          )}
-        </div>
-
-        {/* Info */}
-        <div className="flex flex-1 flex-col p-3 sm:p-4">
-          {product.brandName && (
-            <p className="text-xs font-medium text-primary">{product.brandName}</p>
-          )}
-          <h3 className="mt-1 line-clamp-2 text-sm font-semibold text-gray-900 group-hover:text-primary">
-            {product.name}
-          </h3>
-
-          {reviews > 0 && (
-            <div className="mt-1.5 flex items-center gap-1.5">
-              <div className="flex">
-                {[1, 2, 3, 4, 5].map((s) => (
-                  <Star
-                    key={s}
-                    className={`h-3 w-3 ${
-                      s <= Math.round(rating)
-                        ? 'fill-amber-400 text-amber-400'
-                        : 'fill-gray-200 text-gray-200'
-                    }`}
-                  />
-                ))}
-              </div>
-              <span className="text-xs text-gray-400">({reviews})</span>
-            </div>
-          )}
-
-          <div className="mt-auto pt-2">
-            {hasDiscount ? (
-              <div className="flex items-center gap-2">
-                <span className="text-base font-bold text-primary">
-                  {formatPrice(effectivePrice)}
-                </span>
-                <span className="text-xs text-gray-400 line-through">
-                  {formatPrice(product.price)}
-                </span>
-              </div>
-            ) : (
-              <span className="text-base font-bold text-primary">
-                {formatPrice(effectivePrice)}
-              </span>
-            )}
-          </div>
-
-          {/* Add to Cart */}
-          {product.stock > 0 ? (
-            <button
-              onClick={(e) => handleQuickAdd(e, product)}
-              disabled={isUpdating}
-              className="mt-2 flex w-full items-center justify-center gap-1.5 rounded-lg bg-primary px-3 py-2 text-xs font-medium text-white transition-all hover:bg-primary/90 disabled:opacity-50"
-            >
-              <ShoppingCart className="h-3.5 w-3.5" />
-              Add to Cart
-            </button>
-          ) : (
-            <p className="mt-2 text-center text-xs font-medium text-red-500">Out of Stock</p>
-          )}
-        </div>
-      </Link>
+        name={product.name}
+        image={product.images?.[0]}
+        brand={product.brandName}
+        description={product.shortDescription}
+        rating={reviews > 0 ? rating : null}
+        reviewCount={reviews}
+        price={effectivePrice}
+        originalPrice={hasDiscount ? product.price : null}
+        formatPrice={formatPrice}
+        badges={badges}
+        outOfStock={product.stock <= 0}
+        onAddToCart={(e) => handleQuickAdd(e, product)}
+        addDisabled={isUpdating}
+        wishlisted={wishlist.has(product.id)}
+        onToggleWishlist={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          toggleWishlist(product.id);
+        }}
+      />
     );
   };
+
+  const sortSelect = (
+    <select
+      value={sortBy}
+      onChange={(e) => {
+        setSortBy(e.target.value);
+        setPage(1);
+      }}
+      aria-label="Sort products"
+      className="field-input w-auto cursor-pointer py-2.5 pr-9 text-xs font-bold"
+    >
+      {SORT_OPTIONS.map((opt) => (
+        <option key={opt.value} value={opt.value}>
+          {opt.label}
+        </option>
+      ))}
+    </select>
+  );
+
+  const pageButtonClass =
+    'flex h-10 w-10 items-center justify-center rounded-xl border border-foreground/[0.05] bg-card text-gray-600 shadow-sm transition-all hover:bg-gray-50 hover:text-gray-900 disabled:cursor-not-allowed disabled:opacity-30';
 
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Sticky mobile filter bar */}
-      <div className="sticky top-0 z-30 border-b bg-white/95 backdrop-blur-sm lg:hidden">
-        <div className="site-container flex items-center justify-between px-4 py-3">
+      <div className="sticky top-20 z-20 border-b border-foreground/[0.04] bg-gray-50/90 backdrop-blur-lg lg:hidden">
+        <div className="site-container flex items-center justify-between gap-3 px-4 py-3">
           <button
             onClick={() => setMobileFilterOpen(true)}
-            className="relative flex items-center gap-2 rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
+            className="btn btn-secondary btn-sm relative"
           >
-            <SlidersHorizontal className="h-4 w-4" />
+            <SlidersHorizontal className="h-4 w-4" strokeWidth={2.5} />
             Filters
             {activeFilterCount > 0 && (
-              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-xs text-white">
+              <span className="flex h-5 w-5 items-center justify-center rounded-lg bg-primary text-[10px] font-black text-white">
                 {activeFilterCount}
               </span>
             )}
           </button>
 
-          <div className="flex items-center gap-2">
-            <select
-              value={sortBy}
-              onChange={(e) => {
-                setSortBy(e.target.value);
-                setPage(1);
-              }}
-              className="rounded-lg border-gray-300 text-sm"
-            >
-              {SORT_OPTIONS.map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
-          </div>
+          <div className="flex items-center gap-2">{sortSelect}</div>
         </div>
       </div>
 
@@ -722,23 +546,24 @@ export default function ProductsPage() {
       {mobileFilterOpen && (
         <div className="fixed inset-0 z-50 lg:hidden">
           <div
-            className="absolute inset-0 bg-black/40"
+            className="absolute inset-0 bg-ink/40 backdrop-blur-sm"
             onClick={() => setMobileFilterOpen(false)}
           />
-          <div className="absolute inset-x-0 bottom-0 max-h-[80vh] overflow-y-auto rounded-t-2xl bg-white p-6 shadow-2xl animate-in slide-in-from-bottom">
+          <div className="absolute inset-x-0 bottom-0 max-h-[85vh] overflow-y-auto rounded-t-[2rem] bg-card p-6 shadow-2xl animate-in slide-in-from-bottom">
             <div className="mb-6 flex items-center justify-between">
-              <h2 className="text-lg font-bold text-gray-900">Filters</h2>
+              <h2 className="section-title">Filters</h2>
               <button
                 onClick={() => setMobileFilterOpen(false)}
-                className="flex h-8 w-8 items-center justify-center rounded-full hover:bg-gray-100"
+                aria-label="Close filters"
+                className="btn-icon h-10 w-10 bg-gray-100 text-gray-600 hover:bg-gray-200"
               >
-                <X className="h-5 w-5" />
+                <X className="h-5 w-5" strokeWidth={2.5} />
               </button>
             </div>
             {filterContent}
             <button
               onClick={() => setMobileFilterOpen(false)}
-              className="mt-6 w-full rounded-lg bg-primary py-3 text-sm font-semibold text-white transition-colors hover:bg-primary/90"
+              className="btn btn-primary btn-lg mt-6 w-full"
             >
               Show Results
             </button>
@@ -746,96 +571,101 @@ export default function ProductsPage() {
         </div>
       )}
 
-      <div className="site-container px-4 py-6">
+      <div className="site-container px-4 py-6 sm:py-8">
         {/* Breadcrumb */}
-        <nav className="mb-4 flex items-center gap-2 text-sm text-gray-500">
-          <Link href="/" className="hover:text-gray-700 transition-colors">
+        <nav className="mb-4 flex items-center gap-2 text-xs font-bold text-gray-400">
+          <Link href="/" className="transition-colors hover:text-gray-900">
             Home
           </Link>
           <ChevronRight className="h-3.5 w-3.5" />
-          <span className="text-gray-900 font-medium">Products</span>
+          <span className="text-gray-900">Products</span>
         </nav>
 
-        <div className="flex gap-8">
+        {/* Header */}
+        <PageHeader
+          title="All Products"
+          description={
+            pagination ? (
+              <>
+                Showing {Math.min((pagination.page - 1) * pagination.limit + 1, pagination.total)}–
+                {Math.min(pagination.page * pagination.limit, pagination.total)} of{' '}
+                {pagination.total} products
+              </>
+            ) : undefined
+          }
+          actions={
+            <div className="hidden items-center gap-3 lg:flex">
+              {sortSelect}
+
+              {/* View toggle */}
+              <div className="flex rounded-2xl border border-foreground/[0.04] bg-card p-1 shadow-sm">
+                <button
+                  onClick={() => setViewMode('grid')}
+                  aria-label="Grid view"
+                  aria-pressed={viewMode === 'grid'}
+                  className={`flex h-9 w-9 items-center justify-center rounded-xl transition-all ${
+                    viewMode === 'grid'
+                      ? 'bg-primary text-white shadow-sm'
+                      : 'text-gray-500 hover:text-gray-900'
+                  }`}
+                >
+                  <Grid3X3 className="h-4 w-4" strokeWidth={2.5} />
+                </button>
+                <button
+                  onClick={() => setViewMode('list')}
+                  aria-label="List view"
+                  aria-pressed={viewMode === 'list'}
+                  className={`flex h-9 w-9 items-center justify-center rounded-xl transition-all ${
+                    viewMode === 'list'
+                      ? 'bg-primary text-white shadow-sm'
+                      : 'text-gray-500 hover:text-gray-900'
+                  }`}
+                >
+                  <List className="h-4 w-4" strokeWidth={2.5} />
+                </button>
+              </div>
+            </div>
+          }
+        />
+
+        <div className="flex gap-6 lg:gap-8">
           {/* Desktop sidebar */}
           <aside className="hidden w-64 flex-shrink-0 lg:block">
-            <div className="sticky top-6 rounded-xl border border-gray-200 bg-white p-5">
-              <div className="mb-4 flex items-center gap-2">
-                <Filter className="h-4 w-4 text-primary" />
-                <h2 className="font-semibold text-gray-900">Filters</h2>
+            <div className="bento-card sticky top-24 p-6">
+              <div className="mb-6 flex items-center gap-3">
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-50 text-brand-600">
+                  <Filter className="h-4 w-4" strokeWidth={2.5} />
+                </div>
+                <h2 className="text-lg font-black tracking-tight text-gray-900">Filters</h2>
               </div>
               {filterContent}
             </div>
           </aside>
 
           {/* Main content */}
-          <div className="flex-1 min-w-0">
-            {/* Header */}
-            <div className="mb-6 flex items-center justify-between">
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">All Products</h1>
-                {pagination && (
-                  <p className="mt-1 text-sm text-gray-500">
-                    Showing{' '}
-                    {Math.min((pagination.page - 1) * pagination.limit + 1, pagination.total)}–
-                    {Math.min(pagination.page * pagination.limit, pagination.total)} of{' '}
-                    {pagination.total} products
-                  </p>
-                )}
-              </div>
-              <div className="hidden items-center gap-3 lg:flex">
-                <select
-                  value={sortBy}
-                  onChange={(e) => {
-                    setSortBy(e.target.value);
-                    setPage(1);
-                  }}
-                  className="rounded-lg border-gray-300 text-sm shadow-sm"
-                >
-                  {SORT_OPTIONS.map((opt) => (
-                    <option key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </option>
-                  ))}
-                </select>
-
-                {/* View toggle */}
-                <div className="flex rounded-lg border border-gray-300 p-0.5">
-                  <button
-                    onClick={() => setViewMode('grid')}
-                    className={`rounded-md p-1.5 transition-colors ${
-                      viewMode === 'grid'
-                        ? 'bg-primary text-white'
-                        : 'text-gray-500 hover:text-gray-700'
-                    }`}
-                  >
-                    <Grid3X3 className="h-4 w-4" />
-                  </button>
-                  <button
-                    onClick={() => setViewMode('list')}
-                    className={`rounded-md p-1.5 transition-colors ${
-                      viewMode === 'list'
-                        ? 'bg-primary text-white'
-                        : 'text-gray-500 hover:text-gray-700'
-                    }`}
-                  >
-                    <List className="h-4 w-4" />
-                  </button>
-                </div>
-              </div>
-            </div>
-
+          <div className="min-w-0 flex-1">
             {/* Featured products */}
             {showFeatured && (
-              <div className="mb-8">
-                <div className="mb-4 flex items-center gap-2">
-                  <Star className="h-5 w-5 fill-amber-400 text-amber-400" />
-                  <h2 className="text-lg font-bold text-gray-900">Featured Products</h2>
+              <div className="bento-primary mb-6 p-5 sm:mb-8 sm:p-8">
+                <BentoGlow />
+                <div className="relative z-10">
+                  <div className="mb-5 flex items-center gap-3">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/20 backdrop-blur-md">
+                      <Star className="h-5 w-5 fill-white text-white" />
+                    </div>
+                    <div>
+                      <h2 className="text-xl font-black tracking-tight">Featured Products</h2>
+                      <p className="text-[10px] font-black uppercase tracking-widest text-white/70">
+                        Most viewed picks
+                      </p>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3 text-gray-900 sm:gap-4 md:grid-cols-4">
+                    {featuredProducts
+                      .slice(0, 4)
+                      .map((product) => renderProductCard(product, true))}
+                  </div>
                 </div>
-                <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-                  {featuredProducts.slice(0, 4).map((product) => renderProductCard(product, true))}
-                </div>
-                <hr className="mt-8 border-gray-200" />
               </div>
             )}
 
@@ -844,38 +674,32 @@ export default function ProductsPage() {
               <div
                 className={
                   viewMode === 'grid'
-                    ? 'grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-3'
+                    ? 'grid grid-cols-2 gap-3 sm:gap-5 md:grid-cols-3'
                     : 'flex flex-col gap-4'
                 }
               >
                 {Array.from({ length: 12 }).map((_, i) => (
-                  <div
-                    key={i}
-                    className={`animate-pulse rounded-xl bg-gray-200 ${
-                      viewMode === 'grid' ? 'h-80' : 'h-44'
-                    }`}
-                  />
+                  <ProductCardSkeleton key={i} layout={viewMode} />
                 ))}
               </div>
             ) : products.length === 0 ? (
-              <div className="py-20 text-center">
-                <ShoppingCart className="mx-auto h-16 w-16 text-gray-300 mb-4" />
-                <p className="text-xl font-medium text-gray-500">No products found</p>
-                <p className="mt-2 text-gray-400">Try adjusting your filters or search criteria.</p>
-                {hasActiveFilters && (
-                  <button
-                    onClick={clearFilters}
-                    className="mt-4 rounded-lg bg-primary px-6 py-2.5 text-sm font-medium text-white transition-colors hover:bg-primary/90"
-                  >
-                    Clear All Filters
-                  </button>
-                )}
-              </div>
+              <EmptyState
+                icon={ShoppingCart}
+                title="No products found"
+                description="Try adjusting your filters or search criteria."
+                action={
+                  hasActiveFilters ? (
+                    <button onClick={clearFilters} className="btn btn-primary">
+                      Clear All Filters
+                    </button>
+                  ) : undefined
+                }
+              />
             ) : (
               <div
                 className={
                   viewMode === 'grid'
-                    ? 'grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-3'
+                    ? 'grid grid-cols-2 gap-3 sm:gap-5 md:grid-cols-3'
                     : 'flex flex-col gap-4'
                 }
               >
@@ -885,46 +709,52 @@ export default function ProductsPage() {
 
             {/* Smart Pagination */}
             {pagination && pagination.pages > 1 && (
-              <div className="mt-10 flex flex-col items-center gap-4 sm:flex-row sm:justify-between">
-                <p className="text-sm text-gray-500">
-                  Showing {Math.min((pagination.page - 1) * pagination.limit + 1, pagination.total)}
-                  –{Math.min(pagination.page * pagination.limit, pagination.total)} of{' '}
-                  {pagination.total} products
+              <div className="bento-card mt-8 flex flex-col items-center gap-4 p-4 sm:flex-row sm:justify-between sm:px-6">
+                <p className="text-[11px] font-bold text-gray-500">
+                  Showing{' '}
+                  <span className="text-gray-900">
+                    {Math.min((pagination.page - 1) * pagination.limit + 1, pagination.total)}–
+                    {Math.min(pagination.page * pagination.limit, pagination.total)}
+                  </span>{' '}
+                  of <span className="text-gray-900">{pagination.total}</span> products
                 </p>
 
-                <div className="flex items-center gap-1">
+                <div className="flex flex-wrap items-center justify-center gap-1.5">
                   {/* First */}
                   <button
                     onClick={() => setPage(1)}
                     disabled={page === 1}
-                    className="rounded-lg border p-2 text-gray-600 transition-colors hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed"
+                    className={`${pageButtonClass} hidden sm:flex`}
                     title="First page"
+                    aria-label="First page"
                   >
-                    <ChevronsLeft className="h-4 w-4" />
+                    <ChevronsLeft className="h-4 w-4" strokeWidth={2.5} />
                   </button>
                   {/* Previous */}
                   <button
                     onClick={() => setPage((p) => Math.max(1, p - 1))}
                     disabled={page === 1}
-                    className="rounded-lg border p-2 text-gray-600 transition-colors hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed"
+                    className={pageButtonClass}
                     title="Previous page"
+                    aria-label="Previous page"
                   >
-                    <ChevronLeft className="h-4 w-4" />
+                    <ChevronLeft className="h-4 w-4" strokeWidth={2.5} />
                   </button>
 
                   {paginationRange.map((item, idx) =>
                     item === 'ellipsis' ? (
-                      <span key={`ellipsis-${idx}`} className="px-1 text-gray-400">
-                        ...
+                      <span key={`ellipsis-${idx}`} className="px-1 font-black text-gray-300">
+                        …
                       </span>
                     ) : (
                       <button
                         key={item}
                         onClick={() => setPage(item)}
-                        className={`min-w-[36px] rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+                        aria-current={item === page ? 'page' : undefined}
+                        className={`h-10 min-w-[40px] rounded-xl px-3 text-xs font-black tabular-nums transition-all ${
                           item === page
-                            ? 'bg-primary text-white shadow-sm'
-                            : 'border text-gray-600 hover:bg-gray-50'
+                            ? 'bg-ink text-white shadow-lg shadow-black/10'
+                            : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900'
                         }`}
                       >
                         {item}
@@ -936,19 +766,21 @@ export default function ProductsPage() {
                   <button
                     onClick={() => setPage((p) => Math.min(pagination.pages, p + 1))}
                     disabled={page === pagination.pages}
-                    className="rounded-lg border p-2 text-gray-600 transition-colors hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed"
+                    className={pageButtonClass}
                     title="Next page"
+                    aria-label="Next page"
                   >
-                    <ChevronRight className="h-4 w-4" />
+                    <ChevronRight className="h-4 w-4" strokeWidth={2.5} />
                   </button>
                   {/* Last */}
                   <button
                     onClick={() => setPage(pagination.pages)}
                     disabled={page === pagination.pages}
-                    className="rounded-lg border p-2 text-gray-600 transition-colors hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed"
+                    className={`${pageButtonClass} hidden sm:flex`}
                     title="Last page"
+                    aria-label="Last page"
                   >
-                    <ChevronsRight className="h-4 w-4" />
+                    <ChevronsRight className="h-4 w-4" strokeWidth={2.5} />
                   </button>
                 </div>
               </div>

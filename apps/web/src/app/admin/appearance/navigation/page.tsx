@@ -225,7 +225,7 @@ export default function AdminNavigationPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-teal-600" />
+        <div className="h-10 w-10 animate-spin rounded-full border-4 border-brand-100 border-t-primary" />
       </div>
     );
   }
@@ -234,42 +234,37 @@ export default function AdminNavigationPage() {
     <div className="space-y-6">
       {confirmDialog}
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Navigation Menus</h1>
-          <p className="text-sm text-gray-500 mt-1">
-            Manage header, footer, and other navigation menus
-          </p>
+          <h1 className="page-title">Navigation Menus</h1>
+          <p className="page-subtitle">Manage header, footer, and other navigation menus</p>
         </div>
-        <button
-          onClick={() => setShowAddMenu(true)}
-          className="px-4 py-2 bg-teal-600 text-white rounded-lg text-sm font-medium hover:bg-teal-700"
-        >
+        <button onClick={() => setShowAddMenu(true)} className="btn btn-primary">
           Create Menu
         </button>
       </div>
 
       {/* Create Menu Modal */}
       {showAddMenu && (
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Create New Menu</h3>
+        <div className="bento-card p-6 sm:p-8">
+          <h3 className="text-lg font-black text-gray-900 mb-4 tracking-tight">Create New Menu</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Menu Name</label>
+              <label className="field-label">Menu Name</label>
               <input
                 type="text"
                 value={newMenu.name}
                 onChange={(e) => setNewMenu({ ...newMenu, name: e.target.value })}
                 placeholder="e.g., Main Navigation"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                className="field-input w-full"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Location</label>
+              <label className="field-label">Location</label>
               <select
                 value={newMenu.location}
                 onChange={(e) => setNewMenu({ ...newMenu, location: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                className="field-input w-full"
               >
                 <option value="header">Header</option>
                 <option value="footer">Footer</option>
@@ -279,16 +274,10 @@ export default function AdminNavigationPage() {
             </div>
           </div>
           <div className="mt-4 flex gap-2">
-            <button
-              onClick={createMenu}
-              className="px-4 py-2 bg-teal-600 text-white rounded-lg text-sm hover:bg-teal-700"
-            >
+            <button onClick={createMenu} className="btn btn-primary">
               Create
             </button>
-            <button
-              onClick={() => setShowAddMenu(false)}
-              className="px-4 py-2 border border-gray-300 rounded-lg text-sm hover:bg-gray-50"
-            >
+            <button onClick={() => setShowAddMenu(false)} className="btn btn-secondary">
               Cancel
             </button>
           </div>
@@ -298,9 +287,9 @@ export default function AdminNavigationPage() {
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         {/* Menu List */}
         <div className="lg:col-span-1">
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-            <div className="px-4 py-3 border-b border-gray-200">
-              <h3 className="text-sm font-semibold text-gray-900">Menus</h3>
+          <div className="bento-card overflow-hidden">
+            <div className="px-4 py-3 border-b border-foreground/[0.04]">
+              <h3 className="text-lg font-black tracking-tight text-gray-900">Menus</h3>
             </div>
             <div className="divide-y divide-gray-100">
               {menus.length === 0 ? (
@@ -311,7 +300,7 @@ export default function AdminNavigationPage() {
                     key={menu.id}
                     onClick={() => setSelectedMenuId(menu.id)}
                     className={`w-full px-4 py-3 text-left flex items-center justify-between transition-colors ${
-                      selectedMenuId === menu.id ? 'bg-teal-50 text-teal-700' : 'hover:bg-gray-50'
+                      selectedMenuId === menu.id ? 'bg-brand-50 text-brand-700' : 'hover:bg-gray-50'
                     }`}
                   >
                     <div>
@@ -353,25 +342,24 @@ export default function AdminNavigationPage() {
         {/* Menu Items */}
         <div className="lg:col-span-3">
           {selectedMenu ? (
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-              <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+            <div className="bento-card">
+              <div className="px-6 py-4 border-b border-foreground/[0.04] flex items-center justify-between">
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900">{selectedMenu.name}</h3>
+                  <h3 className="text-lg font-black text-gray-900 tracking-tight">
+                    {selectedMenu.name}
+                  </h3>
                   <p className="text-xs text-gray-500">
                     {LOCATION_LABELS[selectedMenu.location] ?? selectedMenu.location} menu
                   </p>
                 </div>
-                <button
-                  onClick={() => setShowAddItem(true)}
-                  className="px-3 py-1.5 bg-teal-600 text-white rounded-lg text-sm hover:bg-teal-700"
-                >
+                <button onClick={() => setShowAddItem(true)} className="btn btn-primary btn-sm">
                   Add Item
                 </button>
               </div>
 
               {/* Add Item Form */}
               {showAddItem && (
-                <div className="px-6 py-4 bg-teal-50 border-b border-teal-100">
+                <div className="px-6 py-4 bg-brand-50 border-b border-brand-100">
                   <h4 className="text-sm font-semibold text-gray-900 mb-3">New Menu Item</h4>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                     <input
@@ -379,26 +367,26 @@ export default function AdminNavigationPage() {
                       value={newItem.label}
                       onChange={(e) => setNewItem({ ...newItem, label: e.target.value })}
                       placeholder="Label (English)"
-                      className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                      className="field-input w-auto py-2.5"
                     />
                     <input
                       type="text"
                       value={newItem.labelBn}
                       onChange={(e) => setNewItem({ ...newItem, labelBn: e.target.value })}
                       placeholder="Label (Bangla)"
-                      className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                      className="field-input w-auto py-2.5"
                     />
                     <input
                       type="text"
                       value={newItem.url}
                       onChange={(e) => setNewItem({ ...newItem, url: e.target.value })}
                       placeholder="URL (e.g., /products)"
-                      className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                      className="field-input w-auto py-2.5"
                     />
                     <select
                       value={newItem.type}
                       onChange={(e) => setNewItem({ ...newItem, type: e.target.value })}
-                      className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                      className="field-input w-auto py-2.5"
                     >
                       {TYPE_OPTIONS.map((o) => (
                         <option key={o.value} value={o.value}>
@@ -409,7 +397,7 @@ export default function AdminNavigationPage() {
                     <select
                       value={newItem.target}
                       onChange={(e) => setNewItem({ ...newItem, target: e.target.value })}
-                      className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                      className="field-input w-auto py-2.5"
                     >
                       {TARGET_OPTIONS.map((o) => (
                         <option key={o.value} value={o.value}>
@@ -420,7 +408,7 @@ export default function AdminNavigationPage() {
                     <select
                       value={newItem.parentId}
                       onChange={(e) => setNewItem({ ...newItem, parentId: e.target.value })}
-                      className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                      className="field-input w-auto py-2.5"
                     >
                       <option value="">Top Level</option>
                       {selectedMenu.items.map((item) => (
@@ -431,16 +419,10 @@ export default function AdminNavigationPage() {
                     </select>
                   </div>
                   <div className="mt-3 flex gap-2">
-                    <button
-                      onClick={addMenuItem}
-                      className="px-4 py-2 bg-teal-600 text-white rounded-lg text-sm hover:bg-teal-700"
-                    >
+                    <button onClick={addMenuItem} className="btn btn-primary">
                       Add
                     </button>
-                    <button
-                      onClick={() => setShowAddItem(false)}
-                      className="px-4 py-2 border border-gray-300 rounded-lg text-sm hover:bg-gray-50"
-                    >
+                    <button onClick={() => setShowAddItem(false)} className="btn btn-secondary">
                       Cancel
                     </button>
                   </div>
@@ -472,7 +454,7 @@ export default function AdminNavigationPage() {
               </div>
             </div>
           ) : (
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 px-6 py-12 text-center text-gray-400">
+            <div className="bento-card px-6 py-12 text-center text-sm font-bold text-gray-400">
               Select a menu from the left to manage its items
             </div>
           )}
@@ -518,19 +500,16 @@ function MenuItemRow({
               type="text"
               value={editingItem.label}
               onChange={(e) => onEditingChange({ ...editingItem, label: e.target.value })}
-              className="px-2 py-1 border border-gray-300 rounded text-sm"
+              className="field-input w-auto py-2.5"
             />
             <input
               type="text"
               value={editingItem.url}
               onChange={(e) => onEditingChange({ ...editingItem, url: e.target.value })}
-              className="px-2 py-1 border border-gray-300 rounded text-sm"
+              className="field-input w-auto py-2.5"
             />
             <div className="flex gap-1">
-              <button
-                onClick={onSave}
-                className="px-3 py-1 bg-teal-600 text-white rounded text-xs hover:bg-teal-700"
-              >
+              <button onClick={onSave} className="btn btn-primary btn-sm">
                 Save
               </button>
               <button
@@ -548,9 +527,7 @@ function MenuItemRow({
               {item.labelBn && <span className="text-xs text-gray-400 ml-2">{item.labelBn}</span>}
               <span className="text-xs text-gray-400 ml-2">{item.url || '—'}</span>
             </div>
-            <span className="text-xs text-gray-400 border border-gray-200 rounded px-1.5 py-0.5">
-              {item.type}
-            </span>
+            <span className="pill pill-neutral">{item.type}</span>
             <button
               onClick={() => onToggleVisibility(item)}
               className={`p-1 rounded ${item.isVisible ? 'text-green-600 hover:bg-green-50' : 'text-gray-400 hover:bg-gray-100'}`}
@@ -576,7 +553,7 @@ function MenuItemRow({
             </button>
             <button
               onClick={() => onEdit({ ...item })}
-              className="p-1 text-gray-400 hover:text-teal-600 hover:bg-teal-50 rounded"
+              className="p-1 text-gray-400 hover:text-brand-600 hover:bg-brand-50 rounded-xl transition-all"
               title="Edit"
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -590,7 +567,7 @@ function MenuItemRow({
             </button>
             <button
               onClick={() => onDelete(item.id)}
-              className="p-1 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded"
+              className="p-1 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all"
               title="Delete"
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">

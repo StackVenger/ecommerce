@@ -147,12 +147,12 @@ function ColorPicker({
         />
       </div>
       <div className="flex-1">
-        <label className="block text-sm font-medium text-gray-700">{label}</label>
+        <label className="field-label">{label}</label>
         <input
           type="text"
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          className="mt-0.5 w-full px-2 py-1 border border-gray-300 rounded text-xs font-mono uppercase"
+          className="field-input mt-0.5 w-full text-xs font-mono uppercase"
           pattern="^#[0-9a-fA-F]{6}$"
         />
       </div>
@@ -165,7 +165,7 @@ export default function ColorSettings({ colors, onChange }: ColorSettingsProps) 
     onChange({ ...colors, [key]: value });
   };
 
-  const applyPreset = (preset: typeof COLOR_PRESETS[0]) => {
+  const applyPreset = (preset: (typeof COLOR_PRESETS)[0]) => {
     onChange({ ...colors, ...preset.colors });
   };
 
@@ -173,13 +173,13 @@ export default function ColorSettings({ colors, onChange }: ColorSettingsProps) 
     <div className="space-y-6">
       {/* Color Presets */}
       <div>
-        <h3 className="text-sm font-semibold text-gray-700 mb-3">Quick Presets</h3>
+        <h3 className="text-sm font-black text-gray-900 mb-3 tracking-tight">Quick Presets</h3>
         <div className="grid grid-cols-3 gap-3">
           {COLOR_PRESETS.map((preset) => (
             <button
               key={preset.name}
               onClick={() => applyPreset(preset)}
-              className="p-3 border border-gray-200 rounded-lg hover:border-teal-300 hover:bg-teal-50 transition-colors text-left"
+              className="rounded-2xl border border-foreground/[0.05] bg-card p-3 text-left shadow-sm transition-all hover:border-brand-300 hover:bg-brand-50"
             >
               <div className="flex gap-1 mb-2">
                 {Object.values(preset.colors).map((color, i) => (
@@ -199,7 +199,7 @@ export default function ColorSettings({ colors, onChange }: ColorSettingsProps) 
       {/* Color Groups */}
       {COLOR_GROUPS.map((group) => (
         <div key={group.label}>
-          <h3 className="text-sm font-semibold text-gray-700 mb-3">{group.label}</h3>
+          <h3 className="text-sm font-black text-gray-900 mb-3 tracking-tight">{group.label}</h3>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             {group.fields.map((field) => (
               <ColorPicker
@@ -215,9 +215,9 @@ export default function ColorSettings({ colors, onChange }: ColorSettingsProps) 
 
       {/* Live Preview */}
       <div>
-        <h3 className="text-sm font-semibold text-gray-700 mb-3">Live Preview</h3>
+        <h3 className="text-sm font-black text-gray-900 mb-3 tracking-tight">Live Preview</h3>
         <div
-          className="rounded-lg border border-gray-200 overflow-hidden"
+          className="overflow-hidden rounded-[1.5rem] border border-foreground/[0.05]"
           style={{ backgroundColor: colors.background }}
         >
           {/* Preview Header */}
@@ -227,10 +227,7 @@ export default function ColorSettings({ colors, onChange }: ColorSettingsProps) 
               <div className="flex items-center gap-4">
                 <span className="text-white/80 text-sm">Categories</span>
                 <span className="text-white/80 text-sm">Products</span>
-                <span
-                  className="px-3 py-1 rounded-full text-xs font-medium"
-                  style={{ backgroundColor: colors.accent, color: '#fff' }}
-                >
+                <span className="pill" style={{ backgroundColor: colors.accent, color: '#fff' }}>
                   Cart (3)
                 </span>
               </div>
@@ -256,10 +253,7 @@ export default function ColorSettings({ colors, onChange }: ColorSettingsProps) 
                     border: `1px solid ${colors.border}`,
                   }}
                 >
-                  <div
-                    className="h-20"
-                    style={{ backgroundColor: colors.surface }}
-                  />
+                  <div className="h-20" style={{ backgroundColor: colors.surface }} />
                   <div className="p-3">
                     <div className="text-sm font-medium" style={{ color: colors.text }}>
                       Product {i}
@@ -280,16 +274,16 @@ export default function ColorSettings({ colors, onChange }: ColorSettingsProps) 
 
             {/* Status badges preview */}
             <div className="flex gap-2 mt-4">
-              <span className="px-2 py-1 rounded text-xs font-medium text-white" style={{ backgroundColor: colors.success }}>
+              <span className="pill text-white" style={{ backgroundColor: colors.success }}>
                 Success
               </span>
-              <span className="px-2 py-1 rounded text-xs font-medium text-white" style={{ backgroundColor: colors.warning }}>
+              <span className="pill text-white" style={{ backgroundColor: colors.warning }}>
                 Warning
               </span>
-              <span className="px-2 py-1 rounded text-xs font-medium text-white" style={{ backgroundColor: colors.error }}>
+              <span className="pill text-white" style={{ backgroundColor: colors.error }}>
                 Error
               </span>
-              <span className="px-2 py-1 rounded text-xs font-medium text-white" style={{ backgroundColor: colors.info }}>
+              <span className="pill text-white" style={{ backgroundColor: colors.info }}>
                 Info
               </span>
             </div>

@@ -74,10 +74,10 @@ interface BrandCardProps {
 
 function BrandCard({ brand, onEdit, onDelete }: BrandCardProps) {
   return (
-    <div className="group rounded-xl border border-gray-200 bg-white p-5 shadow-sm transition-all hover:shadow-md">
+    <div className="bento-card group p-5 transition-all hover:shadow-md">
       <div className="mb-4 flex items-start justify-between">
         {/* Logo */}
-        <div className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-xl border border-gray-200 bg-gray-50">
+        <div className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-[12px] border border-foreground/[0.04] bg-gray-50">
           {brand.logo ? (
             <img src={brand.logo} alt={brand.name} className="h-full w-full object-contain p-1" />
           ) : (
@@ -89,20 +89,20 @@ function BrandCard({ brand, onEdit, onDelete }: BrandCardProps) {
         <div className="flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
           <button
             onClick={() => onEdit(brand)}
-            className="rounded p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+            className="rounded-xl p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-all"
           >
             <Edit className="h-4 w-4" />
           </button>
           <button
             onClick={() => onDelete(brand.id)}
-            className="rounded p-1.5 text-gray-400 hover:bg-red-50 hover:text-red-600"
+            className="rounded-xl p-2 text-gray-400 hover:bg-red-50 hover:text-red-600 transition-all"
           >
             <Trash2 className="h-4 w-4" />
           </button>
         </div>
       </div>
 
-      <h3 className="text-sm font-semibold text-gray-900">{brand.name}</h3>
+      <h3 className="text-lg font-black tracking-tight text-gray-900">{brand.name}</h3>
       {brand.nameBn && <p className="text-xs text-gray-500">{brand.nameBn}</p>}
       <p className="mt-1 line-clamp-2 text-xs text-gray-500">
         {brand.description || 'No description'}
@@ -115,8 +115,8 @@ function BrandCard({ brand, onEdit, onDelete }: BrandCardProps) {
         </div>
         <span
           className={cn(
-            'rounded-full px-2 py-0.5 text-xs font-medium',
-            brand.isActive ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500',
+            'pill',
+            brand.isActive ? 'bg-emerald-50 text-emerald-600' : 'bg-gray-100 text-gray-500',
           )}
         >
           {brand.isActive ? 'Active' : 'Draft'}
@@ -132,8 +132,8 @@ function BrandCard({ brand, onEdit, onDelete }: BrandCardProps) {
 
 function BrandRow({ brand, onEdit, onDelete }: BrandCardProps) {
   return (
-    <div className="flex items-center gap-4 border-b border-gray-100 px-6 py-3 last:border-0 hover:bg-gray-50">
-      <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center overflow-hidden rounded-lg border border-gray-200 bg-gray-50">
+    <div className="flex items-center gap-4 border-b border-foreground/[0.04] px-6 py-3 last:border-0 hover:bg-gray-50">
+      <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center overflow-hidden rounded-[12px] border border-foreground/[0.04] bg-gray-50">
         {brand.logo ? (
           <img src={brand.logo} alt={brand.name} className="h-full w-full object-contain p-0.5" />
         ) : (
@@ -155,7 +155,7 @@ function BrandRow({ brand, onEdit, onDelete }: BrandCardProps) {
                 href={brand.website}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-teal-600 hover:underline"
+                className="text-brand-600 hover:underline"
               >
                 website
               </a>
@@ -171,8 +171,8 @@ function BrandRow({ brand, onEdit, onDelete }: BrandCardProps) {
 
       <span
         className={cn(
-          'rounded-full px-2 py-0.5 text-xs font-medium',
-          brand.isActive ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500',
+          'pill',
+          brand.isActive ? 'bg-emerald-50 text-emerald-600' : 'bg-gray-100 text-gray-500',
         )}
       >
         {brand.isActive ? 'Active' : 'Draft'}
@@ -181,13 +181,13 @@ function BrandRow({ brand, onEdit, onDelete }: BrandCardProps) {
       <div className="flex items-center gap-1">
         <button
           onClick={() => onEdit(brand)}
-          className="rounded p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+          className="rounded-xl p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-all"
         >
           <Edit className="h-4 w-4" />
         </button>
         <button
           onClick={() => onDelete(brand.id)}
-          className="rounded p-1.5 text-gray-400 hover:bg-red-50 hover:text-red-600"
+          className="rounded-xl p-2 text-gray-400 hover:bg-red-50 hover:text-red-600 transition-all"
         >
           <Trash2 className="h-4 w-4" />
         </button>
@@ -315,12 +315,15 @@ function BrandFormDialog({ isOpen, onClose, onSuccess, editBrand }: BrandFormDia
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       <div className="absolute inset-0 bg-black/50" onClick={onClose} />
-      <div className="relative w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
+      <div className="relative w-full max-w-md rounded-[2rem] bg-card p-6 shadow-xl">
         <div className="mb-6 flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-gray-900">
+          <h2 className="text-lg font-black text-gray-900 tracking-tight">
             {isEditing ? 'Edit Brand' : 'Create Brand'}
           </h2>
-          <button onClick={onClose} className="rounded-lg p-2 text-gray-400 hover:bg-gray-100">
+          <button
+            onClick={onClose}
+            className="rounded-xl p-2 text-gray-400 hover:bg-gray-100 transition-all"
+          >
             <X className="h-5 w-5" />
           </button>
         </div>
@@ -328,7 +331,7 @@ function BrandFormDialog({ isOpen, onClose, onSuccess, editBrand }: BrandFormDia
         <div className="space-y-4">
           {/* Logo Upload */}
           <div className="flex items-center gap-4">
-            <div className="flex h-16 w-16 flex-shrink-0 items-center justify-center overflow-hidden rounded-xl border-2 border-dashed border-gray-300 bg-gray-50">
+            <div className="flex h-16 w-16 flex-shrink-0 items-center justify-center overflow-hidden rounded-[12px] border-2 border-dashed border-gray-300 bg-gray-50">
               {formData.logo ? (
                 <img src={formData.logo} alt="Logo" className="h-full w-full object-contain p-1" />
               ) : (
@@ -339,7 +342,7 @@ function BrandFormDialog({ isOpen, onClose, onSuccess, editBrand }: BrandFormDia
               <button
                 onClick={() => fileInputRef.current?.click()}
                 disabled={isUploading}
-                className="inline-flex items-center gap-1.5 rounded-lg border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                className="btn btn-secondary btn-sm gap-1.5"
               >
                 {isUploading ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
@@ -368,7 +371,7 @@ function BrandFormDialog({ isOpen, onClose, onSuccess, editBrand }: BrandFormDia
 
           {/* Name */}
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-gray-700">
+            <label className="field-label">
               Brand Name <span className="text-red-500">*</span>
             </label>
             <input
@@ -377,41 +380,41 @@ function BrandFormDialog({ isOpen, onClose, onSuccess, editBrand }: BrandFormDia
               onChange={(e) => updateField('name', e.target.value)}
               placeholder="e.g., Samsung"
               className={cn(
-                'w-full rounded-lg border px-4 py-2.5 text-sm focus:outline-none focus:ring-1',
+                'field-input w-full',
                 errors.name
                   ? 'border-red-300 focus:ring-red-500'
-                  : 'border-gray-300 focus:ring-teal-500',
+                  : 'border-gray-300 focus:ring-brand-500',
               )}
             />
-            {errors.name && <p className="mt-1 text-sm text-red-600">{errors.name}</p>}
+            {errors.name && <p className="field-error">{errors.name}</p>}
           </div>
 
           {/* Name Bangla */}
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-gray-700">Name (বাংলা)</label>
+            <label className="field-label">Name (বাংলা)</label>
             <input
               type="text"
               value={formData.nameBn}
               onChange={(e) => updateField('nameBn', e.target.value)}
               placeholder="e.g., স্যামসাং"
-              className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
+              className="field-input w-full"
             />
           </div>
 
           {/* Slug */}
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-gray-700">Slug</label>
+            <label className="field-label">Slug</label>
             <input
               type="text"
               value={formData.slug}
               onChange={(e) => updateField('slug', e.target.value)}
-              className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
+              className="field-input w-full"
             />
           </div>
 
           {/* Description */}
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-gray-700">Description</label>
+            <label className="field-label">Description</label>
             <RichTextEditor
               value={formData.description}
               onChange={(html) => updateField('description', html)}
@@ -422,13 +425,13 @@ function BrandFormDialog({ isOpen, onClose, onSuccess, editBrand }: BrandFormDia
 
           {/* Website */}
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-gray-700">Website</label>
+            <label className="field-label">Website</label>
             <input
               type="url"
               value={formData.website}
               onChange={(e) => updateField('website', e.target.value)}
               placeholder="https://example.com"
-              className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
+              className="field-input w-full"
             />
           </div>
 
@@ -438,24 +441,17 @@ function BrandFormDialog({ isOpen, onClose, onSuccess, editBrand }: BrandFormDia
               type="checkbox"
               checked={formData.isActive}
               onChange={(e) => updateField('isActive', e.target.checked)}
-              className="h-4 w-4 rounded border-gray-300 text-teal-600 focus:ring-teal-500"
+              className="h-4 w-4 rounded border-gray-300 text-brand-600 focus:ring-brand-500"
             />
             <span className="text-sm font-medium text-gray-700">Active</span>
           </label>
         </div>
 
-        <div className="mt-6 flex justify-end gap-3 border-t border-gray-200 pt-4">
-          <button
-            onClick={onClose}
-            className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
-          >
+        <div className="mt-6 flex justify-end gap-3 border-t border-foreground/[0.04] pt-4">
+          <button onClick={onClose} className="btn btn-secondary">
             Cancel
           </button>
-          <button
-            onClick={handleSave}
-            disabled={isSaving}
-            className="inline-flex items-center gap-2 rounded-lg bg-teal-600 px-4 py-2 text-sm font-medium text-white hover:bg-teal-700 disabled:opacity-50"
-          >
+          <button onClick={handleSave} disabled={isSaving} className="btn btn-primary gap-2">
             {isSaving && <Loader2 className="h-4 w-4 animate-spin" />}
             {isEditing ? 'Save Changes' : 'Create Brand'}
           </button>
@@ -530,19 +526,17 @@ export default function AdminBrandsPage() {
     <div className="space-y-6">
       {confirmDialog}
       {/* Page Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Brands</h1>
-          <p className="text-sm text-gray-500">
-            Manage your product brands ({brands.length} brands)
-          </p>
+          <h1 className="page-title">Brands</h1>
+          <p className="page-subtitle">Manage your product brands ({brands.length} brands)</p>
         </div>
         <button
           onClick={() => {
             setEditingBrand(null);
             setShowDialog(true);
           }}
-          className="inline-flex items-center gap-2 rounded-lg bg-teal-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-teal-700"
+          className="btn btn-primary gap-2"
         >
           <Plus className="h-4 w-4" />
           Add Brand
@@ -558,25 +552,29 @@ export default function AdminBrandsPage() {
             placeholder="Search brands..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full rounded-lg border border-gray-300 bg-white py-2 pl-10 pr-4 text-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
+            className="field-input w-full pl-11 pr-4"
           />
         </div>
 
-        <div className="flex rounded-lg border border-gray-200">
+        <div className="flex rounded-2xl border border-foreground/[0.05] bg-card p-1 shadow-sm">
           <button
             onClick={() => setViewMode('grid')}
+            aria-label="Grid view"
+            aria-pressed={viewMode === 'grid'}
             className={cn(
-              'rounded-l-lg p-2',
-              viewMode === 'grid' ? 'bg-teal-600 text-white' : 'text-gray-500 hover:bg-gray-50',
+              'rounded-xl p-2 transition-all',
+              viewMode === 'grid' ? 'bg-brand-600 text-white' : 'text-gray-500 hover:bg-gray-50',
             )}
           >
             <LayoutGrid className="h-4 w-4" />
           </button>
           <button
             onClick={() => setViewMode('list')}
+            aria-label="List view"
+            aria-pressed={viewMode === 'list'}
             className={cn(
-              'rounded-r-lg p-2',
-              viewMode === 'list' ? 'bg-teal-600 text-white' : 'text-gray-500 hover:bg-gray-50',
+              'rounded-xl p-2 transition-all',
+              viewMode === 'list' ? 'bg-brand-600 text-white' : 'text-gray-500 hover:bg-gray-50',
             )}
           >
             <List className="h-4 w-4" />
@@ -587,10 +585,10 @@ export default function AdminBrandsPage() {
       {/* Content */}
       {isLoading ? (
         <div className="flex items-center justify-center py-12">
-          <Loader2 className="h-6 w-6 animate-spin text-teal-600" />
+          <Loader2 className="h-6 w-6 animate-spin text-brand-600" />
         </div>
       ) : filteredBrands.length === 0 ? (
-        <div className="rounded-xl border border-gray-200 bg-white py-12 text-center shadow-sm">
+        <div className="bento-card py-12 text-center">
           <Building2 className="mx-auto h-10 w-10 text-gray-300" />
           <p className="mt-3 text-sm text-gray-500">
             {searchQuery ? 'No brands match your search.' : 'No brands yet.'}
@@ -603,7 +601,7 @@ export default function AdminBrandsPage() {
           ))}
         </div>
       ) : (
-        <div className="rounded-xl border border-gray-200 bg-white shadow-sm">
+        <div className="bento-card">
           {filteredBrands.map((brand) => (
             <BrandRow key={brand.id} brand={brand} onEdit={handleEdit} onDelete={handleDelete} />
           ))}

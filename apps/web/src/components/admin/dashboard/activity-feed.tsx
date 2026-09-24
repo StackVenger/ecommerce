@@ -1,9 +1,11 @@
 'use client';
 
-import { ShoppingCart, UserPlus, AlertTriangle, Clock } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { ShoppingCart, UserPlus, AlertTriangle, ArrowUpRight, type LucideIcon } from 'lucide-react';
+import Link from 'next/link';
 
-import { fetchDashboardActivity, formatBDT, type ActivityData } from '@/lib/api/admin';
+import { useDashboardActivity } from './use-dashboard-activity';
+
+import { formatBDT, type ActivityData } from '@/lib/api/admin';
 import { cn } from '@/lib/utils';
 
 // ──────────────────────────────────────────────────────────
@@ -16,9 +18,9 @@ interface ActivityItem {
   title: string;
   description: string;
   time: Date;
-  icon: React.ComponentType<{ className?: string }>;
-  iconColor: string;
-  iconBg: string;
+  href?: string;
+  icon: LucideIcon;
+  iconClass: string;
 }
 
 // ──────────────────────────────────────────────────────────
@@ -52,12 +54,12 @@ function mergeAndSortActivities(data: ActivityData): ActivityItem[] {
     items.push({
       id: `order-${order.id}`,
       type: 'order',
-      title: `New order #${order.orderNumber}`,
-      description: `${order.customerName} placed an order for ${formatBDT(order.totalAmount)}`,
+      title: order.customerName,
+      description: `Placed order #${order.orderNumber} · ${formatBDT(order.totalAmount)}`,
       time: new Date(order.createdAt),
+      href: `/admin/orders/${order.id}`,
       icon: ShoppingCart,
-      iconColor: 'text-teal-600',
-      iconBg: 'bg-teal-100',
+      iconClass: 'bg-brand-50 text-brand-600',
     });
   }
 
@@ -66,12 +68,11 @@ function mergeAndSortActivities(data: ActivityData): ActivityItem[] {
     items.push({
       id: `reg-${reg.id}`,
       type: 'registration',
-      title: 'New customer registered',
-      description: `${reg.name} (${reg.email}) created an account`,
+      title: reg.name,
+      description: `Created an account · ${reg.email}`,
       time: new Date(reg.createdAt),
       icon: UserPlus,
-      iconColor: 'text-green-600',
-      iconBg: 'bg-green-100',
+      iconClass: 'bg-emerald-50 text-emerald-500',
     });
   }
 
@@ -83,9 +84,9 @@ function mergeAndSortActivities(data: ActivityData): ActivityItem[] {
       title: 'Low stock alert',
       description: `${alert.name} (SKU: ${alert.sku}) has only ${alert.stock} units left`,
       time: new Date(), // Current time for alerts
+      href: `/admin/products/${alert.id}/edit`,
       icon: AlertTriangle,
-      iconColor: 'text-orange-600',
-      iconBg: 'bg-orange-100',
+      iconClass: 'bg-orange-50 text-orange-500',
     });
   }
 
@@ -97,81 +98,104 @@ function mergeAndSortActivities(data: ActivityData): ActivityItem[] {
 // Activity Feed Component
 // ──────────────────────────────────────────────────────────
 
+interface ActivityFeedProps {
+  /** Pre-fetched activity; omit to let the widget fetch its own. */
+  data?: ActivityData | null;
+  loading?: boolean;
+  /** Max items to render. */
+  limit?: number;
+  className?: string;
+}
+
 /**
- * Activity feed widget showing a chronological list of recent
- * orders, customer registrations, and low stock alerts.
+ * "Pulse" feed — a chronological list of recent orders, customer
+ * registrations, and low stock alerts.
  */
-export function ActivityFeed() {
-  const [activities, setActivities] = useState<ActivityItem[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    async function loadActivity() {
-      try {
-        const data = await fetchDashboardActivity();
-        setActivities(mergeAndSortActivities(data));
-      } catch (err) {
-        console.error('Failed to load activity feed:', err);
-      } finally {
-        setIsLoading(false);
-      }
-    }
-    loadActivity();
-  }, []);
-
-  if (isLoading) {
-    return (
-      <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-        <div className="mb-4 h-6 w-36 animate-pulse rounded bg-gray-200" />
-        {Array.from({ length: 6 }).map((_, i) => (
-          <div key={i} className="mb-4 flex gap-3">
-            <div className="h-8 w-8 animate-pulse rounded-full bg-gray-200" />
-            <div className="flex-1">
-              <div className="mb-1 h-4 w-3/4 animate-pulse rounded bg-gray-200" />
-              <div className="h-3 w-1/2 animate-pulse rounded bg-gray-100" />
-            </div>
-          </div>
-        ))}
-      </div>
-    );
-  }
+export function ActivityFeed({ data, loading, limit = 15, className }: ActivityFeedProps = {}) {
+  const { activity, isLoading } = useDashboardActivity(data, loading);
+  const activities = activity ? mergeAndSortActivities(activity).slice(0, limit) : [];
 
   return (
-    <div className="rounded-xl border border-gray-200 bg-white shadow-sm">
+    <div className={cn('bento-card bento-card-hover flex flex-col p-6 sm:p-8', className)}>
       {/* Header */}
-      <div className="border-b border-gray-200 px-6 py-4">
-        <h3 className="text-lg font-semibold text-gray-900">Activity Feed</h3>
-        <p className="text-sm text-gray-500">Recent store activity</p>
+      <div className="mb-6 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
+          <h3 className="section-title">Pulse</h3>
+        </div>
+        <span className="eyebrow">Live activity</span>
       </div>
 
       {/* Activity List */}
-      <div className="max-h-96 overflow-y-auto px-6 py-4">
-        {activities.length === 0 ? (
-          <div className="py-8 text-center text-sm text-gray-500">No recent activity.</div>
-        ) : (
-          <div className="space-y-4">
-            {activities.map((activity) => (
-              <div key={activity.id} className="flex gap-3">
-                <div
-                  className={cn(
-                    'flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full',
-                    activity.iconBg,
-                  )}
-                >
-                  <activity.icon className={cn('h-4 w-4', activity.iconColor)} />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm font-medium text-gray-900">{activity.title}</p>
-                  <p className="truncate text-xs text-gray-500">{activity.description}</p>
-                  <div className="mt-1 flex items-center gap-1 text-xs text-gray-400">
-                    <Clock className="h-3 w-3" />
-                    {timeAgo(activity.time)}
-                  </div>
-                </div>
+      <div className="scrollbar-thin -mr-2 flex max-h-[26rem] flex-1 flex-col gap-6 overflow-y-auto pr-2">
+        {isLoading ? (
+          Array.from({ length: 5 }).map((_, i) => (
+            <div key={i} className="flex gap-4">
+              <div className="h-12 w-12 shrink-0 animate-pulse rounded-2xl bg-gray-100" />
+              <div className="flex-1 space-y-2 pt-1">
+                <div className="h-3 w-2/3 animate-pulse rounded-full bg-gray-100" />
+                <div className="h-2.5 w-full animate-pulse rounded-full bg-gray-50" />
               </div>
-            ))}
+            </div>
+          ))
+        ) : activities.length === 0 ? (
+          <div className="flex flex-1 items-center justify-center py-8 text-sm font-bold text-gray-400">
+            No recent activity.
           </div>
+        ) : (
+          activities.map((item, i) => {
+            const body = (
+              <>
+                <div className="relative shrink-0">
+                  <div
+                    className={cn(
+                      'flex h-12 w-12 items-center justify-center rounded-2xl transition-transform duration-500 group-hover/item:scale-110',
+                      item.iconClass,
+                    )}
+                  >
+                    <item.icon className="h-5 w-5" strokeWidth={2.25} />
+                  </div>
+                  <span
+                    className={cn(
+                      'absolute -bottom-1 -right-1 h-4 w-4 rounded-full border-2 border-card',
+                      i === 0 ? 'bg-emerald-500' : 'bg-gray-300',
+                    )}
+                  />
+                </div>
+                <div className="flex min-w-0 flex-col justify-center">
+                  <p className="mb-0.5 truncate text-xs font-black text-gray-900 transition-colors group-hover/item:text-primary">
+                    {item.title}
+                  </p>
+                  <p className="line-clamp-2 text-[11px] font-bold leading-tight text-gray-500">
+                    {item.description}
+                  </p>
+                  <p className="mt-1.5 text-[9px] font-black uppercase tracking-wider text-gray-400">
+                    {timeAgo(item.time)}
+                  </p>
+                </div>
+              </>
+            );
+            return item.href ? (
+              <Link key={item.id} href={item.href} className="group/item flex gap-4">
+                {body}
+              </Link>
+            ) : (
+              <div key={item.id} className="group/item flex gap-4">
+                {body}
+              </div>
+            );
+          })
         )}
+      </div>
+
+      <div className="mt-6 border-t border-foreground/[0.04] pt-5">
+        <Link
+          href="/admin/orders"
+          className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gray-50 py-3.5 text-[10px] font-black uppercase tracking-widest text-gray-500 transition-all hover:bg-primary hover:text-white"
+        >
+          Open order log
+          <ArrowUpRight className="h-3.5 w-3.5" strokeWidth={2.5} />
+        </Link>
       </div>
     </div>
   );

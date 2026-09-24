@@ -40,7 +40,7 @@ export default function AdminPagesPage() {
         setPages(data.data?.pages ?? data.data ?? []);
       } catch (error) {
         console.error('Error fetching pages:', error);
-        toast.error(getApiErrorMessage(err, 'Failed to load pages'));
+        toast.error(getApiErrorMessage(error, 'Failed to load pages'));
       } finally {
         setLoading(false);
       }
@@ -63,7 +63,7 @@ export default function AdminPagesPage() {
       toast.success('Page deleted');
     } catch (error) {
       console.error('Delete error:', error);
-      toast.error(getApiErrorMessage(err, 'Failed to delete page'));
+      toast.error(getApiErrorMessage(error, 'Failed to delete page'));
     }
   };
 
@@ -75,27 +75,24 @@ export default function AdminPagesPage() {
       toast.success(newStatus === 'published' ? 'Page published' : 'Page unpublished');
     } catch (error) {
       console.error('Status toggle error:', error);
-      toast.error(getApiErrorMessage(err, 'Failed to update page status'));
+      toast.error(getApiErrorMessage(error, 'Failed to update page status'));
     }
   };
 
   return (
     <div className="space-y-6">
       {confirmDialog}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Pages</h1>
-          <p className="text-sm text-gray-500 mt-1">Manage static content pages for your store</p>
+          <h1 className="page-title">Pages</h1>
+          <p className="page-subtitle">Manage static content pages for your store</p>
         </div>
-        <a
-          href="/admin/pages/new"
-          className="px-4 py-2 bg-teal-600 text-white rounded-lg text-sm font-medium hover:bg-teal-700"
-        >
+        <a href="/admin/pages/new" className="btn btn-primary">
           + Create Page
         </a>
       </div>
 
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+      <div className="bento-card p-4">
         <div className="flex items-center gap-4">
           <div className="flex-1 relative">
             <input
@@ -103,7 +100,7 @@ export default function AdminPagesPage() {
               placeholder="Search pages..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm"
+              className="field-input w-full pl-11 pr-4"
             />
             <svg
               className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"
@@ -122,7 +119,7 @@ export default function AdminPagesPage() {
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
+            className="field-input w-auto py-2.5"
           >
             <option value="">All Status</option>
             <option value="published">Published</option>
@@ -132,31 +129,31 @@ export default function AdminPagesPage() {
         </div>
       </div>
 
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
+      <div className="bento-card overflow-hidden">
+        <table className="min-w-full">
+          <thead className="border-b border-foreground/[0.04]">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+              <th className="px-6 py-4 text-left text-[10px] font-black text-gray-500 uppercase tracking-[0.2em]">
                 Title
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+              <th className="px-6 py-4 text-left text-[10px] font-black text-gray-500 uppercase tracking-[0.2em]">
                 Slug
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+              <th className="px-6 py-4 text-left text-[10px] font-black text-gray-500 uppercase tracking-[0.2em]">
                 Status
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+              <th className="px-6 py-4 text-left text-[10px] font-black text-gray-500 uppercase tracking-[0.2em]">
                 Author
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+              <th className="px-6 py-4 text-left text-[10px] font-black text-gray-500 uppercase tracking-[0.2em]">
                 Updated
               </th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">
+              <th className="px-6 py-4 text-right text-[10px] font-black text-gray-500 uppercase tracking-[0.2em]">
                 Actions
               </th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-200">
+          <tbody className="divide-y divide-foreground/[0.03]">
             {loading ? (
               <tr>
                 <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
@@ -181,10 +178,10 @@ export default function AdminPagesPage() {
                     <span
                       className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                         page.status === 'published'
-                          ? 'bg-green-100 text-green-800'
+                          ? 'bg-emerald-50 text-emerald-600'
                           : page.status === 'draft'
-                            ? 'bg-yellow-100 text-yellow-800'
-                            : 'bg-gray-100 text-gray-800'
+                            ? 'bg-amber-50 text-amber-600'
+                            : 'bg-gray-100 text-gray-600'
                       }`}
                     >
                       {page.status}
@@ -197,7 +194,7 @@ export default function AdminPagesPage() {
                   <td className="px-6 py-4 text-right space-x-3">
                     <a
                       href={`/admin/pages/${page.id}/edit`}
-                      className="text-sm text-teal-600 hover:text-teal-800"
+                      className="text-sm text-brand-600 hover:text-brand-800"
                     >
                       Edit
                     </a>

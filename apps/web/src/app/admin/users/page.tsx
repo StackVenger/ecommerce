@@ -1,9 +1,13 @@
 'use client';
 
+import { Search, UserPlus, Users as UsersIcon } from 'lucide-react';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
+import { ListPagination } from '@/components/admin/list-pagination';
+import { RolePill } from '@/components/admin/users/user-pills';
+import { EmptyState, LoadingState, PageHeader } from '@/components/ui/bento';
 import { apiClient } from '@/lib/api/client';
 import { getApiErrorMessage } from '@/lib/api/errors';
 
@@ -78,175 +82,145 @@ export default function AdminUsersPage() {
     }
   };
 
-  const roleBadge = (role: string) => {
-    const colors: Record<string, string> = {
-      SUPER_ADMIN: 'bg-red-100 text-red-700',
-      ADMIN: 'bg-purple-100 text-purple-700',
-      EDITOR: 'bg-teal-100 text-teal-700',
-      CUSTOMER: 'bg-gray-100 text-gray-700',
-    };
-    return (
-      <span
-        className={`rounded-full px-2 py-0.5 text-xs font-medium ${colors[role] ?? colors.CUSTOMER}`}
-      >
-        {role}
-      </span>
-    );
-  };
-
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Users</h1>
-          <p className="text-sm text-gray-500">
-            {pagination ? `${pagination.total} total users` : 'Loading...'}
-          </p>
-        </div>
-        <Link
-          href="/admin/users/new"
-          className="rounded-md bg-teal-600 px-4 py-2 text-sm font-medium text-white hover:bg-teal-700"
-        >
-          Add User
-        </Link>
-      </div>
+    <div>
+      <PageHeader
+        title="Users"
+        description={pagination ? `${pagination.total} total users` : 'Loading...'}
+        actions={
+          <Link href="/admin/users/new" className="btn btn-primary">
+            <UserPlus className="h-4 w-4" strokeWidth={2.5} />
+            Add User
+          </Link>
+        }
+      />
 
       {/* Filters */}
-      <div className="flex flex-wrap items-center gap-4">
-        <form onSubmit={handleSearch} className="flex gap-2">
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search by name or email..."
-            className="w-64 rounded-md border-gray-300 text-sm shadow-sm"
-          />
-          <button
-            type="submit"
-            className="rounded-md bg-gray-100 px-3 py-2 text-sm hover:bg-gray-200"
-          >
-            Search
-          </button>
-        </form>
+      <div className="mb-6 rounded-[1.75rem] border border-foreground/[0.04] bg-card p-3 shadow-bento">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+          <form onSubmit={handleSearch} className="flex flex-1 gap-2">
+            <div className="group/search relative flex-1">
+              <Search
+                className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400 transition-colors group-focus-within/search:text-gray-700"
+                strokeWidth={2.5}
+              />
+              <input
+                type="text"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search by name or email..."
+                aria-label="Search users"
+                className="field-input border-transparent bg-gray-50 pl-11 shadow-none focus:bg-card"
+              />
+            </div>
+            <button type="submit" className="btn btn-dark">
+              Search
+            </button>
+          </form>
 
-        <select
-          value={roleFilter}
-          onChange={(e) => {
-            setRoleFilter(e.target.value);
-            setPage(1);
-          }}
-          className="rounded-md border-gray-300 text-sm shadow-sm"
-        >
-          <option value="">All Roles</option>
-          <option value="SUPER_ADMIN">Super Admin</option>
-          <option value="ADMIN">Admin</option>
-          <option value="EDITOR">Editor</option>
-          <option value="CUSTOMER">Customer</option>
-        </select>
+          <select
+            value={roleFilter}
+            aria-label="Filter by role"
+            onChange={(e) => {
+              setRoleFilter(e.target.value);
+              setPage(1);
+            }}
+            className="field-input border-transparent bg-gray-50 shadow-none sm:w-48"
+          >
+            <option value="">All Roles</option>
+            <option value="SUPER_ADMIN">Super Admin</option>
+            <option value="ADMIN">Admin</option>
+            <option value="EDITOR">Editor</option>
+            <option value="CUSTOMER">Customer</option>
+          </select>
+        </div>
       </div>
 
       {/* Table */}
-      <div className="overflow-x-auto rounded-lg border border-gray-200">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-4 py-3 text-left text-xs font-medium uppercase text-gray-500">
-                Name
-              </th>
-              <th className="px-4 py-3 text-left text-xs font-medium uppercase text-gray-500">
-                Email
-              </th>
-              <th className="px-4 py-3 text-left text-xs font-medium uppercase text-gray-500">
-                Role
-              </th>
-              <th className="px-4 py-3 text-left text-xs font-medium uppercase text-gray-500">
-                Orders
-              </th>
-              <th className="px-4 py-3 text-left text-xs font-medium uppercase text-gray-500">
-                Status
-              </th>
-              <th className="px-4 py-3 text-right text-xs font-medium uppercase text-gray-500">
-                Actions
-              </th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-200 bg-white">
-            {loading ? (
+      <div className="bento-card overflow-hidden p-2 sm:p-4">
+        <div className="overflow-x-auto">
+          <table className="bento-table min-w-[760px]">
+            <thead>
               <tr>
-                <td colSpan={6} className="px-4 py-8 text-center text-gray-400">
-                  Loading users...
-                </td>
+                <th className="pl-4">Name</th>
+                <th>Email</th>
+                <th className="text-center">Role</th>
+                <th className="text-center">Orders</th>
+                <th className="text-center">Status</th>
+                <th className="pr-4 text-right">Actions</th>
               </tr>
-            ) : users.length === 0 ? (
-              <tr>
-                <td colSpan={6} className="px-4 py-8 text-center text-gray-400">
-                  No users found
-                </td>
-              </tr>
-            ) : (
-              users.map((user) => (
-                <tr key={user.id} className="hover:bg-gray-50">
-                  <td className="whitespace-nowrap px-4 py-3 text-sm font-medium text-gray-900">
-                    {user.firstName} {user.lastName}
-                  </td>
-                  <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-500">
-                    {user.email}
-                  </td>
-                  <td className="whitespace-nowrap px-4 py-3">{roleBadge(user.role)}</td>
-                  <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-500">
-                    {user._count.orders}
-                  </td>
-                  <td className="whitespace-nowrap px-4 py-3">
-                    <button
-                      onClick={() => toggleActive(user.id)}
-                      className={`rounded-full px-2 py-0.5 text-xs font-medium ${
-                        user.status === 'ACTIVE'
-                          ? 'bg-green-100 text-green-700'
-                          : 'bg-red-100 text-red-700'
-                      }`}
-                    >
-                      {user.status === 'ACTIVE' ? 'Active' : 'Inactive'}
-                    </button>
-                  </td>
-                  <td className="whitespace-nowrap px-4 py-3 text-right text-sm">
-                    <Link
-                      href={`/admin/users/${user.id}`}
-                      className="text-teal-600 hover:text-teal-800"
-                    >
-                      View
-                    </Link>
+            </thead>
+            <tbody>
+              {loading ? (
+                <tr>
+                  <td colSpan={6}>
+                    <LoadingState label="Loading users" />
                   </td>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
-
-      {/* Pagination */}
-      {pagination && pagination.pages > 1 && (
-        <div className="flex items-center justify-between">
-          <p className="text-sm text-gray-500">
-            Page {pagination.page} of {pagination.pages}
-          </p>
-          <div className="flex gap-2">
-            <button
-              onClick={() => setPage((p) => Math.max(1, p - 1))}
-              disabled={page === 1}
-              className="rounded-md border px-3 py-1 text-sm disabled:opacity-50"
-            >
-              Previous
-            </button>
-            <button
-              onClick={() => setPage((p) => Math.min(pagination.pages, p + 1))}
-              disabled={page === pagination.pages}
-              className="rounded-md border px-3 py-1 text-sm disabled:opacity-50"
-            >
-              Next
-            </button>
-          </div>
+              ) : users.length === 0 ? (
+                <tr>
+                  <td colSpan={6}>
+                    <EmptyState bare icon={UsersIcon} title="No users found" />
+                  </td>
+                </tr>
+              ) : (
+                users.map((user) => (
+                  <tr key={user.id} className="group">
+                    <td className="pl-4">
+                      <div className="flex items-center gap-3">
+                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[14px] bg-gray-100 text-xs font-black text-gray-700 transition-transform group-hover:scale-105">
+                          {(user.firstName?.charAt(0) ?? '') + (user.lastName?.charAt(0) ?? '') ||
+                            user.email.charAt(0).toUpperCase()}
+                        </div>
+                        <span className="whitespace-nowrap text-sm font-black text-gray-900">
+                          {user.firstName} {user.lastName}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="whitespace-nowrap text-sm font-bold text-gray-500">
+                      {user.email}
+                    </td>
+                    <td className="text-center">
+                      <RolePill role={user.role} />
+                    </td>
+                    <td className="text-center text-sm font-black tabular-nums text-gray-900">
+                      {user._count.orders}
+                    </td>
+                    <td className="text-center">
+                      <button
+                        type="button"
+                        onClick={() => toggleActive(user.id)}
+                        title="Toggle active status"
+                        className={`pill transition-transform hover:scale-105 ${
+                          user.status === 'ACTIVE' ? 'pill-success' : 'pill-danger'
+                        }`}
+                      >
+                        {user.status === 'ACTIVE' ? 'Active' : 'Inactive'}
+                      </button>
+                    </td>
+                    <td className="pr-4 text-right">
+                      <Link href={`/admin/users/${user.id}`} className="btn btn-soft btn-sm">
+                        View
+                      </Link>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
         </div>
-      )}
+
+        {pagination && (
+          <ListPagination
+            page={page}
+            totalPages={pagination.pages}
+            total={pagination.total}
+            limit={pagination.limit}
+            noun="users"
+            onPageChange={(p) => setPage(Math.min(Math.max(1, p), pagination.pages))}
+          />
+        )}
+      </div>
     </div>
   );
 }

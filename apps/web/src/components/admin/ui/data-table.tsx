@@ -156,13 +156,13 @@ export function DataTable<Row>({
   };
 
   return (
-    <div className="overflow-hidden rounded-xl border border-gray-200 bg-white">
+    <div className="bento-card overflow-hidden p-2 sm:p-4">
       <div className="overflow-x-auto">
-        <table className="w-full border-collapse text-sm">
-          <thead className="bg-gray-50 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">
+        <table className="bento-table border-collapse">
+          <thead>
             <tr>
               {enableSelection && (
-                <th scope="col" className="w-10 px-3 py-2">
+                <th scope="col" className="w-10">
                   <input
                     type="checkbox"
                     checked={Boolean(allSelected)}
@@ -173,6 +173,7 @@ export function DataTable<Row>({
                     }}
                     onChange={toggleAll}
                     aria-label="Select all"
+                    className="h-4 w-4 rounded border-gray-300 text-brand-600 focus:ring-brand-500"
                   />
                 </th>
               )}
@@ -180,12 +181,12 @@ export function DataTable<Row>({
                 const isSorted = effectiveSort?.columnId === col.id;
                 const dir = effectiveSort?.direction;
                 return (
-                  <th key={col.id} scope="col" className={`px-3 py-2 ${col.className ?? ''}`}>
+                  <th key={col.id} scope="col" className={col.className ?? ''}>
                     {col.sortKey ? (
                       <button
                         type="button"
                         onClick={() => toggleSort(col.id)}
-                        className="inline-flex items-center gap-1 hover:text-gray-900"
+                        className="inline-flex items-center gap-1 uppercase tracking-[0.2em] transition-colors hover:text-gray-900"
                       >
                         {col.header}
                         {isSorted && dir === 'asc' ? (
@@ -204,18 +205,18 @@ export function DataTable<Row>({
               })}
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-100">
+          <tbody>
             {loading ? (
               Array.from({ length: loadingRows }).map((_, i) => (
                 <tr key={`loading-${i}`} className="animate-pulse">
                   {enableSelection && (
-                    <td className="px-3 py-3">
+                    <td>
                       <div className="h-4 w-4 rounded bg-gray-100" />
                     </td>
                   )}
                   {columns.map((col) => (
-                    <td key={col.id} className={`px-3 py-3 ${col.className ?? ''}`}>
-                      <div className="h-4 w-3/4 rounded bg-gray-100" />
+                    <td key={col.id} className={col.className ?? ''}>
+                      <div className="h-4 w-3/4 rounded-lg bg-gray-100" />
                     </td>
                   ))}
                 </tr>
@@ -224,7 +225,7 @@ export function DataTable<Row>({
               <tr>
                 <td
                   colSpan={columns.length + (enableSelection ? 1 : 0)}
-                  className="px-3 py-12 text-center text-sm text-gray-500"
+                  className="py-14 text-center text-sm font-bold text-gray-500"
                 >
                   {empty ?? 'No rows to display.'}
                 </td>
@@ -237,8 +238,8 @@ export function DataTable<Row>({
                   <tr
                     key={id}
                     className={`transition-colors ${
-                      onRowClick ? 'cursor-pointer hover:bg-gray-50' : ''
-                    } ${isSelected ? 'bg-primary/5' : ''}`}
+                      onRowClick ? 'cursor-pointer' : ''
+                    } ${isSelected ? 'bg-brand-50/60' : ''}`}
                     onClick={(e) => {
                       // Ignore clicks that originated from form controls.
                       const target = e.target as HTMLElement;
@@ -249,17 +250,21 @@ export function DataTable<Row>({
                     }}
                   >
                     {enableSelection && (
-                      <td className="px-3 py-3">
+                      <td>
                         <input
                           type="checkbox"
                           checked={Boolean(isSelected)}
                           onChange={() => toggleOne(id)}
                           aria-label={`Select row ${id}`}
+                          className="h-4 w-4 rounded border-gray-300 text-brand-600 focus:ring-brand-500"
                         />
                       </td>
                     )}
                     {columns.map((col) => (
-                      <td key={col.id} className={`px-3 py-3 text-gray-700 ${col.className ?? ''}`}>
+                      <td
+                        key={col.id}
+                        className={`font-medium text-gray-700 ${col.className ?? ''}`}
+                      >
                         {col.render
                           ? col.render(row)
                           : (() => {

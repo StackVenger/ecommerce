@@ -89,21 +89,26 @@ export default async function CmsPage({ params }: CmsPageProps) {
   const content = locale === 'bn' && page.contentBn ? page.contentBn : page.content;
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-12">
-      <h1 className="mb-8 text-3xl font-bold text-gray-900">{title}</h1>
-      <div
-        className="prose prose-lg max-w-none prose-headings:text-gray-900 prose-a:text-primary"
-        // eslint-disable-next-line react/no-danger
-        dangerouslySetInnerHTML={{ __html: content }}
-      />
-      <div className="mt-8 border-t pt-4 text-sm text-gray-500">
-        Last updated:{' '}
-        {new Date(page.updatedAt).toLocaleDateString('en-US', {
-          year: 'numeric',
-          month: 'long',
-          day: 'numeric',
-        })}
+    <div className="mx-auto max-w-4xl px-4 py-6 sm:py-10">
+      <div className="mb-4 rounded-[2rem] border border-foreground/[0.04] bg-card p-6 shadow-bento sm:mb-6 sm:p-10">
+        <p className="eyebrow mb-2">Information</p>
+        <h1 className="text-3xl font-black tracking-tighter text-gray-900 sm:text-4xl">{title}</h1>
+        <p className="mt-3 text-xs font-bold text-gray-400">
+          Last updated:{' '}
+          {new Date(page.updatedAt).toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+          })}
+        </p>
       </div>
+      <article className="rounded-[2rem] border border-foreground/[0.04] bg-card p-6 shadow-bento sm:rounded-[2.5rem] sm:p-10">
+        <div
+          className="prose prose-lg max-w-none prose-headings:font-black prose-headings:tracking-tight prose-headings:text-gray-900 prose-p:text-gray-600 prose-a:font-bold prose-a:text-brand-700 prose-strong:text-gray-900 prose-img:rounded-[1.5rem]"
+          // eslint-disable-next-line react/no-danger
+          dangerouslySetInnerHTML={{ __html: content }}
+        />
+      </article>
     </div>
   );
 }

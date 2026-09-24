@@ -50,7 +50,7 @@ export default function AdminEditPagePage() {
         });
       } catch (error) {
         console.error('Fetch page error:', error);
-        toast.error(getApiErrorMessage(err, 'Failed to load page'));
+        toast.error(getApiErrorMessage(error, 'Failed to load page'));
       } finally {
         setLoading(false);
       }
@@ -67,7 +67,7 @@ export default function AdminEditPagePage() {
       toast.success('Page updated');
     } catch (error) {
       console.error('Update page error:', error);
-      toast.error(getApiErrorMessage(err, 'Failed to update page'));
+      toast.error(getApiErrorMessage(error, 'Failed to update page'));
     } finally {
       setSaving(false);
     }
@@ -76,7 +76,7 @@ export default function AdminEditPagePage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-teal-600" />
+        <div className="h-10 w-10 animate-spin rounded-full border-4 border-brand-100 border-t-primary" />
       </div>
     );
   }
@@ -95,13 +95,13 @@ export default function AdminEditPagePage() {
               />
             </svg>
           </a>
-          <h1 className="text-2xl font-bold text-gray-900">Edit Page</h1>
+          <h1 className="page-title">Edit Page</h1>
         </div>
         <a
           href={`/${formData.slug}`}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-sm text-teal-600 hover:text-teal-800"
+          className="text-sm text-brand-600 hover:text-brand-800"
         >
           Preview &rarr;
         </a>
@@ -110,15 +110,15 @@ export default function AdminEditPagePage() {
       <form onSubmit={handleSubmit}>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-6">
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-              <div className="border-b border-gray-200">
-                <nav className="flex -mb-px">
+            <div className="bento-card">
+              <div className="border-b border-foreground/[0.04]">
+                <nav className="flex gap-1 p-3">
                   <button
                     type="button"
                     onClick={() => setActiveTab('en')}
                     className={`px-6 py-3 text-sm font-medium border-b-2 ${
                       activeTab === 'en'
-                        ? 'border-teal-500 text-teal-600'
+                        ? 'border-brand-500 text-brand-600'
                         : 'border-transparent text-gray-500'
                     }`}
                   >
@@ -129,7 +129,7 @@ export default function AdminEditPagePage() {
                     onClick={() => setActiveTab('bn')}
                     className={`px-6 py-3 text-sm font-medium border-b-2 ${
                       activeTab === 'bn'
-                        ? 'border-teal-500 text-teal-600'
+                        ? 'border-brand-500 text-brand-600'
                         : 'border-transparent text-gray-500'
                     }`}
                   >
@@ -141,21 +141,19 @@ export default function AdminEditPagePage() {
                 {activeTab === 'en' ? (
                   <>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
+                      <label className="field-label">Title</label>
                       <input
                         type="text"
                         value={formData.title}
                         onChange={(e) =>
                           setFormData((prev) => ({ ...prev, title: e.target.value }))
                         }
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                        className="field-input w-full"
                         required
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Content
-                      </label>
+                      <label className="field-label">Content</label>
                       <RichTextEditor
                         value={formData.content}
                         onChange={(html) => setFormData((prev) => ({ ...prev, content: html }))}
@@ -168,22 +166,18 @@ export default function AdminEditPagePage() {
                 ) : (
                   <>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        শিরোনাম
-                      </label>
+                      <label className="field-label">শিরোনাম</label>
                       <input
                         type="text"
                         value={formData.titleBn}
                         onChange={(e) =>
                           setFormData((prev) => ({ ...prev, titleBn: e.target.value }))
                         }
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                        className="field-input w-full"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        বিষয়বস্তু
-                      </label>
+                      <label className="field-label">বিষয়বস্তু</label>
                       <RichTextEditor
                         value={formData.contentBn}
                         onChange={(html) => setFormData((prev) => ({ ...prev, contentBn: html }))}
@@ -197,10 +191,10 @@ export default function AdminEditPagePage() {
               </div>
             </div>
 
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 space-y-4">
-              <h2 className="text-lg font-semibold text-gray-900">SEO Settings</h2>
+            <div className="bento-card p-6 sm:p-8 space-y-4">
+              <h2 className="text-lg font-black text-gray-900 tracking-tight">SEO Settings</h2>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Meta Title</label>
+                <label className="field-label">Meta Title</label>
                 <input
                   type="text"
                   value={activeTab === 'en' ? formData.metaTitle : formData.metaTitleBn}
@@ -210,13 +204,11 @@ export default function AdminEditPagePage() {
                       [activeTab === 'en' ? 'metaTitle' : 'metaTitleBn']: e.target.value,
                     }))
                   }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                  className="field-input w-full"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Meta Description
-                </label>
+                <label className="field-label">Meta Description</label>
                 <textarea
                   value={activeTab === 'en' ? formData.metaDescription : formData.metaDescriptionBn}
                   onChange={(e) =>
@@ -227,35 +219,35 @@ export default function AdminEditPagePage() {
                     }))
                   }
                   rows={3}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm resize-none"
+                  className="field-input w-full resize-none rounded-[1.25rem]"
                 />
               </div>
             </div>
           </div>
 
           <div className="space-y-6">
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 space-y-4">
-              <h2 className="text-lg font-semibold text-gray-900">Page Settings</h2>
+            <div className="bento-card p-6 sm:p-8 space-y-4">
+              <h2 className="text-lg font-black text-gray-900 tracking-tight">Page Settings</h2>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">URL Slug</label>
+                <label className="field-label">URL Slug</label>
                 <div className="flex items-center">
                   <span className="text-sm text-gray-500 mr-1">/</span>
                   <input
                     type="text"
                     value={formData.slug}
                     onChange={(e) => setFormData((prev) => ({ ...prev, slug: e.target.value }))}
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm font-mono"
+                    className="field-input flex-1 font-mono py-2.5"
                   />
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                <label className="field-label">Status</label>
                 <select
                   value={formData.status}
                   onChange={(e) =>
                     setFormData((prev) => ({ ...prev, status: e.target.value as any }))
                   }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                  className="field-input w-full"
                 >
                   <option value="draft">Draft</option>
                   <option value="published">Published</option>
@@ -263,11 +255,11 @@ export default function AdminEditPagePage() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Template</label>
+                <label className="field-label">Template</label>
                 <select
                   value={formData.template}
                   onChange={(e) => setFormData((prev) => ({ ...prev, template: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                  className="field-input w-full"
                 >
                   <option value="default">Default</option>
                   <option value="full-width">Full Width</option>
@@ -276,9 +268,7 @@ export default function AdminEditPagePage() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Featured Image
-                </label>
+                <label className="field-label">Featured Image</label>
                 <input
                   type="text"
                   value={formData.featuredImage}
@@ -286,23 +276,16 @@ export default function AdminEditPagePage() {
                     setFormData((prev) => ({ ...prev, featuredImage: e.target.value }))
                   }
                   placeholder="https://..."
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                  className="field-input w-full"
                 />
               </div>
             </div>
 
             <div className="flex gap-3">
-              <button
-                type="submit"
-                disabled={saving}
-                className="flex-1 px-4 py-2 bg-teal-600 text-white rounded-lg text-sm font-medium hover:bg-teal-700 disabled:opacity-50"
-              >
+              <button type="submit" disabled={saving} className="btn btn-primary flex-1">
                 {saving ? 'Saving...' : 'Save Changes'}
               </button>
-              <a
-                href="/admin/pages"
-                className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50"
-              >
+              <a href="/admin/pages" className="btn btn-secondary">
                 Cancel
               </a>
             </div>

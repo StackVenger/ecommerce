@@ -6,6 +6,7 @@ import { toast } from 'sonner';
 
 import { AddressForm } from '@/components/account/address-form';
 import { useConfirm } from '@/components/admin/ui/confirm-dialog';
+import { EmptyState, PageHeader, SkeletonBlock } from '@/components/ui/bento';
 import {
   getAddresses,
   createAddress,
@@ -120,95 +121,99 @@ export default function AddressesPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {confirmDialog}
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-xl font-bold text-gray-900">My Addresses</h2>
-          <p className="text-sm text-gray-500 mt-1">Manage your delivery addresses</p>
-        </div>
-        <button
-          onClick={() => setShowForm(true)}
-          className="flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors"
-        >
-          <Plus className="w-4 h-4" />
-          Add Address
-        </button>
-      </div>
+      <PageHeader
+        title="My Addresses"
+        description="Manage your delivery addresses"
+        className="mb-0 sm:mb-0"
+        actions={
+          <button onClick={() => setShowForm(true)} className="btn btn-primary">
+            <Plus className="h-4 w-4" strokeWidth={2.5} />
+            Add Address
+          </button>
+        }
+      />
 
       {/* Addresses Grid */}
       {isLoading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:gap-6 md:grid-cols-2">
           {[...Array(2)].map((_, i) => (
-            <div key={i} className="bg-white rounded-xl border border-gray-200 p-6 animate-pulse">
-              <div className="h-5 w-24 bg-gray-200 rounded mb-3" />
-              <div className="space-y-2">
-                <div className="h-4 w-48 bg-gray-200 rounded" />
-                <div className="h-4 w-36 bg-gray-200 rounded" />
-              </div>
-            </div>
+            <SkeletonBlock key={i} className="h-56 rounded-[2rem] bg-card" />
           ))}
         </div>
       ) : addresses.length === 0 ? (
-        <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
-          <MapPin className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-          <h3 className="text-lg font-semibold text-gray-900 mb-1">No addresses saved</h3>
-          <p className="text-sm text-gray-500 mb-4">Add a delivery address to get started.</p>
-          <button
-            onClick={() => setShowForm(true)}
-            className="inline-flex items-center gap-2 bg-primary text-white px-6 py-2.5 rounded-lg font-medium hover:bg-primary/90 transition-colors"
-          >
-            <Plus className="w-5 h-5" />
-            Add Your First Address
-          </button>
-        </div>
+        <EmptyState
+          icon={MapPin}
+          title="No addresses saved"
+          description="Add a delivery address to get started."
+          action={
+            <button onClick={() => setShowForm(true)} className="btn btn-primary">
+              <Plus className="h-4 w-4" strokeWidth={2.5} />
+              Add Your First Address
+            </button>
+          }
+        />
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:gap-6 md:grid-cols-2">
           {addresses.map((address) => {
             const LabelIcon = labelIcons[address.label] || MapPin;
 
             return (
               <div
                 key={address.id}
-                className={`bg-white rounded-xl border shadow-sm p-5 ${
-                  address.isDefault ? 'border-teal-300 ring-1 ring-primary/20' : 'border-gray-200'
+                className={`bento-card bento-card-hover group flex flex-col p-6 ${
+                  address.isDefault ? 'ring-2 ring-primary/20' : ''
                 }`}
               >
                 {/* Label and Badge */}
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-2">
-                    <LabelIcon className="w-4 h-4 text-gray-500" />
-                    <span className="text-sm font-semibold text-gray-900">{address.label}</span>
-                    {address.isDefault && (
-                      <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-teal-50 text-primary text-xs font-medium rounded-full">
-                        <Star className="w-3 h-3" />
-                        Default
+                <div className="mb-5 flex items-start justify-between gap-3">
+                  <div className="flex items-center gap-3">
+                    <div
+                      className={`flex h-11 w-11 items-center justify-center rounded-2xl transition-transform duration-500 group-hover:scale-110 ${
+                        address.isDefault
+                          ? 'bg-brand-50 text-brand-600'
+                          : 'bg-blue-50 text-blue-500'
+                      }`}
+                    >
+                      <LabelIcon className="h-5 w-5" strokeWidth={2.25} />
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <span className="text-base font-black tracking-tight text-gray-900">
+                        {address.label}
                       </span>
-                    )}
+                      {address.isDefault && (
+                        <span className="pill pill-brand w-fit">
+                          <Star className="h-3 w-3" strokeWidth={2.5} />
+                          Default
+                        </span>
+                      )}
+                    </div>
                   </div>
 
                   <div className="flex items-center gap-1">
                     <button
                       onClick={() => setEditingAddress(address)}
-                      className="p-1.5 text-gray-400 hover:text-primary rounded"
+                      className="btn-icon h-9 w-9 rounded-xl text-gray-400 hover:bg-gray-100 hover:text-gray-900"
                       title="Edit"
+                      aria-label={`Edit ${address.label} address`}
                     >
-                      <Edit2 className="w-4 h-4" />
+                      <Edit2 className="h-4 w-4" strokeWidth={2.25} />
                     </button>
                     <button
                       onClick={() => handleDelete(address.id)}
-                      className="p-1.5 text-gray-400 hover:text-red-600 rounded"
+                      className="btn-icon h-9 w-9 rounded-xl text-gray-400 hover:bg-rose-50 hover:text-rose-500"
                       title="Delete"
+                      aria-label={`Delete ${address.label} address`}
                     >
-                      <Trash2 className="w-4 h-4" />
+                      <Trash2 className="h-4 w-4" strokeWidth={2.25} />
                     </button>
                   </div>
                 </div>
 
                 {/* Address Details */}
-                <div className="space-y-1 text-sm text-gray-600">
-                  <p className="font-medium text-gray-900">{address.fullName}</p>
+                <div className="flex-1 space-y-1 rounded-[1.5rem] bg-gray-50 p-4 text-sm font-medium text-gray-600">
+                  <p className="font-black text-gray-900">{address.fullName}</p>
                   <p>{address.addressLine1}</p>
                   {address.addressLine2 && <p>{address.addressLine2}</p>}
                   <p>
@@ -217,10 +222,10 @@ export default function AddressesPage() {
                     {address.postalCode ? ` - ${address.postalCode}` : ''}
                   </p>
                   {address.landmark && (
-                    <p className="text-gray-400 text-xs">Landmark: {address.landmark}</p>
+                    <p className="text-xs text-gray-400">Landmark: {address.landmark}</p>
                   )}
-                  <p className="flex items-center gap-1 pt-1">
-                    <Phone className="w-3.5 h-3.5" />
+                  <p className="flex items-center gap-1.5 pt-1 font-bold text-gray-700">
+                    <Phone className="h-3.5 w-3.5" strokeWidth={2.5} />
                     {address.phone}
                   </p>
                 </div>
@@ -229,7 +234,7 @@ export default function AddressesPage() {
                 {!address.isDefault && (
                   <button
                     onClick={() => handleSetDefault(address.id)}
-                    className="mt-3 text-xs text-primary hover:text-primary font-medium"
+                    className="btn btn-soft btn-sm mt-4 w-fit"
                   >
                     Set as default
                   </button>

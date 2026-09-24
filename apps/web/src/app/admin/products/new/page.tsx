@@ -288,31 +288,31 @@ export default function AdminProductCreatePage() {
   return (
     <div className="space-y-6">
       {/* Page Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-wrap items-center gap-4">
           <button
             onClick={() => router.push('/admin/products')}
-            className="rounded-lg p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+            className="rounded-xl p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-all"
           >
             <ArrowLeft className="h-5 w-5" />
           </button>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Create Product</h1>
-            <p className="text-sm text-gray-500">Add a new product to your catalog</p>
+            <h1 className="page-title">Create Product</h1>
+            <p className="page-subtitle">Add a new product to your catalog</p>
           </div>
         </div>
         <div className="flex items-center gap-3">
           <button
             onClick={() => handleSave(false)}
             disabled={isSaving}
-            className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+            className="btn btn-secondary"
           >
             Save as Draft
           </button>
           <button
             onClick={() => handleSave(true)}
             disabled={isSaving}
-            className="inline-flex items-center gap-2 rounded-lg bg-teal-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-teal-700 disabled:opacity-50"
+            className="btn btn-primary gap-2"
           >
             <Save className="h-4 w-4" />
             {isSaving ? 'Saving...' : 'Publish'}
@@ -321,35 +321,35 @@ export default function AdminProductCreatePage() {
       </div>
 
       {/* Tab Navigation */}
-      <div className="border-b border-gray-200">
-        <nav className="-mb-px flex space-x-6">
-          {tabs.map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={cn(
-                'flex items-center gap-2 border-b-2 px-1 py-3 text-sm font-medium transition-colors',
-                activeTab === tab.id
-                  ? 'border-teal-600 text-teal-600'
-                  : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700',
-              )}
-            >
-              <tab.icon className="h-4 w-4" />
-              {tab.label}
-            </button>
-          ))}
-        </nav>
-      </div>
+      <nav
+        className="flex gap-1 overflow-x-auto rounded-[1.5rem] border border-foreground/[0.04] bg-card p-2 shadow-bento scrollbar-none"
+        aria-label="Product sections"
+      >
+        {tabs.map((tab) => (
+          <button
+            key={tab.id}
+            type="button"
+            onClick={() => setActiveTab(tab.id)}
+            aria-pressed={activeTab === tab.id}
+            className={cn('chip', activeTab === tab.id && 'chip-active')}
+          >
+            <tab.icon className="h-4 w-4" />
+            {tab.label}
+          </button>
+        ))}
+      </nav>
 
       {/* Tab Content: Basic Info */}
       {activeTab === 'basic' && (
-        <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-          <h2 className="mb-6 text-lg font-semibold text-gray-900">Basic Information</h2>
+        <div className="bento-card p-6 sm:p-8">
+          <h2 className="mb-6 text-lg font-black text-gray-900 tracking-tight">
+            Basic Information
+          </h2>
 
           <div className="space-y-6">
             {/* Product Name (English) */}
             <div>
-              <label htmlFor="name" className="mb-1.5 block text-sm font-medium text-gray-700">
+              <label htmlFor="name" className="field-label">
                 Product Name <span className="text-red-500">*</span>
               </label>
               <input
@@ -359,18 +359,18 @@ export default function AdminProductCreatePage() {
                 onChange={(e) => updateField('name', e.target.value)}
                 placeholder="e.g., Organic Basmati Rice Premium"
                 className={cn(
-                  'w-full rounded-lg border px-4 py-2.5 text-sm focus:outline-none focus:ring-1',
+                  'field-input w-full',
                   errors.name
                     ? 'border-red-300 focus:border-red-500 focus:ring-red-500'
-                    : 'border-gray-300 focus:border-teal-500 focus:ring-teal-500',
+                    : 'border-gray-300 focus:border-brand-500 focus:ring-brand-500',
                 )}
               />
-              {errors.name && <p className="mt-1 text-sm text-red-600">{errors.name}</p>}
+              {errors.name && <p className="field-error">{errors.name}</p>}
             </div>
 
             {/* Product Name (Bangla) */}
             <div>
-              <label htmlFor="nameBn" className="mb-1.5 block text-sm font-medium text-gray-700">
+              <label htmlFor="nameBn" className="field-label">
                 Product Name (বাংলা)
               </label>
               <input
@@ -379,17 +379,17 @@ export default function AdminProductCreatePage() {
                 value={formData.nameBn}
                 onChange={(e) => updateField('nameBn', e.target.value)}
                 placeholder="e.g., অর্গানিক বাসমতী চাল প্রিমিয়াম"
-                className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
+                className="field-input w-full"
               />
             </div>
 
             {/* Slug */}
             <div>
-              <label htmlFor="slug" className="mb-1.5 block text-sm font-medium text-gray-700">
+              <label htmlFor="slug" className="field-label">
                 URL Slug <span className="text-red-500">*</span>
               </label>
-              <div className="flex rounded-lg border border-gray-300 focus-within:border-teal-500 focus-within:ring-1 focus-within:ring-teal-500">
-                <span className="inline-flex items-center border-r border-gray-300 bg-gray-50 px-3 text-sm text-gray-500">
+              <div className="flex min-w-0 overflow-hidden rounded-2xl border border-foreground/[0.06] bg-card shadow-sm transition-all focus-within:border-brand-300 focus-within:ring-4 focus-within:ring-brand-500/10">
+                <span className="inline-flex shrink-0 items-center border-r border-foreground/[0.06] bg-gray-50 px-4 text-sm font-bold text-gray-500">
                   /products/
                 </span>
                 <input
@@ -397,15 +397,15 @@ export default function AdminProductCreatePage() {
                   type="text"
                   value={formData.slug}
                   onChange={(e) => updateField('slug', e.target.value)}
-                  className="flex-1 rounded-r-lg px-4 py-2.5 text-sm focus:outline-none"
+                  className="min-w-0 flex-1 bg-transparent px-4 py-3 text-sm font-medium outline-none"
                 />
               </div>
-              {errors.slug && <p className="mt-1 text-sm text-red-600">{errors.slug}</p>}
+              {errors.slug && <p className="field-error">{errors.slug}</p>}
             </div>
 
             {/* Description */}
             <div>
-              <label className="mb-1.5 block text-sm font-medium text-gray-700">Description</label>
+              <label className="field-label">Description</label>
               <RichTextEditor
                 value={formData.description}
                 onChange={(html) => updateField('description', html)}
@@ -416,9 +416,7 @@ export default function AdminProductCreatePage() {
 
             {/* Description (Bangla) */}
             <div>
-              <label className="mb-1.5 block text-sm font-medium text-gray-700">
-                Description (বাংলা)
-              </label>
+              <label className="field-label">Description (বাংলা)</label>
               <RichTextEditor
                 value={formData.descriptionBn}
                 onChange={(html) => updateField('descriptionBn', html)}
@@ -429,7 +427,7 @@ export default function AdminProductCreatePage() {
 
             {/* SKU */}
             <div className="sm:max-w-xs">
-              <label htmlFor="sku" className="mb-1.5 block text-sm font-medium text-gray-700">
+              <label htmlFor="sku" className="field-label">
                 SKU <span className="text-red-500">*</span>
               </label>
               <input
@@ -439,13 +437,13 @@ export default function AdminProductCreatePage() {
                 onChange={(e) => updateField('sku', e.target.value.toUpperCase())}
                 placeholder="e.g., RICE-BAS-001"
                 className={cn(
-                  'w-full rounded-lg border px-4 py-2.5 text-sm uppercase focus:outline-none focus:ring-1',
+                  'field-input w-full uppercase',
                   errors.sku
                     ? 'border-red-300 focus:border-red-500 focus:ring-red-500'
-                    : 'border-gray-300 focus:border-teal-500 focus:ring-teal-500',
+                    : 'border-gray-300 focus:border-brand-500 focus:ring-brand-500',
                 )}
               />
-              {errors.sku && <p className="mt-1 text-sm text-red-600">{errors.sku}</p>}
+              {errors.sku && <p className="field-error">{errors.sku}</p>}
             </div>
           </div>
         </div>

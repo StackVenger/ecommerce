@@ -13,6 +13,11 @@ import {
   Check,
   X,
   ArrowUpDown,
+  Package,
+  PackageX,
+  AlertTriangle,
+  CheckCircle2,
+  ListChecks,
 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -20,6 +25,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { toast } from 'sonner';
 
 import { useConfirm } from '@/components/admin/ui/confirm-dialog';
+import { BentoCard, PageHeader, SectionHeader, StatCard } from '@/components/ui/bento';
 import { formatBDT } from '@/lib/api/admin';
 import { apiClient } from '@/lib/api/client';
 import { getApiErrorMessage } from '@/lib/api/errors';
@@ -64,20 +70,15 @@ interface PaginationMeta {
 
 function StatusBadge({ status }: { status: string }) {
   const config: Record<string, { bg: string; label: string }> = {
-    ACTIVE: { bg: 'bg-green-100 text-green-700', label: 'Active' },
+    ACTIVE: { bg: 'bg-emerald-50 text-emerald-600', label: 'Active' },
     DRAFT: { bg: 'bg-gray-100 text-gray-600', label: 'Draft' },
-    ARCHIVED: { bg: 'bg-yellow-100 text-yellow-700', label: 'Archived' },
-    OUT_OF_STOCK: { bg: 'bg-red-100 text-red-700', label: 'Out of Stock' },
+    ARCHIVED: { bg: 'bg-amber-50 text-amber-600', label: 'Archived' },
+    OUT_OF_STOCK: { bg: 'bg-rose-50 text-rose-600', label: 'Out of Stock' },
   };
   const { bg, label } = config[status] ?? { bg: 'bg-gray-100 text-gray-600', label: 'Draft' };
 
   return (
-    <span
-      className={cn(
-        'inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium',
-        bg,
-      )}
-    >
+    <span className={cn('pill gap-1', bg)}>
       {status === 'ACTIVE' ? <Check className="h-3 w-3" /> : <X className="h-3 w-3" />}
       {label}
     </span>
@@ -89,17 +90,15 @@ function StatusBadge({ status }: { status: string }) {
 // ──────────────────────────────────────────────────────────
 
 function StockBadge({ stock }: { stock: number }) {
-  let color = 'bg-green-100 text-green-700';
+  let color = 'bg-emerald-50 text-emerald-600';
   if (stock <= 0) {
-    color = 'bg-red-100 text-red-700';
+    color = 'bg-rose-50 text-rose-600';
   } else if (stock <= 10) {
-    color = 'bg-yellow-100 text-yellow-700';
+    color = 'bg-amber-50 text-amber-600';
   }
 
   return (
-    <span className={cn('inline-flex rounded-full px-2 py-0.5 text-xs font-medium', color)}>
-      {stock <= 0 ? 'Out of stock' : `${stock} in stock`}
-    </span>
+    <span className={cn('pill', color)}>{stock <= 0 ? 'Out of stock' : `${stock} in stock`}</span>
   );
 }
 
@@ -255,47 +254,112 @@ export default function AdminProductsPage() {
     router.push(`/admin/products?${params.toString()}`);
   };
 
+  // Page-level inventory snapshot for the stat hub (current page only).
+  const activeOnPage = products.filter((p) => p.status === 'ACTIVE').length;
+  const lowStockOnPage = products.filter((p) => p.quantity > 0 && p.quantity <= 10).length;
+  const outOfStockOnPage = products.filter((p) => p.quantity <= 0).length;
+  const rangeStart = meta.total === 0 ? 0 : (meta.page - 1) * meta.limit + 1;
+  const rangeEnd = Math.min(meta.page * meta.limit, meta.total);
+
   return (
     <div className="space-y-6">
       {confirmDialog}
-      {/* Page Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Products</h1>
-          <p className="text-sm text-gray-500">
-            Manage your product catalog ({meta.total} products)
-          </p>
-        </div>
-        <Link
-          href="/admin/products/new"
-          className="inline-flex items-center gap-2 rounded-lg bg-teal-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-teal-700"
-        >
-          <Plus className="h-4 w-4" />
-          Add Product
-        </Link>
+      <PageHeader
+        title="Products"
+        description={`Manage your product catalog (${meta.total} products)`}
+        actions={
+          <Link href="/admin/products/new" className="btn btn-primary">
+            <Plus className="h-4 w-4" strokeWidth={2.5} />
+            Add Product
+          </Link>
+        }
+      />
+
+      {/* Inventory stat hub */}
+      <div className="grid grid-cols-2 gap-4 sm:gap-6 lg:grid-cols-12">
+        <BentoCard variant="primary" className="col-span-2 lg:col-span-4">
+          <div className="flex h-full flex-col justify-between gap-8">
+            <div className="flex items-start justify-between">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/20 backdrop-blur-md">
+                <Package className="h-6 w-6" strokeWidth={2.25} />
+              </div>
+              <Link
+                href="/admin/products/new"
+                className="rounded-xl bg-card px-4 py-2 text-xs font-black text-primary transition-all hover:scale-105 active:scale-95"
+              >
+                New product
+              </Link>
+            </div>
+            <div>
+              <p className="mb-2 text-[10px] font-black uppercase tracking-widest text-white/70">
+                Catalog size
+              </p>
+              <p className="text-5xl font-black tabular-nums tracking-tighter">{meta.total}</p>
+              <p className="mt-2 text-xs font-bold text-white/80">
+                {meta.totalPages} {meta.totalPages === 1 ? 'page' : 'pages'} · {meta.limit} per page
+              </p>
+            </div>
+          </div>
+        </BentoCard>
+        <StatCard
+          className="lg:col-span-2"
+          label="Active"
+          value={activeOnPage}
+          icon={CheckCircle2}
+          tone="emerald"
+          hint="On this page"
+          loading={isLoading}
+        />
+        <StatCard
+          className="lg:col-span-2"
+          label="Low stock"
+          value={lowStockOnPage}
+          icon={AlertTriangle}
+          tone="orange"
+          hint="On this page"
+          loading={isLoading}
+        />
+        <StatCard
+          className="lg:col-span-2"
+          label="Out of stock"
+          value={outOfStockOnPage}
+          icon={PackageX}
+          tone="rose"
+          hint="On this page"
+          loading={isLoading}
+        />
+        <StatCard
+          className="lg:col-span-2"
+          label="Selected"
+          value={selectedIds.size}
+          icon={ListChecks}
+          tone="blue"
+          hint="For bulk actions"
+        />
       </div>
 
       {/* Filters and Search */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <form onSubmit={handleSearch} className="relative flex-1 sm:max-w-sm">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+      <div className="flex flex-col gap-3 rounded-[1.5rem] border border-foreground/[0.04] bg-card p-3 shadow-bento sm:flex-row sm:items-center sm:justify-between">
+        <form onSubmit={handleSearch} className="group/search relative flex-1 sm:max-w-sm">
+          <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400 transition-colors group-focus-within/search:text-gray-700" />
           <input
             type="text"
             placeholder="Search products by name or SKU..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full rounded-lg border border-gray-300 bg-white py-2 pl-10 pr-4 text-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
+            className="field-input w-full border-transparent bg-gray-50 py-2.5 pl-11 shadow-none"
           />
         </form>
 
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
           {/* Status Filter */}
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-2">
             <Filter className="h-4 w-4 text-gray-400" />
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:border-teal-500 focus:outline-none"
+              aria-label="Filter by status"
+              className="field-input w-auto py-2.5 font-bold"
             >
               <option value="all">All Status</option>
               <option value="active">Active</option>
@@ -309,11 +373,9 @@ export default function AdminProductsPage() {
           {/* Bulk Actions */}
           {selectedIds.size > 0 && (
             <div className="flex items-center gap-2">
-              <span className="text-sm text-gray-600">{selectedIds.size} selected</span>
-              <button
-                onClick={handleBulkDelete}
-                className="rounded-lg border border-red-300 px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50"
-              >
+              <span className="pill pill-brand">{selectedIds.size} selected</span>
+              <button onClick={handleBulkDelete} className="btn btn-danger-soft btn-sm">
+                <Trash2 className="h-3.5 w-3.5" />
                 Delete
               </button>
             </div>
@@ -321,84 +383,88 @@ export default function AdminProductsPage() {
         </div>
       </div>
 
-      {/* Products Table */}
-      <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+      {/* Inventory ledger */}
+      <div className="bento-card overflow-hidden p-4 sm:p-6">
+        <SectionHeader
+          title="Inventory Ledger"
+          caption={
+            meta.total > 0
+              ? `Showing ${rangeStart}–${rangeEnd} of ${meta.total}`
+              : 'Your product catalog'
+          }
+          className="px-2 pt-2"
+        />
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+          <table className="bento-table min-w-full">
+            <thead>
               <tr>
-                <th className="w-10 px-4 py-3">
+                <th className="w-10">
                   <input
                     type="checkbox"
                     checked={products.length > 0 && selectedIds.size === products.length}
                     onChange={toggleSelectAll}
-                    className="h-4 w-4 rounded border-gray-300 text-teal-600 focus:ring-teal-500"
+                    aria-label="Select all products"
+                    className="h-4 w-4 rounded border-gray-300 text-brand-600 focus:ring-brand-500"
                   />
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                  Product
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                  SKU
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                <th>Product</th>
+                <th className="hidden 2xl:table-cell">SKU</th>
+                <th>
                   <button
                     onClick={() => {
                       setSortBy('price');
                       setSortOrder((o) => (o === 'asc' ? 'desc' : 'asc'));
                     }}
-                    className="flex items-center gap-1"
+                    className="inline-flex items-center gap-1 uppercase tracking-[0.2em] transition-colors hover:text-gray-900"
                   >
                     Price
                     <ArrowUpDown className="h-3 w-3" />
                   </button>
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                  Stock
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                  Category
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                  Status
-                </th>
-                <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500">
-                  Actions
-                </th>
+                <th>Stock</th>
+                <th>Category</th>
+                <th>Status</th>
+                <th className="text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
+            <tbody>
               {isLoading ? (
                 Array.from({ length: 5 }).map((_, i) => (
                   <tr key={i}>
-                    <td colSpan={8} className="px-4 py-4">
-                      <div className="h-10 animate-pulse rounded bg-gray-100" />
+                    <td colSpan={8}>
+                      <div className="h-11 animate-pulse rounded-2xl bg-gray-100" />
                     </td>
                   </tr>
                 ))
               ) : products.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="px-4 py-12 text-center text-sm text-gray-500">
-                    No products found. Create your first product to get started.
+                  <td colSpan={8} className="py-14 text-center">
+                    <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-50 text-brand-600">
+                      <Package className="h-7 w-7" strokeWidth={2.25} />
+                    </div>
+                    <p className="text-sm font-bold text-gray-500">
+                      No products found. Create your first product to get started.
+                    </p>
                   </td>
                 </tr>
               ) : (
                 products.map((product) => (
                   <tr
                     key={product.id}
-                    className={cn('hover:bg-gray-50', selectedIds.has(product.id) && 'bg-teal-50')}
+                    className={cn('group', selectedIds.has(product.id) && 'bg-brand-50/60')}
                   >
-                    <td className="px-4 py-3">
+                    <td>
                       <input
                         type="checkbox"
                         checked={selectedIds.has(product.id)}
                         onChange={() => toggleSelect(product.id)}
-                        className="h-4 w-4 rounded border-gray-300 text-teal-600 focus:ring-teal-500"
+                        aria-label={`Select ${product.name}`}
+                        className="h-4 w-4 rounded border-gray-300 text-brand-600 focus:ring-brand-500"
                       />
                     </td>
-                    <td className="px-4 py-3">
+                    <td>
                       <div className="flex items-center gap-3">
-                        <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center overflow-hidden rounded-lg border border-gray-200 bg-gray-50">
+                        <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center overflow-hidden rounded-[14px] border border-foreground/[0.04] bg-gray-50 shadow-sm transition-transform group-hover:scale-105">
                           {product.images?.[0]?.url ? (
                             <img
                               src={product.images[0].url}
@@ -409,64 +475,79 @@ export default function AdminProductsPage() {
                             <ImageIcon className="h-5 w-5 text-gray-300" />
                           )}
                         </div>
-                        <div className="min-w-0">
+                        <div className="min-w-0 max-w-[18rem]">
                           <Link
                             href={`/admin/products/${product.id}/edit`}
-                            className="truncate text-sm font-medium text-gray-900 hover:text-teal-600"
+                            className="block truncate text-sm font-black text-gray-900 transition-colors hover:text-brand-600"
                           >
                             {product.name}
                           </Link>
-                          {product.brand && (
-                            <p className="text-xs text-gray-500">{product.brand.name}</p>
-                          )}
+                          <p className="truncate text-[11px] font-bold text-gray-500">
+                            <span className="tracking-wider 2xl:hidden">{product.sku}</span>
+                            {product.brand && (
+                              <>
+                                <span className="2xl:hidden"> · </span>
+                                {product.brand.name}
+                              </>
+                            )}
+                          </p>
                         </div>
                       </div>
                     </td>
-                    <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-600">
+                    <td className="hidden whitespace-nowrap text-xs font-bold tracking-wider text-gray-500 2xl:table-cell">
                       {product.sku}
                     </td>
-                    <td className="whitespace-nowrap px-4 py-3">
-                      <div>
-                        <span className="text-sm font-medium text-gray-900">
+                    <td className="whitespace-nowrap">
+                      <div className="flex flex-col">
+                        <span className="text-sm font-black tabular-nums tracking-tighter text-gray-900">
                           {formatBDT(Number(product.price))}
                         </span>
                         {product.compareAtPrice && (
-                          <span className="ml-1 text-xs text-gray-400 line-through">
+                          <span className="text-[11px] font-bold text-gray-400 line-through">
                             {formatBDT(Number(product.compareAtPrice))}
                           </span>
                         )}
                       </div>
                     </td>
-                    <td className="whitespace-nowrap px-4 py-3">
+                    <td className="whitespace-nowrap">
                       <StockBadge stock={product.quantity} />
                     </td>
-                    <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-600">
-                      {product.category?.name ?? '—'}
+                    <td className="whitespace-nowrap">
+                      {product.category?.name ? (
+                        <span className="rounded-xl bg-gray-100 px-3 py-1.5 text-[11px] font-bold text-gray-600">
+                          {product.category.name}
+                        </span>
+                      ) : (
+                        <span className="text-gray-400">—</span>
+                      )}
                     </td>
-                    <td className="whitespace-nowrap px-4 py-3">
+                    <td className="whitespace-nowrap">
                       <StatusBadge status={product.status} />
                     </td>
-                    <td className="whitespace-nowrap px-4 py-3 text-right">
+                    <td className="whitespace-nowrap text-right">
                       <div className="flex items-center justify-end gap-1">
                         <Link
                           href={`/products/${product.slug}`}
                           target="_blank"
-                          className="rounded p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+                          className="rounded-xl p-2 text-gray-400 transition-all hover:bg-card hover:text-gray-900 hover:shadow-md"
                           title="View on store"
+                          aria-label={`View ${product.name} on store`}
                         >
                           <Eye className="h-4 w-4" />
                         </Link>
                         <Link
                           href={`/admin/products/${product.id}/edit`}
-                          className="rounded p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+                          className="rounded-xl p-2 text-gray-400 transition-all hover:bg-card hover:text-gray-900 hover:shadow-md"
                           title="Edit"
+                          aria-label={`Edit ${product.name}`}
                         >
                           <Edit className="h-4 w-4" />
                         </Link>
                         <button
                           onClick={() => handleDeleteOne(product.id, product.name)}
-                          className="rounded p-1.5 text-gray-400 hover:bg-red-50 hover:text-red-600"
+                          className="rounded-xl p-2 text-gray-400 transition-all hover:bg-rose-50 hover:text-rose-600"
                           title="Delete"
+                          aria-label={`Delete ${product.name}`}
                         >
                           <Trash2 className="h-4 w-4" />
                         </button>
@@ -481,18 +562,21 @@ export default function AdminProductsPage() {
 
         {/* Pagination */}
         {meta.totalPages > 1 && (
-          <div className="flex items-center justify-between border-t border-gray-200 px-6 py-3">
-            <p className="text-sm text-gray-600">
-              Showing {(meta.page - 1) * meta.limit + 1} to{' '}
-              {Math.min(meta.page * meta.limit, meta.total)} of {meta.total} products
+          <div className="mt-4 flex flex-col gap-4 border-t border-foreground/[0.04] px-2 pt-5 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-[11px] font-bold text-gray-500">
+              Showing <span className="text-gray-900">{rangeStart}</span> to{' '}
+              <span className="text-gray-900">{rangeEnd}</span> of{' '}
+              <span className="text-gray-900">{meta.total}</span> products
             </p>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <button
                 onClick={() => goToPage(page - 1)}
                 disabled={page <= 1}
-                className="rounded-lg border border-gray-300 p-2 text-sm disabled:cursor-not-allowed disabled:opacity-50"
+                className="btn btn-soft btn-sm"
+                aria-label="Previous page"
               >
                 <ChevronLeft className="h-4 w-4" />
+                Prev
               </button>
               {Array.from({ length: Math.min(meta.totalPages, 5) }, (_, i) => {
                 const pageNum = i + 1;
@@ -500,11 +584,12 @@ export default function AdminProductsPage() {
                   <button
                     key={pageNum}
                     onClick={() => goToPage(pageNum)}
+                    aria-current={pageNum === page ? 'page' : undefined}
                     className={cn(
-                      'rounded-lg px-3 py-1.5 text-sm font-medium',
+                      'flex h-9 min-w-9 items-center justify-center rounded-xl px-3 text-xs font-black tabular-nums transition-all',
                       pageNum === page
-                        ? 'bg-teal-600 text-white'
-                        : 'border border-gray-300 text-gray-600 hover:bg-gray-50',
+                        ? 'bg-primary text-white shadow-brand-glow'
+                        : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900',
                     )}
                   >
                     {pageNum}
@@ -514,8 +599,10 @@ export default function AdminProductsPage() {
               <button
                 onClick={() => goToPage(page + 1)}
                 disabled={page >= meta.totalPages}
-                className="rounded-lg border border-gray-300 p-2 text-sm disabled:cursor-not-allowed disabled:opacity-50"
+                className="btn btn-dark btn-sm"
+                aria-label="Next page"
               >
+                Next
                 <ChevronRight className="h-4 w-4" />
               </button>
             </div>

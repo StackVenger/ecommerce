@@ -81,25 +81,25 @@ export default function ForgotPasswordPage() {
   if (isSubmitted) {
     return (
       <div className="w-full max-w-md space-y-6 text-center">
-        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
+        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-brand-50">
           <Mail className="h-8 w-8 text-primary" />
         </div>
 
         <div className="space-y-2">
-          <h1 className="text-2xl font-bold tracking-tight">Check your email</h1>
-          <p className="text-sm text-muted-foreground">
+          <h1 className="text-3xl font-black tracking-tighter text-gray-900">Check your email</h1>
+          <p className="text-sm font-medium text-gray-500">
             We sent a password reset link to{' '}
-            <span className="font-medium text-foreground">{submittedEmail}</span>. Please check your
+            <span className="font-black text-gray-900">{submittedEmail}</span>. Please check your
             inbox and click the link to reset your password.
           </p>
         </div>
 
         <div className="space-y-3 pt-2">
-          <p className="text-xs text-muted-foreground">
+          <p className="text-xs font-medium text-gray-500">
             Didn&apos;t receive the email? Check your spam folder or{' '}
             <button
               type="button"
-              className="font-medium text-primary hover:underline"
+              className="font-black text-primary hover:underline"
               onClick={() => {
                 setIsSubmitted(false);
                 form.reset();
@@ -110,10 +110,7 @@ export default function ForgotPasswordPage() {
             .
           </p>
 
-          <Link
-            href="/login"
-            className="inline-flex items-center gap-2 text-sm font-medium text-primary hover:underline"
-          >
+          <Link href="/login" className="btn btn-soft btn-sm">
             <ArrowLeft className="h-4 w-4" />
             Back to sign in
           </Link>
@@ -128,8 +125,11 @@ export default function ForgotPasswordPage() {
     <div className="w-full max-w-md space-y-8">
       {/* Header */}
       <div className="text-center">
-        <h1 className="text-2xl font-bold tracking-tight">Forgot your password?</h1>
-        <p className="mt-2 text-sm text-muted-foreground">
+        <p className="eyebrow mb-3">Account recovery</p>
+        <h1 className="text-3xl font-black tracking-tighter text-gray-900">
+          Forgot your password?
+        </h1>
+        <p className="mt-2 text-sm font-bold text-gray-500">
           No worries! Enter the email address associated with your account and we&apos;ll send you a
           link to reset your password.
         </p>
@@ -137,7 +137,7 @@ export default function ForgotPasswordPage() {
 
       {/* Server error */}
       {serverError && (
-        <div className="rounded-md border border-destructive/50 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+        <div className="rounded-2xl border border-rose-100 bg-rose-50 px-4 py-3 text-sm font-bold text-rose-600">
           {serverError}
         </div>
       )}
@@ -173,10 +173,7 @@ export default function ForgotPasswordPage() {
 
       {/* Back to login */}
       <div className="text-center">
-        <Link
-          href="/login"
-          className="inline-flex items-center gap-2 text-sm font-medium text-primary hover:underline"
-        >
+        <Link href="/login" className="btn btn-soft btn-sm">
           <ArrowLeft className="h-4 w-4" />
           Back to sign in
         </Link>

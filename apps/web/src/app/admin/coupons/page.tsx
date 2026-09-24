@@ -67,12 +67,12 @@ function getCouponStatus(coupon: Coupon): { label: string; color: string } {
     return { label: 'Inactive', color: 'bg-gray-100 text-gray-600' };
   }
   if (coupon.endDate && new Date(coupon.endDate) < new Date()) {
-    return { label: 'Expired', color: 'bg-red-100 text-red-700' };
+    return { label: 'Expired', color: 'bg-rose-50 text-rose-600' };
   }
   if (new Date(coupon.startDate) > new Date()) {
-    return { label: 'Scheduled', color: 'bg-teal-100 text-teal-700' };
+    return { label: 'Scheduled', color: 'bg-brand-50 text-brand-600' };
   }
-  return { label: 'Active', color: 'bg-green-100 text-green-700' };
+  return { label: 'Active', color: 'bg-emerald-50 text-emerald-600' };
 }
 
 function formatDiscountValue(coupon: Coupon): string {
@@ -111,7 +111,7 @@ function CopyCodeButton({ code }: { code: string }) {
   return (
     <button
       onClick={handleCopy}
-      className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+      className="rounded-xl p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-all"
       title="Copy code"
     >
       {copied ? <Check className="h-3.5 w-3.5 text-green-500" /> : <Copy className="h-3.5 w-3.5" />}
@@ -243,17 +243,20 @@ function CouponFormDialog({ isOpen, onClose, onSuccess, editCoupon }: CouponForm
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto">
       <div className="absolute inset-0 bg-black/50" onClick={onClose} />
-      <div className="relative w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl">
+      <div className="relative w-full max-w-lg rounded-[2rem] bg-card p-6 shadow-xl">
         <div className="mb-6 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-purple-100">
               <Ticket className="h-5 w-5 text-purple-600" />
             </div>
-            <h2 className="text-lg font-semibold text-gray-900">
+            <h2 className="text-lg font-black text-gray-900 tracking-tight">
               {isEditing ? 'Edit Coupon' : 'Create Coupon'}
             </h2>
           </div>
-          <button onClick={onClose} className="rounded-lg p-2 text-gray-400 hover:bg-gray-100">
+          <button
+            onClick={onClose}
+            className="rounded-xl p-2 text-gray-400 hover:bg-gray-100 transition-all"
+          >
             <X className="h-5 w-5" />
           </button>
         </div>
@@ -261,7 +264,7 @@ function CouponFormDialog({ isOpen, onClose, onSuccess, editCoupon }: CouponForm
         <div className="space-y-4">
           {/* Coupon Code */}
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-gray-700">
+            <label className="field-label">
               Coupon Code <span className="text-red-500">*</span>
             </label>
             <div className="flex gap-2">
@@ -276,41 +279,35 @@ function CouponFormDialog({ isOpen, onClose, onSuccess, editCoupon }: CouponForm
                 }
                 placeholder="e.g., SAVE20"
                 className={cn(
-                  'flex-1 rounded-lg border px-4 py-2.5 text-sm uppercase focus:outline-none focus:ring-1',
+                  'field-input flex-1 uppercase',
                   errors.code
                     ? 'border-red-300 focus:ring-red-500'
-                    : 'border-gray-300 focus:ring-teal-500',
+                    : 'border-gray-300 focus:ring-brand-500',
                 )}
               />
-              <button
-                onClick={generateCode}
-                type="button"
-                className="rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
-              >
+              <button onClick={generateCode} type="button" className="btn btn-secondary btn-sm">
                 Generate
               </button>
             </div>
-            {errors.code && <p className="mt-1 text-sm text-red-600">{errors.code}</p>}
+            {errors.code && <p className="field-error">{errors.code}</p>}
           </div>
 
           {/* Description */}
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-gray-700">Description</label>
+            <label className="field-label">Description</label>
             <input
               type="text"
               value={formData.description}
               onChange={(e) => setFormData((prev) => ({ ...prev, description: e.target.value }))}
               placeholder="e.g., 20% off on all electronics"
-              className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
+              className="field-input w-full"
             />
           </div>
 
           {/* Discount Type & Value */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="mb-1.5 block text-sm font-medium text-gray-700">
-                Discount Type
-              </label>
+              <label className="field-label">Discount Type</label>
               <select
                 value={formData.discountType}
                 onChange={(e) =>
@@ -319,18 +316,18 @@ function CouponFormDialog({ isOpen, onClose, onSuccess, editCoupon }: CouponForm
                     discountType: e.target.value as 'PERCENTAGE' | 'FIXED_AMOUNT',
                   }))
                 }
-                className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:border-teal-500 focus:outline-none"
+                className="field-input w-full"
               >
                 <option value="PERCENTAGE">Percentage (%)</option>
                 <option value="FIXED_AMOUNT">Fixed Amount (৳)</option>
               </select>
             </div>
             <div>
-              <label className="mb-1.5 block text-sm font-medium text-gray-700">
+              <label className="field-label">
                 Discount Value <span className="text-red-500">*</span>
               </label>
-              <div className="flex rounded-lg border border-gray-300 focus-within:border-teal-500 focus-within:ring-1 focus-within:ring-teal-500">
-                <span className="inline-flex items-center border-r border-gray-300 bg-gray-50 px-3 text-sm text-gray-500">
+              <div className="flex overflow-hidden rounded-2xl border border-foreground/[0.06] bg-card shadow-sm transition-all focus-within:border-brand-300 focus-within:ring-4 focus-within:ring-brand-500/10">
+                <span className="inline-flex items-center border-r border-foreground/[0.06] bg-gray-50 px-4 text-sm font-bold text-gray-500">
                   {formData.discountType === 'PERCENTAGE' ? '%' : '৳'}
                 </span>
                 <input
@@ -344,21 +341,17 @@ function CouponFormDialog({ isOpen, onClose, onSuccess, editCoupon }: CouponForm
                       discountValue: parseFloat(e.target.value) || 0,
                     }))
                   }
-                  className="flex-1 rounded-r-lg px-3 py-2.5 text-sm focus:outline-none"
+                  className="min-w-0 flex-1 bg-transparent px-4 py-3 text-sm font-medium outline-none"
                 />
               </div>
-              {errors.discountValue && (
-                <p className="mt-1 text-sm text-red-600">{errors.discountValue}</p>
-              )}
+              {errors.discountValue && <p className="field-error">{errors.discountValue}</p>}
             </div>
           </div>
 
           {/* Min order & Max discount */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="mb-1.5 block text-sm font-medium text-gray-700">
-                Min. Order (৳)
-              </label>
+              <label className="field-label">Min. Order (৳)</label>
               <input
                 type="number"
                 min="0"
@@ -370,14 +363,12 @@ function CouponFormDialog({ isOpen, onClose, onSuccess, editCoupon }: CouponForm
                   }))
                 }
                 placeholder="No minimum"
-                className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
+                className="field-input w-full"
               />
             </div>
             {formData.discountType === 'PERCENTAGE' && (
               <div>
-                <label className="mb-1.5 block text-sm font-medium text-gray-700">
-                  Max Discount (৳)
-                </label>
+                <label className="field-label">Max Discount (৳)</label>
                 <input
                   type="number"
                   min="0"
@@ -389,7 +380,7 @@ function CouponFormDialog({ isOpen, onClose, onSuccess, editCoupon }: CouponForm
                     }))
                   }
                   placeholder="No cap"
-                  className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
+                  className="field-input w-full"
                 />
               </div>
             )}
@@ -398,9 +389,7 @@ function CouponFormDialog({ isOpen, onClose, onSuccess, editCoupon }: CouponForm
           {/* Usage Limits */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="mb-1.5 block text-sm font-medium text-gray-700">
-                Total Usage Limit
-              </label>
+              <label className="field-label">Total Usage Limit</label>
               <input
                 type="number"
                 min="1"
@@ -412,13 +401,11 @@ function CouponFormDialog({ isOpen, onClose, onSuccess, editCoupon }: CouponForm
                   }))
                 }
                 placeholder="Unlimited"
-                className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
+                className="field-input w-full"
               />
             </div>
             <div>
-              <label className="mb-1.5 block text-sm font-medium text-gray-700">
-                Per User Limit
-              </label>
+              <label className="field-label">Per User Limit</label>
               <input
                 type="number"
                 min="1"
@@ -429,7 +416,7 @@ function CouponFormDialog({ isOpen, onClose, onSuccess, editCoupon }: CouponForm
                     usageLimitPerUser: parseInt(e.target.value, 10) || 1,
                   }))
                 }
-                className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
+                className="field-input w-full"
               />
             </div>
           </div>
@@ -437,23 +424,23 @@ function CouponFormDialog({ isOpen, onClose, onSuccess, editCoupon }: CouponForm
           {/* Dates */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="mb-1.5 block text-sm font-medium text-gray-700">
+              <label className="field-label">
                 Start Date <span className="text-red-500">*</span>
               </label>
               <input
                 type="date"
                 value={formData.startDate}
                 onChange={(e) => setFormData((prev) => ({ ...prev, startDate: e.target.value }))}
-                className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
+                className="field-input w-full"
               />
             </div>
             <div>
-              <label className="mb-1.5 block text-sm font-medium text-gray-700">End Date</label>
+              <label className="field-label">End Date</label>
               <input
                 type="date"
                 value={formData.endDate}
                 onChange={(e) => setFormData((prev) => ({ ...prev, endDate: e.target.value }))}
-                className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
+                className="field-input w-full"
               />
             </div>
           </div>
@@ -464,24 +451,17 @@ function CouponFormDialog({ isOpen, onClose, onSuccess, editCoupon }: CouponForm
               type="checkbox"
               checked={formData.isActive}
               onChange={(e) => setFormData((prev) => ({ ...prev, isActive: e.target.checked }))}
-              className="h-4 w-4 rounded border-gray-300 text-teal-600 focus:ring-teal-500"
+              className="h-4 w-4 rounded border-gray-300 text-brand-600 focus:ring-brand-500"
             />
             <span className="text-sm font-medium text-gray-700">Active</span>
           </label>
         </div>
 
-        <div className="mt-6 flex justify-end gap-3 border-t border-gray-200 pt-4">
-          <button
-            onClick={onClose}
-            className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
-          >
+        <div className="mt-6 flex justify-end gap-3 border-t border-foreground/[0.04] pt-4">
+          <button onClick={onClose} className="btn btn-secondary">
             Cancel
           </button>
-          <button
-            onClick={handleSave}
-            disabled={isSaving}
-            className="inline-flex items-center gap-2 rounded-lg bg-teal-600 px-4 py-2 text-sm font-medium text-white hover:bg-teal-700 disabled:opacity-50"
-          >
+          <button onClick={handleSave} disabled={isSaving} className="btn btn-primary gap-2">
             {isSaving && <Loader2 className="h-4 w-4 animate-spin" />}
             {isEditing ? 'Save Changes' : 'Create Coupon'}
           </button>
@@ -574,17 +554,17 @@ export default function AdminCouponsPage() {
     <div className="space-y-6">
       {confirmDialog}
       {/* Page Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Coupons</h1>
-          <p className="text-sm text-gray-500">Manage discount coupons — all amounts in BDT (৳)</p>
+          <h1 className="page-title">Coupons</h1>
+          <p className="page-subtitle">Manage discount coupons — all amounts in BDT (৳)</p>
         </div>
         <button
           onClick={() => {
             setEditingCoupon(null);
             setShowDialog(true);
           }}
-          className="inline-flex items-center gap-2 rounded-lg bg-teal-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-teal-700"
+          className="btn btn-primary gap-2"
         >
           <Plus className="h-4 w-4" />
           Create Coupon
@@ -603,7 +583,7 @@ export default function AdminCouponsPage() {
               setSearchQuery(e.target.value);
               setPage(1);
             }}
-            className="w-full rounded-lg border border-gray-300 bg-white py-2 pl-10 pr-4 text-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
+            className="field-input w-full pl-11 pr-4"
           />
         </div>
         <select
@@ -612,7 +592,7 @@ export default function AdminCouponsPage() {
             setStatusFilter(e.target.value);
             setPage(1);
           }}
-          className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:border-teal-500 focus:outline-none"
+          className="field-input w-auto py-2.5"
         >
           <option value="all">All Status</option>
           <option value="active">Active</option>
@@ -622,35 +602,35 @@ export default function AdminCouponsPage() {
       </div>
 
       {/* Coupons Table */}
-      <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+      <div className="bento-card overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+          <table className="min-w-full">
+            <thead className="border-b border-foreground/[0.04]">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                <th className="px-6 py-4 text-left text-[10px] font-black uppercase tracking-[0.2em] text-gray-500">
                   Code
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                <th className="px-6 py-4 text-left text-[10px] font-black uppercase tracking-[0.2em] text-gray-500">
                   Discount
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                <th className="px-6 py-4 text-left text-[10px] font-black uppercase tracking-[0.2em] text-gray-500">
                   Conditions
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                <th className="px-6 py-4 text-left text-[10px] font-black uppercase tracking-[0.2em] text-gray-500">
                   Usage
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                <th className="px-6 py-4 text-left text-[10px] font-black uppercase tracking-[0.2em] text-gray-500">
                   Dates
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                <th className="px-6 py-4 text-left text-[10px] font-black uppercase tracking-[0.2em] text-gray-500">
                   Status
                 </th>
-                <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500">
+                <th className="px-6 py-4 text-right text-[10px] font-black uppercase tracking-[0.2em] text-gray-500">
                   Actions
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
+            <tbody className="divide-y divide-foreground/[0.03]">
               {isLoading ? (
                 Array.from({ length: 5 }).map((_, i) => (
                   <tr key={i}>
@@ -732,13 +712,13 @@ export default function AdminCouponsPage() {
                         <div className="flex items-center justify-end gap-1">
                           <button
                             onClick={() => handleEdit(coupon)}
-                            className="rounded p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+                            className="rounded-xl p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-all"
                           >
                             <Edit className="h-4 w-4" />
                           </button>
                           <button
                             onClick={() => handleDelete(coupon.id)}
-                            className="rounded p-1.5 text-gray-400 hover:bg-red-50 hover:text-red-600"
+                            className="rounded-xl p-2 text-gray-400 hover:bg-red-50 hover:text-red-600 transition-all"
                           >
                             <Trash2 className="h-4 w-4" />
                           </button>
@@ -754,7 +734,7 @@ export default function AdminCouponsPage() {
 
         {/* Pagination */}
         {meta.totalPages > 1 && (
-          <div className="flex items-center justify-between border-t border-gray-200 px-6 py-3">
+          <div className="flex items-center justify-between border-t border-foreground/[0.04] px-6 py-3">
             <p className="text-sm text-gray-600">
               {meta.total} coupon{meta.total !== 1 ? 's' : ''} total
             </p>
@@ -762,7 +742,7 @@ export default function AdminCouponsPage() {
               <button
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
                 disabled={page <= 1}
-                className="rounded-lg border border-gray-300 p-2 text-sm disabled:opacity-50"
+                className="btn-icon h-10 w-10 border border-foreground/[0.05] bg-card shadow-sm hover:bg-gray-50 disabled:opacity-50"
               >
                 <ChevronLeft className="h-4 w-4" />
               </button>
@@ -772,7 +752,7 @@ export default function AdminCouponsPage() {
               <button
                 onClick={() => setPage((p) => Math.min(meta.totalPages, p + 1))}
                 disabled={page >= meta.totalPages}
-                className="rounded-lg border border-gray-300 p-2 text-sm disabled:opacity-50"
+                className="btn-icon h-10 w-10 border border-foreground/[0.05] bg-card shadow-sm hover:bg-gray-50 disabled:opacity-50"
               >
                 <ChevronRight className="h-4 w-4" />
               </button>

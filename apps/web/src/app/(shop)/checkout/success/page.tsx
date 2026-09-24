@@ -1,8 +1,11 @@
 'use client';
 
+import { Check, Home, MailCheck, PackageCheck, Truck } from 'lucide-react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
+
+import { IconTile } from '@/components/ui/bento';
 
 // ──────────────────────────────────────────────────────────
 // Confetti Animation (CSS-only)
@@ -15,33 +18,40 @@ import { useEffect, useState } from 'react';
  * No external dependencies required.
  */
 function Confetti() {
-  const colors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96E6A1', '#FFD93D', '#FF8B94', '#6C5CE7'];
-  const pieces = Array.from({ length: 50 }, (_, i) => i);
+  const colors = ['#f46e54', '#fd9a80', '#10b981', '#3b82f6', '#a855f7', '#f59e0b', '#1a1a1a'];
+  // Random geometry is generated after mount so the server and client
+  // markup match (Math.random during render caused a hydration mismatch).
+  const [pieces, setPieces] = useState<
+    Array<{ left: number; delay: number; duration: number; size: number }>
+  >([]);
+
+  useEffect(() => {
+    setPieces(
+      Array.from({ length: 50 }, () => ({
+        left: Math.random() * 100,
+        delay: Math.random() * 3,
+        duration: 2 + Math.random() * 3,
+        size: 6 + Math.random() * 6,
+      })),
+    );
+  }, []);
 
   return (
     <div className="confetti-container" aria-hidden="true">
-      {pieces.map((i) => {
-        const color = colors[i % colors.length];
-        const left = Math.random() * 100;
-        const delay = Math.random() * 3;
-        const duration = 2 + Math.random() * 3;
-        const size = 6 + Math.random() * 6;
-
-        return (
-          <div
-            key={i}
-            className="confetti-piece"
-            style={{
-              left: `${left}%`,
-              width: `${size}px`,
-              height: `${size}px`,
-              backgroundColor: color,
-              animationDelay: `${delay}s`,
-              animationDuration: `${duration}s`,
-            }}
-          />
-        );
-      })}
+      {pieces.map(({ left, delay, duration, size }, i) => (
+        <div
+          key={i}
+          className="confetti-piece"
+          style={{
+            left: `${left}%`,
+            width: `${size}px`,
+            height: `${size}px`,
+            backgroundColor: colors[i % colors.length],
+            animationDelay: `${delay}s`,
+            animationDuration: `${duration}s`,
+          }}
+        />
+      ))}
 
       <style jsx>{`
         .confetti-container {
@@ -96,127 +106,110 @@ export default function CheckoutSuccessPage() {
     return () => clearTimeout(timer);
   }, []);
 
+  const steps = [
+    {
+      icon: MailCheck,
+      tone: 'brand' as const,
+      title: 'Order Confirmation',
+      text: 'You will receive an email confirmation with your order details shortly.',
+    },
+    {
+      icon: PackageCheck,
+      tone: 'blue' as const,
+      title: 'Processing',
+      text: 'Our team will verify and start preparing your order within 24 hours.',
+    },
+    {
+      icon: Truck,
+      tone: 'purple' as const,
+      title: 'Shipping',
+      text: 'Once shipped, you will receive a tracking update via SMS and email.',
+    },
+    {
+      icon: Home,
+      tone: 'emerald' as const,
+      title: 'Delivery',
+      text: 'Your order will be delivered to your specified address.',
+    },
+  ];
+
   return (
     <>
       {showConfetti && <Confetti />}
 
-      <div className="mx-auto max-w-2xl px-4 sm:px-6 lg:px-8 py-16 lg:py-24">
-        <div className="text-center">
-          {/* Success icon */}
-          <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-green-100">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="40"
-              height="40"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="text-green-600"
-            >
-              <polyline points="20 6 9 17 4 12" />
-            </svg>
-          </div>
-
-          {/* Heading */}
-          <h1 className="text-3xl font-bold text-gray-900 mb-3">Order Placed Successfully!</h1>
-
-          <p className="text-lg text-gray-600 mb-2">
-            Thank you for your order. We&apos;re getting it ready for you.
-          </p>
-
-          {/* Order number */}
-          {orderNumber && (
-            <div className="mt-6 mb-8 inline-flex items-center gap-2 rounded-xl bg-gray-50 border border-gray-200 px-6 py-4">
-              <span className="text-sm text-gray-500">Order Number:</span>
-              <span className="text-lg font-bold text-gray-900 font-mono">{orderNumber}</span>
+      <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8 lg:py-16">
+        <div className="grid grid-cols-1 gap-4 sm:gap-6 md:grid-cols-6">
+          {/* Hero tile */}
+          <div className="bento-card flex flex-col items-center p-8 text-center sm:p-10 md:col-span-6">
+            <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-[1.75rem] bg-emerald-50 text-emerald-500">
+              <Check className="h-10 w-10" strokeWidth={3} />
             </div>
-          )}
 
-          {/* Order details card */}
-          <div className="mt-8 rounded-2xl bg-white border border-gray-200 p-6 lg:p-8 text-left">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">What happens next?</h2>
+            <p className="eyebrow mb-2 text-emerald-600">Payment received · Order confirmed</p>
+            <h1 className="page-title mb-3 sm:text-4xl">Order Placed Successfully!</h1>
 
-            <div className="space-y-4">
-              <div className="flex gap-4">
-                <div className="flex-shrink-0 flex h-8 w-8 items-center justify-center rounded-full bg-teal-100 text-primary text-sm font-semibold">
-                  1
-                </div>
-                <div>
-                  <p className="font-medium text-gray-900">Order Confirmation</p>
-                  <p className="text-sm text-gray-500">
-                    You will receive an email confirmation with your order details shortly.
-                  </p>
-                </div>
-              </div>
+            <p className="page-subtitle max-w-md">
+              Thank you for your order. We&apos;re getting it ready for you.
+            </p>
 
-              <div className="flex gap-4">
-                <div className="flex-shrink-0 flex h-8 w-8 items-center justify-center rounded-full bg-teal-100 text-primary text-sm font-semibold">
-                  2
-                </div>
-                <div>
-                  <p className="font-medium text-gray-900">Processing</p>
-                  <p className="text-sm text-gray-500">
-                    Our team will verify and start preparing your order within 24 hours.
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex gap-4">
-                <div className="flex-shrink-0 flex h-8 w-8 items-center justify-center rounded-full bg-teal-100 text-primary text-sm font-semibold">
-                  3
-                </div>
-                <div>
-                  <p className="font-medium text-gray-900">Shipping</p>
-                  <p className="text-sm text-gray-500">
-                    Once shipped, you will receive a tracking update via SMS and email.
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex gap-4">
-                <div className="flex-shrink-0 flex h-8 w-8 items-center justify-center rounded-full bg-green-100 text-green-600 text-sm font-semibold">
-                  4
-                </div>
-                <div>
-                  <p className="font-medium text-gray-900">Delivery</p>
-                  <p className="text-sm text-gray-500">
-                    Your order will be delivered to your specified address.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Action buttons */}
-          <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
+            {/* Order number */}
             {orderNumber && (
-              <Link
-                href={`/account/orders/${orderNumber}`}
-                className="rounded-xl bg-primary px-8 py-3 text-sm font-semibold text-white hover:bg-primary/90 transition-colors w-full sm:w-auto text-center"
-              >
-                Track Your Order
-              </Link>
+              <div className="mt-6 inline-flex flex-wrap items-center justify-center gap-3 rounded-[1.25rem] border border-primary/10 bg-primary/5 px-6 py-4">
+                <span className="eyebrow text-brand-700">Order Number</span>
+                <span className="font-mono text-lg font-black text-brand-700">{orderNumber}</span>
+              </div>
             )}
 
-            <Link
-              href="/"
-              className="rounded-xl bg-white border border-gray-300 px-8 py-3 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors w-full sm:w-auto text-center"
-            >
-              Continue Shopping
-            </Link>
+            {/* Action buttons */}
+            <div className="mt-8 flex w-full flex-col items-center justify-center gap-3 sm:w-auto sm:flex-row">
+              {orderNumber && (
+                <Link
+                  href={`/account/orders/${orderNumber}`}
+                  className="btn btn-primary btn-lg w-full sm:w-auto"
+                >
+                  Track Your Order
+                </Link>
+              )}
+
+              <Link href="/" className="btn btn-secondary btn-lg w-full sm:w-auto">
+                Continue Shopping
+              </Link>
+            </div>
           </div>
 
-          {/* Help text */}
-          <p className="mt-8 text-xs text-gray-400">
-            Have a question about your order?{' '}
-            <a href="/contact" className="text-primary hover:underline">
-              Contact our support team
-            </a>
-          </p>
+          {/* What happens next */}
+          <div className="bento-card p-6 sm:p-8 md:col-span-6">
+            <h2 className="section-title">What happens next?</h2>
+            <p className="eyebrow mb-6 mt-1">Your order journey</p>
+
+            <ol className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              {steps.map((step, index) => (
+                <li key={step.title} className="bento-tile flex flex-col gap-3 p-5">
+                  <div className="flex items-center justify-between">
+                    <IconTile icon={step.icon} tone={step.tone} size="sm" />
+                    <span className="text-2xl font-black tabular-nums tracking-tighter text-gray-200">
+                      0{index + 1}
+                    </span>
+                  </div>
+                  <div>
+                    <p className="text-sm font-black text-gray-900">{step.title}</p>
+                    <p className="mt-1 text-xs font-medium leading-relaxed text-gray-500">
+                      {step.text}
+                    </p>
+                  </div>
+                </li>
+              ))}
+            </ol>
+          </div>
         </div>
+
+        {/* Help text */}
+        <p className="mt-8 text-center text-xs font-bold text-gray-400">
+          Have a question about your order?{' '}
+          <a href="/contact" className="font-black text-brand-700 hover:underline">
+            Contact our support team
+          </a>
+        </p>
       </div>
     </>
   );

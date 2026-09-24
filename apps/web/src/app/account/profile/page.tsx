@@ -15,6 +15,7 @@ import { useRouter } from 'next/navigation';
 import { useState, useRef } from 'react';
 import { toast } from 'sonner';
 
+import { PageHeader } from '@/components/ui/bento';
 import { useAuth } from '@/hooks/use-auth';
 import { updateProfile as updateProfileApi } from '@/lib/api/auth';
 import { apiClient, ApiClientError } from '@/lib/api/client';
@@ -159,50 +160,50 @@ export default function ProfilePage() {
   const avatarSrc = avatarPreview || user?.avatar;
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <h2 className="text-xl font-bold text-gray-900">Edit Profile</h2>
-        <p className="text-sm text-gray-500 mt-1">Update your personal information</p>
-      </div>
+    <div className="space-y-4 sm:space-y-6">
+      <PageHeader
+        title="Edit Profile"
+        description="Update your personal information"
+        className="mb-0 sm:mb-0"
+      />
 
       {/* Success/Error Messages */}
       {successMessage && (
-        <div className="flex items-center gap-2 bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg text-sm">
-          <CheckCircle className="w-5 h-5" />
+        <div className="flex items-center gap-2 rounded-2xl border border-emerald-100 bg-emerald-50 px-4 py-3 text-sm font-bold text-emerald-700">
+          <CheckCircle className="h-5 w-5" strokeWidth={2.25} />
           {successMessage}
         </div>
       )}
 
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+        <div className="rounded-2xl border border-rose-100 bg-rose-50 px-4 py-3 text-sm font-bold text-rose-600">
           {error}
         </div>
       )}
 
-      {/* Avatar Section */}
-      <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
-        <h3 className="text-sm font-semibold text-gray-900 mb-4">Profile Photo</h3>
+      <div className="grid grid-cols-1 gap-4 sm:gap-6 xl:grid-cols-12">
+        {/* Avatar Section */}
+        <section className="bento-card flex flex-col items-center p-6 text-center sm:p-8 xl:col-span-4">
+          <p className="eyebrow mb-6 self-start">Profile Photo</p>
 
-        <div className="flex items-center gap-6">
           {/* Avatar Preview */}
           <div className="relative">
-            <div className="w-24 h-24 rounded-full bg-gray-100 border-2 border-gray-200 overflow-hidden">
+            <div className="relative h-28 w-28 overflow-hidden rounded-[2rem] border-4 border-card bg-gray-100 shadow-bento">
               {avatarSrc ? (
                 <img
                   src={avatarSrc}
                   alt={user?.fullName || 'Profile'}
-                  className="w-full h-full object-cover"
+                  className="h-full w-full object-cover"
                 />
               ) : (
-                <div className="w-full h-full flex items-center justify-center">
-                  <User className="w-10 h-10 text-gray-400" />
+                <div className="flex h-full w-full items-center justify-center bg-brand-50">
+                  <User className="h-10 w-10 text-brand-600" strokeWidth={2.25} />
                 </div>
               )}
 
               {isUploading && (
-                <div className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center">
-                  <Loader2 className="w-6 h-6 text-white animate-spin" />
+                <div className="absolute inset-0 flex items-center justify-center bg-black/50">
+                  <Loader2 className="h-6 w-6 animate-spin text-white" />
                 </div>
               )}
             </div>
@@ -211,9 +212,10 @@ export default function ProfilePage() {
             <button
               onClick={handleAvatarClick}
               disabled={isUploading}
-              className="absolute bottom-0 right-0 w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center shadow-md hover:bg-primary/90 transition-colors"
+              className="absolute -bottom-2 -right-2 flex h-10 w-10 items-center justify-center rounded-2xl border-2 border-card bg-primary text-white shadow-brand-glow transition-all hover:scale-105 active:scale-95"
+              aria-label="Change profile photo"
             >
-              <Camera className="w-4 h-4" />
+              <Camera className="h-4 w-4" strokeWidth={2.5} />
             </button>
 
             <input
@@ -225,178 +227,188 @@ export default function ProfilePage() {
             />
           </div>
 
-          <div>
-            <p className="text-sm font-medium text-gray-900">Upload a new photo</p>
-            <p className="text-xs text-gray-500 mt-1">
-              JPG, PNG, or WebP. Max 5MB. Will be resized to 200x200 and 50x50.
-            </p>
-            <button
-              onClick={handleAvatarClick}
-              disabled={isUploading}
-              className="mt-2 text-sm text-primary hover:text-primary font-medium"
-            >
-              {isUploading ? 'Uploading...' : 'Choose file'}
+          <p className="mt-6 text-base font-black tracking-tight text-gray-900">
+            {user?.fullName || 'Your profile'}
+          </p>
+          <p className="mt-1 max-w-[16rem] text-xs font-medium text-gray-500">
+            JPG, PNG, or WebP. Max 5MB. Will be resized to 200x200 and 50x50.
+          </p>
+          <button
+            onClick={handleAvatarClick}
+            disabled={isUploading}
+            className="btn btn-soft btn-sm mt-5"
+          >
+            {isUploading ? 'Uploading...' : 'Choose file'}
+          </button>
+        </section>
+
+        {/* Profile Form */}
+        <form onSubmit={handleSave} className="bento-card p-6 sm:p-8 xl:col-span-8">
+          <h3 className="section-title">Personal Information</h3>
+          <p className="eyebrow mb-6 mt-1">How we reach you</p>
+
+          <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+            {/* Name */}
+            <div className="md:col-span-2">
+              <label htmlFor="profile-name" className="field-label flex items-center gap-1.5">
+                <User className="h-3.5 w-3.5" strokeWidth={2.5} />
+                Full Name
+              </label>
+              <input
+                id="profile-name"
+                type="text"
+                value={formData.name}
+                onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
+                placeholder="Enter your full name"
+                className="field-input"
+              />
+            </div>
+
+            {/* Email (read-only) */}
+            <div>
+              <label htmlFor="profile-email" className="field-label flex items-center gap-1.5">
+                <Mail className="h-3.5 w-3.5" strokeWidth={2.5} />
+                Email Address
+              </label>
+              <input
+                id="profile-email"
+                type="email"
+                value={user?.email || ''}
+                disabled
+                className="field-input"
+              />
+              <p className="field-hint">Email cannot be changed</p>
+            </div>
+
+            {/* Phone */}
+            <div>
+              <label htmlFor="profile-phone" className="field-label flex items-center gap-1.5">
+                <Phone className="h-3.5 w-3.5" strokeWidth={2.5} />
+                Phone Number
+              </label>
+              <input
+                id="profile-phone"
+                type="tel"
+                value={formData.phone}
+                onChange={(e) => setFormData((prev) => ({ ...prev, phone: e.target.value }))}
+                placeholder="+8801XXXXXXXXX"
+                className="field-input"
+              />
+            </div>
+          </div>
+
+          {/* Save Button */}
+          <div className="mt-8 flex justify-end border-t border-foreground/[0.04] pt-6">
+            <button type="submit" disabled={isSaving} className="btn btn-primary">
+              {isSaving ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Save className="h-4 w-4" strokeWidth={2.5} />
+              )}
+              {isSaving ? 'Saving...' : 'Save Changes'}
             </button>
           </div>
-        </div>
+        </form>
       </div>
-
-      {/* Profile Form */}
-      <form
-        onSubmit={handleSave}
-        className="bg-white rounded-xl border border-gray-200 shadow-sm p-6"
-      >
-        <h3 className="text-sm font-semibold text-gray-900 mb-4">Personal Information</h3>
-
-        <div className="space-y-4">
-          {/* Name */}
-          <div>
-            <label className="flex items-center gap-1.5 text-sm font-medium text-gray-700 mb-1">
-              <User className="w-4 h-4" />
-              Full Name
-            </label>
-            <input
-              type="text"
-              value={formData.name}
-              onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
-              placeholder="Enter your full name"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-primary"
-            />
-          </div>
-
-          {/* Email (read-only) */}
-          <div>
-            <label className="flex items-center gap-1.5 text-sm font-medium text-gray-700 mb-1">
-              <Mail className="w-4 h-4" />
-              Email Address
-            </label>
-            <input
-              type="email"
-              value={user?.email || ''}
-              disabled
-              className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm bg-gray-50 text-gray-500 cursor-not-allowed"
-            />
-            <p className="text-xs text-gray-400 mt-1">Email cannot be changed</p>
-          </div>
-
-          {/* Phone */}
-          <div>
-            <label className="flex items-center gap-1.5 text-sm font-medium text-gray-700 mb-1">
-              <Phone className="w-4 h-4" />
-              Phone Number
-            </label>
-            <input
-              type="tel"
-              value={formData.phone}
-              onChange={(e) => setFormData((prev) => ({ ...prev, phone: e.target.value }))}
-              placeholder="+8801XXXXXXXXX"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-primary"
-            />
-          </div>
-        </div>
-
-        {/* Save Button */}
-        <div className="flex justify-end mt-6 pt-4 border-t border-gray-100">
-          <button
-            type="submit"
-            disabled={isSaving}
-            className="flex items-center gap-2 px-6 py-2.5 bg-primary text-white rounded-lg text-sm font-medium hover:bg-primary/90 disabled:opacity-50 transition-colors"
-          >
-            {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-            {isSaving ? 'Saving...' : 'Save Changes'}
-          </button>
-        </div>
-      </form>
 
       {/* Danger Zone */}
-      <div className="bg-white rounded-xl border border-red-200 shadow-sm p-6">
-        <div className="flex items-start gap-3">
-          <AlertTriangle className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" />
-          <div className="flex-1">
-            <h3 className="text-sm font-semibold text-red-700">Delete account</h3>
-            <p className="text-xs text-gray-500 mt-1">
-              Permanently delete your account and personal data. Past orders are kept for our
-              records but will no longer be linked to you. This cannot be undone.
-            </p>
-            <button
-              type="button"
-              onClick={() => {
-                setShowDeleteDialog(true);
-                setDeletePassword('');
-                setDeleteConfirmation('');
-                setDeleteError('');
-              }}
-              className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 transition-colors"
-            >
-              <Trash2 className="w-4 h-4" />
-              Delete my account
-            </button>
-          </div>
+      <section className="bento-card flex flex-col gap-5 border-rose-100 p-6 sm:flex-row sm:items-center sm:p-8">
+        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-rose-50 text-rose-500">
+          <AlertTriangle className="h-6 w-6" strokeWidth={2.25} />
         </div>
-      </div>
+        <div className="flex-1">
+          <p className="eyebrow text-rose-500">Danger zone</p>
+          <h3 className="mt-1 text-base font-black tracking-tight text-gray-900">Delete account</h3>
+          <p className="mt-1 text-xs font-medium text-gray-500">
+            Permanently delete your account and personal data. Past orders are kept for our records
+            but will no longer be linked to you. This cannot be undone.
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={() => {
+            setShowDeleteDialog(true);
+            setDeletePassword('');
+            setDeleteConfirmation('');
+            setDeleteError('');
+          }}
+          className="btn btn-danger-soft shrink-0"
+        >
+          <Trash2 className="h-4 w-4" strokeWidth={2.5} />
+          Delete my account
+        </button>
+      </section>
 
       {/* Delete confirmation dialog */}
       {showDeleteDialog && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm"
           onClick={() => !isDeleting && setShowDeleteDialog(false)}
         >
           <div
-            className="bg-white rounded-xl shadow-xl max-w-md w-full p-6"
+            className="w-full max-w-md rounded-[2rem] border border-foreground/[0.04] bg-card p-6 shadow-2xl sm:p-8"
             onClick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="delete-account-title"
           >
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
-                <AlertTriangle className="w-5 h-5 text-red-600" />
-              </div>
-              <h3 className="text-lg font-bold text-gray-900">Delete account permanently?</h3>
+            <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-rose-50 text-rose-500">
+              <AlertTriangle className="h-7 w-7" strokeWidth={2.25} />
             </div>
-            <p className="text-sm text-gray-600 mb-4">
+            <h3
+              id="delete-account-title"
+              className="text-xl font-black tracking-tight text-gray-900"
+            >
+              Delete account permanently?
+            </h3>
+            <p className="mb-5 mt-2 text-sm font-medium text-gray-500">
               This will remove your profile, addresses, cart, wishlist, reviews and notifications.
               Orders you placed will be kept but disconnected from your account.
             </p>
 
-            <div className="space-y-3">
+            <div className="space-y-4">
               <div>
-                <label className="text-xs font-medium text-gray-700 block mb-1">
+                <label htmlFor="delete-password" className="field-label">
                   Current password{' '}
-                  <span className="text-gray-400 font-normal">
+                  <span className="font-medium text-gray-400">
                     (leave blank if you signed up with Google)
                   </span>
                 </label>
                 <input
+                  id="delete-password"
                   type="password"
                   value={deletePassword}
                   onChange={(e) => setDeletePassword(e.target.value)}
                   placeholder="Your password"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                  className="field-input focus:border-rose-300 focus:ring-rose-500/10"
                   disabled={isDeleting}
                 />
               </div>
               <div>
-                <label className="text-xs font-medium text-gray-700 block mb-1">
-                  Type <span className="font-mono font-bold text-red-600">DELETE</span> to confirm
+                <label htmlFor="delete-confirm" className="field-label">
+                  Type <span className="font-mono font-black text-rose-600">DELETE</span> to confirm
                 </label>
                 <input
+                  id="delete-confirm"
                   type="text"
                   value={deleteConfirmation}
                   onChange={(e) => setDeleteConfirmation(e.target.value)}
                   placeholder="DELETE"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                  className="field-input focus:border-rose-300 focus:ring-rose-500/10"
                   disabled={isDeleting}
                   autoComplete="off"
                 />
               </div>
             </div>
 
-            {deleteError && <p className="text-xs text-red-600 mt-3">{deleteError}</p>}
+            {deleteError && <p className="field-error mt-3">{deleteError}</p>}
 
-            <div className="flex gap-3 justify-end mt-6">
+            <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
               <button
                 type="button"
                 onClick={() => setShowDeleteDialog(false)}
                 disabled={isDeleting}
-                className="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50"
+                className="btn btn-soft"
               >
                 Cancel
               </button>
@@ -404,12 +416,12 @@ export default function ProfilePage() {
                 type="button"
                 onClick={handleDeleteAccount}
                 disabled={isDeleting || deleteConfirmation !== 'DELETE'}
-                className="inline-flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 transition-colors disabled:opacity-50"
+                className="btn btn-danger"
               >
                 {isDeleting ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <Loader2 className="h-4 w-4 animate-spin" />
                 ) : (
-                  <Trash2 className="w-4 h-4" />
+                  <Trash2 className="h-4 w-4" strokeWidth={2.5} />
                 )}
                 {isDeleting ? 'Deleting...' : 'Delete account'}
               </button>

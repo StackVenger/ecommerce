@@ -145,7 +145,7 @@ function NewAddressForm({ onSave, onCancel }: NewAddressFormProps) {
       {/* Name row */}
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="firstName" className="field-label">
             First Name
           </label>
           <input
@@ -154,12 +154,12 @@ function NewAddressForm({ onSave, onCancel }: NewAddressFormProps) {
             required
             value={formData.firstName}
             onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
-            className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
+            className="field-input"
             placeholder="First name"
           />
         </div>
         <div>
-          <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="lastName" className="field-label">
             Last Name
           </label>
           <input
@@ -168,7 +168,7 @@ function NewAddressForm({ onSave, onCancel }: NewAddressFormProps) {
             required
             value={formData.lastName}
             onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
-            className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
+            className="field-input"
             placeholder="Last name"
           />
         </div>
@@ -176,7 +176,7 @@ function NewAddressForm({ onSave, onCancel }: NewAddressFormProps) {
 
       {/* Phone */}
       <div>
-        <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">
+        <label htmlFor="phone" className="field-label">
           Phone Number
         </label>
         <input
@@ -185,14 +185,14 @@ function NewAddressForm({ onSave, onCancel }: NewAddressFormProps) {
           required
           value={formData.phone}
           onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-          className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
+          className="field-input"
           placeholder="+880 1XXX-XXXXXX"
         />
       </div>
 
       {/* Address line 1 */}
       <div>
-        <label htmlFor="addressLine1" className="block text-sm font-medium text-gray-700 mb-1">
+        <label htmlFor="addressLine1" className="field-label">
           Street Address
         </label>
         <input
@@ -201,14 +201,14 @@ function NewAddressForm({ onSave, onCancel }: NewAddressFormProps) {
           required
           value={formData.addressLine1}
           onChange={(e) => setFormData({ ...formData, addressLine1: e.target.value })}
-          className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
+          className="field-input"
           placeholder="House no., road, area"
         />
       </div>
 
       {/* Address line 2 */}
       <div>
-        <label htmlFor="addressLine2" className="block text-sm font-medium text-gray-700 mb-1">
+        <label htmlFor="addressLine2" className="field-label">
           Apartment, Suite, etc. <span className="text-gray-400">(optional)</span>
         </label>
         <input
@@ -216,7 +216,7 @@ function NewAddressForm({ onSave, onCancel }: NewAddressFormProps) {
           type="text"
           value={formData.addressLine2}
           onChange={(e) => setFormData({ ...formData, addressLine2: e.target.value })}
-          className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
+          className="field-input"
           placeholder="Apartment, suite, floor"
         />
       </div>
@@ -224,7 +224,7 @@ function NewAddressForm({ onSave, onCancel }: NewAddressFormProps) {
       {/* Division and District */}
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label htmlFor="division" className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="division" className="field-label">
             Division
           </label>
           <select
@@ -232,7 +232,7 @@ function NewAddressForm({ onSave, onCancel }: NewAddressFormProps) {
             required
             value={division}
             onChange={(e) => handleDivisionChange(e.target.value)}
-            className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none bg-white"
+            className="field-input"
           >
             <option value="">Select Division</option>
             {Object.keys(BD_DIVISIONS).map((div) => (
@@ -243,7 +243,7 @@ function NewAddressForm({ onSave, onCancel }: NewAddressFormProps) {
           </select>
         </div>
         <div>
-          <label htmlFor="district" className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="district" className="field-label">
             District
           </label>
           <select
@@ -252,7 +252,7 @@ function NewAddressForm({ onSave, onCancel }: NewAddressFormProps) {
             value={district}
             onChange={(e) => setDistrict(e.target.value)}
             disabled={!division}
-            className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none bg-white disabled:bg-gray-100 disabled:cursor-not-allowed"
+            className="field-input"
           >
             <option value="">Select District</option>
             {districts.map((dist) => (
@@ -267,7 +267,7 @@ function NewAddressForm({ onSave, onCancel }: NewAddressFormProps) {
       {/* City and Postal Code */}
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label htmlFor="city" className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="city" className="field-label">
             City / Town
           </label>
           <input
@@ -276,12 +276,12 @@ function NewAddressForm({ onSave, onCancel }: NewAddressFormProps) {
             required
             value={formData.city}
             onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-            className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
+            className="field-input"
             placeholder="City"
           />
         </div>
         <div>
-          <label htmlFor="postalCode" className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="postalCode" className="field-label">
             Postal Code
           </label>
           <input
@@ -290,7 +290,7 @@ function NewAddressForm({ onSave, onCancel }: NewAddressFormProps) {
             required
             value={formData.postalCode}
             onChange={(e) => setFormData({ ...formData, postalCode: e.target.value })}
-            className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
+            className="field-input"
             placeholder="1000"
           />
         </div>
@@ -331,8 +331,10 @@ function AddressCard({ address, isSelected, onSelect }: AddressCardProps) {
     <button
       type="button"
       onClick={onSelect}
-      className={`w-full text-left rounded-xl border-2 p-4 transition-colors ${
-        isSelected ? 'border-primary bg-teal-50' : 'border-gray-200 hover:border-gray-300 bg-white'
+      className={`w-full text-left rounded-[1.5rem] border-2 p-4 transition-colors ${
+        isSelected
+          ? 'border-primary bg-brand-50/60 shadow-brand-glow'
+          : 'border-foreground/[0.04] bg-card hover:border-foreground/[0.1]'
       }`}
     >
       <div className="flex items-start justify-between">
@@ -352,7 +354,7 @@ function AddressCard({ address, isSelected, onSelect }: AddressCardProps) {
 
         <div className="flex items-center gap-2">
           {address.isDefault && (
-            <span className="rounded-full bg-teal-100 px-2.5 py-0.5 text-xs font-medium text-primary">
+            <span className="rounded-full bg-brand-100 px-2.5 py-0.5 text-xs font-medium text-primary">
               Default
             </span>
           )}
@@ -398,7 +400,7 @@ export default function AddressStep({
 
   return (
     <div>
-      <h2 className="text-xl font-semibold text-gray-900 mb-2">Shipping Address</h2>
+      <h2 className="section-title mb-1">Shipping Address</h2>
       <p className="text-sm text-gray-500 mb-6">Select a delivery address or add a new one</p>
 
       {/* Saved addresses */}
@@ -429,7 +431,7 @@ export default function AddressStep({
         <button
           type="button"
           onClick={() => setShowNewForm(true)}
-          className="flex items-center gap-2 text-sm font-medium text-primary hover:text-teal-800 transition-colors"
+          className="flex items-center gap-2 text-sm font-medium text-primary hover:text-brand-800 transition-colors"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -460,7 +462,7 @@ export default function AddressStep({
           type="button"
           onClick={onContinue}
           disabled={!selectedAddressId}
-          className="rounded-xl bg-primary px-8 py-3 text-sm font-semibold text-white hover:bg-primary/90 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+          className="btn btn-primary btn-lg"
         >
           Continue to Shipping
         </button>

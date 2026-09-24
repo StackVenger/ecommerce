@@ -4,6 +4,7 @@ import NextTopLoader from 'nextjs-toploader';
 import type { Metadata, Viewport } from 'next';
 
 import { getSiteConfig } from '@/lib/config/site-config';
+import { COLOR_MODE_INIT_SCRIPT } from '@/lib/theme/color-mode-script';
 import { themeToCssVars } from '@/lib/theme/css-vars';
 import { getGoogleFontsUrl } from '@/lib/theme/google-fonts';
 import { Providers } from '@/providers';
@@ -93,8 +94,8 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export const viewport: Viewport = {
   themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#ffffff' },
-    { media: '(prefers-color-scheme: dark)', color: '#0a0a0a' },
+    { media: '(prefers-color-scheme: light)', color: '#fbf9f6' },
+    { media: '(prefers-color-scheme: dark)', color: '#141210' },
   ],
   width: 'device-width',
   initialScale: 1,
@@ -122,6 +123,11 @@ export default async function RootLayout({
       suppressHydrationWarning
     >
       <head>
+        {/* Apply the saved / system colour mode before first paint (no light flash). */}
+        <script
+          // eslint-disable-next-line react/no-danger
+          dangerouslySetInnerHTML={{ __html: COLOR_MODE_INIT_SCRIPT }}
+        />
         {/* Admin-selected Google Fonts, loaded before the theme style
             block so the chosen families are available when the CSS
             custom properties take effect. */}
@@ -186,7 +192,7 @@ export default async function RootLayout({
           is driven by the admin typography tokens defined in
           globals.css (which read `--font-body`). */}
       <body className="min-h-screen bg-background antialiased">
-        <NextTopLoader color="#0d9488" height={3} showSpinner={false} />
+        <NextTopLoader color="#f46e54" height={3} showSpinner={false} />
         <Providers>{children}</Providers>
       </body>
     </html>

@@ -1,8 +1,11 @@
 'use client';
 
-import { ArrowRight, Eye, ShoppingCart, ShoppingBag } from 'lucide-react';
+import { ArrowRight, Eye, ShoppingCart, ShoppingBag, Filter } from 'lucide-react';
 
 import type { ConversionFunnel as ConversionFunnelData } from '@/lib/api/admin';
+
+import { SectionHeader } from '@/components/ui/bento';
+import { cn } from '@/lib/utils';
 
 interface ConversionFunnelProps {
   data: ConversionFunnelData;
@@ -12,55 +15,56 @@ interface FunnelStepProps {
   label: string;
   value: number;
   percentage: number;
-  color: string;
-  bgColor: string;
-  iconBg: string;
+  /** Tile classes (bg + fg) for the icon. */
+  toneClass: string;
+  /** Fill class for the progress bar. */
+  barClass: string;
   icon: React.ReactNode;
 }
 
-function FunnelStep({ label, value, percentage, color, bgColor, iconBg, icon }: FunnelStepProps) {
+function FunnelStep({ label, value, percentage, toneClass, barClass, icon }: FunnelStepProps) {
   return (
-    <div
-      className="flex flex-1 flex-col items-center gap-3 rounded-xl px-4 py-5 text-center"
-      style={{ backgroundColor: bgColor }}
-    >
+    <div className="group flex flex-1 flex-col items-center gap-4 rounded-[1.75rem] bg-gray-50 px-5 py-6 text-center transition-all hover:bg-card hover:shadow-bento-hover">
       <div
-        className="flex h-12 w-12 items-center justify-center rounded-full"
-        style={{ backgroundColor: iconBg, color }}
+        className={cn(
+          'flex h-14 w-14 items-center justify-center rounded-2xl transition-transform duration-500 group-hover:scale-110',
+          toneClass,
+        )}
       >
         {icon}
       </div>
       <div>
-        <p className="text-2xl font-bold" style={{ color }}>
-          {value.toLocaleString()}
-        </p>
-        <p className="text-sm font-medium text-gray-600">{label}</p>
+        <p className="stat-value text-3xl">{value.toLocaleString()}</p>
+        <p className="eyebrow mt-1">{label}</p>
       </div>
-      <span className="rounded-full bg-white/60 px-2 py-0.5 text-xs font-semibold text-gray-500">
-        {percentage}%
-      </span>
+      <div className="w-full max-w-[10rem]">
+        <div className="h-1.5 w-full overflow-hidden rounded-full bg-gray-200/70">
+          <div
+            className={cn('h-full rounded-full', barClass)}
+            style={{ width: `${Math.max(Math.min(percentage, 100), 2)}%` }}
+          />
+        </div>
+        <p className="mt-2 text-[10px] font-black tabular-nums text-gray-500">{percentage}%</p>
+      </div>
     </div>
   );
 }
 
 function FunnelArrow({ rate, label }: { rate: number; label: string }) {
   return (
-    <div className="flex flex-col items-center justify-center gap-1 px-2 sm:px-3">
-      <span className="whitespace-nowrap text-xs font-semibold text-teal-600">
+    <div className="flex flex-row items-center justify-center gap-2 px-1 sm:flex-col sm:px-2">
+      <span className="whitespace-nowrap rounded-xl bg-brand-50 px-2.5 py-1 text-[10px] font-black tabular-nums text-brand-700">
         {rate}% {label}
       </span>
-      <ArrowRight className="h-5 w-5 text-gray-400" />
+      <ArrowRight className="h-4 w-4 rotate-90 text-gray-300 sm:rotate-0" strokeWidth={2.5} />
     </div>
   );
 }
 
 export function ConversionFunnel({ data }: ConversionFunnelProps) {
   return (
-    <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-      <div className="mb-6">
-        <h3 className="text-lg font-semibold text-gray-900">Conversion Funnel</h3>
-        <p className="text-sm text-gray-500">Product views to orders conversion</p>
-      </div>
+    <div className="bento-card p-6 sm:p-8">
+      <SectionHeader title="Conversion Funnel" caption="Product views to orders" icon={Filter} />
 
       {/* Horizontal funnel: stacks on mobile, lays out left-to-right on sm+ */}
       <div className="flex flex-col items-stretch gap-3 sm:flex-row sm:items-center">
@@ -68,10 +72,9 @@ export function ConversionFunnel({ data }: ConversionFunnelProps) {
           label="Product Views"
           value={data.totalViews}
           percentage={100}
-          color="#4f46e5"
-          bgColor="#eef2ff"
-          iconBg="#e0e7ff"
-          icon={<Eye className="h-5 w-5" />}
+          toneClass="bg-indigo-50 text-indigo-500"
+          barClass="bg-indigo-500"
+          icon={<Eye className="h-6 w-6" strokeWidth={2.25} />}
         />
 
         <FunnelArrow rate={data.viewToCartRate} label="add to cart" />
@@ -80,10 +83,9 @@ export function ConversionFunnel({ data }: ConversionFunnelProps) {
           label="Added to Cart"
           value={data.totalCartAdds}
           percentage={data.viewToCartRate}
-          color="#0891b2"
-          bgColor="#ecfeff"
-          iconBg="#cffafe"
-          icon={<ShoppingCart className="h-5 w-5" />}
+          toneClass="bg-orange-50 text-orange-500"
+          barClass="bg-orange-400"
+          icon={<ShoppingCart className="h-6 w-6" strokeWidth={2.25} />}
         />
 
         <FunnelArrow rate={data.cartToOrderRate} label="purchase" />
@@ -92,27 +94,31 @@ export function ConversionFunnel({ data }: ConversionFunnelProps) {
           label="Orders Placed"
           value={data.totalOrders}
           percentage={data.overallConversionRate}
-          color="#059669"
-          bgColor="#ecfdf5"
-          iconBg="#d1fae5"
-          icon={<ShoppingBag className="h-5 w-5" />}
+          toneClass="bg-emerald-50 text-emerald-500"
+          barClass="bg-emerald-500"
+          icon={<ShoppingBag className="h-6 w-6" strokeWidth={2.25} />}
         />
       </div>
 
       {/* Summary row */}
-      <div className="mt-6 grid grid-cols-3 gap-4 border-t border-gray-100 pt-4">
-        <div className="text-center">
-          <p className="text-sm text-gray-500">View to Cart</p>
-          <p className="text-lg font-bold text-cyan-600">{data.viewToCartRate}%</p>
-        </div>
-        <div className="text-center">
-          <p className="text-sm text-gray-500">Cart to Order</p>
-          <p className="text-lg font-bold text-teal-600">{data.cartToOrderRate}%</p>
-        </div>
-        <div className="text-center">
-          <p className="text-sm text-gray-500">Overall</p>
-          <p className="text-lg font-bold text-green-600">{data.overallConversionRate}%</p>
-        </div>
+      <div className="mt-6 grid grid-cols-3 gap-3 border-t border-foreground/[0.04] pt-6">
+        {[
+          { label: 'View to Cart', value: data.viewToCartRate, className: 'text-orange-500' },
+          { label: 'Cart to Order', value: data.cartToOrderRate, className: 'text-primary' },
+          { label: 'Overall', value: data.overallConversionRate, className: 'text-emerald-600' },
+        ].map((item) => (
+          <div key={item.label} className="text-center">
+            <p className="eyebrow">{item.label}</p>
+            <p
+              className={cn(
+                'mt-1 text-xl font-black tabular-nums tracking-tighter',
+                item.className,
+              )}
+            >
+              {item.value}%
+            </p>
+          </div>
+        ))}
       </div>
     </div>
   );

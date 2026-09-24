@@ -519,7 +519,7 @@ export default function AdminProductEditPage() {
     return (
       <div className="flex items-center justify-center py-20">
         <div className="text-center">
-          <Loader2 className="mx-auto h-8 w-8 animate-spin text-teal-600" />
+          <Loader2 className="mx-auto h-8 w-8 animate-spin text-brand-600" />
           <p className="mt-3 text-sm text-gray-500">Loading product...</p>
         </div>
       </div>
@@ -530,17 +530,17 @@ export default function AdminProductEditPage() {
     <div className="space-y-6">
       {confirmDialog}
       {/* Page Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-wrap items-center gap-4">
           <button
             onClick={() => router.push('/admin/products')}
-            className="rounded-lg p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+            className="rounded-xl p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-all"
           >
             <ArrowLeft className="h-5 w-5" />
           </button>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Edit Product</h1>
-            <p className="text-sm text-gray-500">
+            <h1 className="page-title">Edit Product</h1>
+            <p className="page-subtitle">
               {formData.name || 'Untitled Product'}
               {lastSaved && (
                 <span className="ml-2 text-green-600">
@@ -554,12 +554,12 @@ export default function AdminProductEditPage() {
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
           <a
             href={`/products/${formData.slug}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50"
+            className="btn btn-secondary btn-sm gap-1.5"
           >
             <Eye className="h-4 w-4" />
             Preview
@@ -567,16 +567,12 @@ export default function AdminProductEditPage() {
           <button
             onClick={handleDelete}
             disabled={isDeleting}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-red-300 px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50 disabled:opacity-50"
+            className="btn btn-danger-soft btn-sm gap-1.5"
           >
             <Trash2 className="h-4 w-4" />
             Delete
           </button>
-          <button
-            onClick={handleSave}
-            disabled={isSaving}
-            className="inline-flex items-center gap-2 rounded-lg bg-teal-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-teal-700 disabled:opacity-50"
-          >
+          <button onClick={handleSave} disabled={isSaving} className="btn btn-primary gap-2">
             <Save className="h-4 w-4" />
             {isSaving ? 'Saving...' : 'Save Changes'}
           </button>
@@ -584,12 +580,12 @@ export default function AdminProductEditPage() {
       </div>
 
       {/* Status Toggle */}
-      <div className="flex items-center gap-4 rounded-xl border border-gray-200 bg-white px-6 py-4 shadow-sm">
+      <div className="flex flex-wrap items-center gap-3 rounded-[1.5rem] border border-foreground/[0.04] bg-card px-4 py-3 shadow-bento sm:gap-4 sm:px-5">
         <label className="flex items-center gap-3">
           <select
             value={formData.status}
             onChange={(e) => updateField('status', e.target.value)}
-            className="rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
+            className="field-input font-medium w-auto py-2.5"
           >
             <option value="DRAFT">Draft</option>
             <option value="ACTIVE">Active</option>
@@ -599,14 +595,14 @@ export default function AdminProductEditPage() {
         </label>
         <span
           className={cn(
-            'inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium',
+            'pill whitespace-normal',
             formData.status === 'ACTIVE'
-              ? 'bg-green-100 text-green-700'
+              ? 'bg-emerald-50 text-emerald-600'
               : formData.status === 'ARCHIVED'
-                ? 'bg-gray-100 text-gray-700'
+                ? 'bg-gray-100 text-gray-600'
                 : formData.status === 'OUT_OF_STOCK'
-                  ? 'bg-red-100 text-red-700'
-                  : 'bg-yellow-100 text-yellow-700',
+                  ? 'bg-rose-50 text-rose-600'
+                  : 'bg-amber-50 text-amber-600',
           )}
         >
           {formData.status === 'ACTIVE'
@@ -620,33 +616,33 @@ export default function AdminProductEditPage() {
       </div>
 
       {/* Tab Navigation */}
-      <div className="border-b border-gray-200">
-        <nav className="-mb-px flex space-x-6">
-          {tabs.map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={cn(
-                'flex items-center gap-2 border-b-2 px-1 py-3 text-sm font-medium transition-colors',
-                activeTab === tab.id
-                  ? 'border-teal-600 text-teal-600'
-                  : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700',
-              )}
-            >
-              <tab.icon className="h-4 w-4" />
-              {tab.label}
-            </button>
-          ))}
-        </nav>
-      </div>
+      <nav
+        className="flex gap-1 overflow-x-auto rounded-[1.5rem] border border-foreground/[0.04] bg-card p-2 shadow-bento scrollbar-none"
+        aria-label="Product sections"
+      >
+        {tabs.map((tab) => (
+          <button
+            key={tab.id}
+            type="button"
+            onClick={() => setActiveTab(tab.id)}
+            aria-pressed={activeTab === tab.id}
+            className={cn('chip', activeTab === tab.id && 'chip-active')}
+          >
+            <tab.icon className="h-4 w-4" />
+            {tab.label}
+          </button>
+        ))}
+      </nav>
 
       {/* Tab Content */}
       {activeTab === 'basic' && (
-        <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-          <h2 className="mb-6 text-lg font-semibold text-gray-900">Basic Information</h2>
+        <div className="bento-card p-6 sm:p-8">
+          <h2 className="mb-6 text-lg font-black text-gray-900 tracking-tight">
+            Basic Information
+          </h2>
           <div className="space-y-6">
             <div>
-              <label htmlFor="edit-name" className="mb-1.5 block text-sm font-medium text-gray-700">
+              <label htmlFor="edit-name" className="field-label">
                 Product Name <span className="text-red-500">*</span>
               </label>
               <input
@@ -655,21 +651,21 @@ export default function AdminProductEditPage() {
                 value={formData.name}
                 onChange={(e) => updateField('name', e.target.value)}
                 className={cn(
-                  'w-full rounded-lg border px-4 py-2.5 text-sm focus:outline-none focus:ring-1',
+                  'field-input w-full',
                   errors.name
                     ? 'border-red-300 focus:border-red-500 focus:ring-red-500'
-                    : 'border-gray-300 focus:border-teal-500 focus:ring-teal-500',
+                    : 'border-gray-300 focus:border-brand-500 focus:ring-brand-500',
                 )}
               />
-              {errors.name && <p className="mt-1 text-sm text-red-600">{errors.name}</p>}
+              {errors.name && <p className="field-error">{errors.name}</p>}
             </div>
 
             <div>
-              <label htmlFor="edit-slug" className="mb-1.5 block text-sm font-medium text-gray-700">
+              <label htmlFor="edit-slug" className="field-label">
                 URL Slug
               </label>
-              <div className="flex rounded-lg border border-gray-300 focus-within:border-teal-500 focus-within:ring-1 focus-within:ring-teal-500">
-                <span className="inline-flex items-center border-r border-gray-300 bg-gray-50 px-3 text-sm text-gray-500">
+              <div className="flex min-w-0 overflow-hidden rounded-2xl border border-foreground/[0.06] bg-card shadow-sm transition-all focus-within:border-brand-300 focus-within:ring-4 focus-within:ring-brand-500/10">
+                <span className="inline-flex shrink-0 items-center border-r border-foreground/[0.06] bg-gray-50 px-4 text-sm font-bold text-gray-500">
                   /products/
                 </span>
                 <input
@@ -685,7 +681,7 @@ export default function AdminProductEditPage() {
                         .replace(/-+/g, '-'),
                     )
                   }
-                  className="flex-1 rounded-r-lg px-4 py-2.5 text-sm focus:outline-none"
+                  className="min-w-0 flex-1 bg-transparent px-4 py-3 text-sm font-medium outline-none"
                 />
               </div>
               <p className="mt-1.5 text-xs text-amber-700">
@@ -694,7 +690,7 @@ export default function AdminProductEditPage() {
             </div>
 
             <div>
-              <label className="mb-1.5 block text-sm font-medium text-gray-700">Description</label>
+              <label className="field-label">Description</label>
               <RichTextEditor
                 value={formData.description}
                 onChange={(html) => updateField('description', html)}
@@ -702,15 +698,11 @@ export default function AdminProductEditPage() {
                 ariaLabel="Product description"
                 invalid={Boolean(errors.description)}
               />
-              {errors.description && (
-                <p className="mt-1 text-sm text-red-600">{errors.description}</p>
-              )}
+              {errors.description && <p className="field-error">{errors.description}</p>}
             </div>
 
             <div>
-              <label className="mb-1.5 block text-sm font-medium text-gray-700">
-                Description (বাংলা)
-              </label>
+              <label className="field-label">Description (বাংলা)</label>
               <RichTextEditor
                 value={formData.descriptionBn}
                 onChange={(html) => updateField('descriptionBn', html)}
@@ -720,7 +712,7 @@ export default function AdminProductEditPage() {
             </div>
 
             <div className="sm:max-w-xs">
-              <label htmlFor="edit-sku" className="mb-1.5 block text-sm font-medium text-gray-700">
+              <label htmlFor="edit-sku" className="field-label">
                 SKU
               </label>
               <input
@@ -728,7 +720,7 @@ export default function AdminProductEditPage() {
                 type="text"
                 value={formData.sku}
                 onChange={(e) => updateField('sku', e.target.value.toUpperCase())}
-                className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm uppercase focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
+                className="field-input w-full uppercase"
               />
             </div>
           </div>

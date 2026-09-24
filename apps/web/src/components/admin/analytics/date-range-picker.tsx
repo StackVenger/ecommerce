@@ -78,34 +78,34 @@ export function DateRangePicker({ value, onChange }: DateRangePickerProps) {
 
   return (
     <div className="flex flex-wrap items-center gap-2">
-      {presets.map((preset) => (
-        <button
-          key={preset.key}
-          onClick={() => onChange(getPresetRange(preset.key))}
-          className={cn(
-            'rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors',
-            activePreset === preset.key
-              ? 'border-teal-600 bg-teal-600 text-white'
-              : 'border-gray-300 bg-white text-gray-700 hover:bg-gray-50',
-          )}
-        >
-          {preset.label}
-        </button>
-      ))}
+      <div className="flex items-center gap-1 rounded-2xl border border-foreground/[0.04] bg-card p-1.5 shadow-bento">
+        {presets.map((preset) => (
+          <button
+            key={preset.key}
+            type="button"
+            onClick={() => onChange(getPresetRange(preset.key))}
+            className={cn('chip px-3 py-1.5', activePreset === preset.key && 'chip-active')}
+          >
+            {preset.label}
+          </button>
+        ))}
+      </div>
 
-      <div className="flex items-center gap-1.5 text-sm text-gray-500">
+      <div className="flex items-center gap-1.5 rounded-2xl border border-foreground/[0.04] bg-card p-1.5 text-xs font-bold text-gray-400 shadow-bento">
         <input
           type="date"
           value={value.startDate}
           onChange={(e) => onChange({ ...value, startDate: e.target.value })}
-          className="rounded-lg border border-gray-300 px-2.5 py-1.5 text-sm text-gray-700 focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
+          aria-label="Start date"
+          className="rounded-xl border-0 bg-gray-50 px-2.5 py-1.5 text-xs font-bold text-gray-700 outline-none focus:ring-2 focus:ring-brand-500/20"
         />
-        <span>to</span>
+        <span className="eyebrow">to</span>
         <input
           type="date"
           value={value.endDate}
           onChange={(e) => onChange({ ...value, endDate: e.target.value })}
-          className="rounded-lg border border-gray-300 px-2.5 py-1.5 text-sm text-gray-700 focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
+          aria-label="End date"
+          className="rounded-xl border-0 bg-gray-50 px-2.5 py-1.5 text-xs font-bold text-gray-700 outline-none focus:ring-2 focus:ring-brand-500/20"
         />
       </div>
     </div>

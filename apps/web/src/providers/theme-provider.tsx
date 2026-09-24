@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 
-import { tailwindThemeVars, type ThemeColorsInput } from '@/lib/theme/color-utils';
+import { fontStack, tailwindThemeVars, type ThemeColorsInput } from '@/lib/theme/color-utils';
 
 interface ThemeColors {
   primary: string;
@@ -158,9 +158,9 @@ function generateCSSVariables(theme: ThemeConfig): string {
 
   // Typography
   if (theme.typography) {
-    vars.push(`--font-heading: '${theme.typography.headingFont}', sans-serif`);
-    vars.push(`--font-body: '${theme.typography.bodyFont}', sans-serif`);
-    vars.push(`--font-bangla: '${theme.typography.banglaFont}', sans-serif`);
+    vars.push(`--font-heading: ${fontStack(theme.typography.headingFont)}`);
+    vars.push(`--font-body: ${fontStack(theme.typography.bodyFont)}`);
+    vars.push(`--font-bangla: ${fontStack(theme.typography.banglaFont)}`);
     vars.push(`--font-mono: '${theme.typography.monoFont}', monospace`);
     vars.push(`--font-size-base: ${theme.typography.baseFontSize}`);
     vars.push(`--font-weight-heading: ${theme.typography.headingWeight}`);

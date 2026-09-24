@@ -243,15 +243,15 @@ export function CategoryFormDialog({
       <div className="absolute inset-0 bg-black/50" onClick={onClose} />
 
       {/* Dialog */}
-      <div className="relative w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl">
+      <div className="relative w-full max-w-lg rounded-[2rem] bg-card p-6 shadow-xl">
         {/* Header */}
         <div className="mb-6 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-teal-100">
-              <FolderTree className="h-5 w-5 text-teal-600" />
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-100">
+              <FolderTree className="h-5 w-5 text-brand-600" />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-gray-900">
+              <h2 className="text-lg font-black text-gray-900 tracking-tight">
                 {isEditing ? 'Edit Category' : 'Create Category'}
               </h2>
               <p className="text-sm text-gray-500">
@@ -261,7 +261,7 @@ export function CategoryFormDialog({
           </div>
           <button
             onClick={onClose}
-            className="rounded-lg p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+            className="rounded-xl p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-all"
           >
             <X className="h-5 w-5" />
           </button>
@@ -278,7 +278,7 @@ export function CategoryFormDialog({
         <div className="space-y-4">
           {/* Category Name (English) */}
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-gray-700">
+            <label className="field-label">
               Name <span className="text-red-500">*</span>
             </label>
             <input
@@ -287,47 +287,45 @@ export function CategoryFormDialog({
               onChange={(e) => handleNameChange(e.target.value)}
               placeholder="e.g., Electronics"
               className={cn(
-                'w-full rounded-lg border px-4 py-2.5 text-sm focus:outline-none focus:ring-1',
+                'field-input w-full',
                 errors.name
                   ? 'border-red-300 focus:border-red-500 focus:ring-red-500'
-                  : 'border-gray-300 focus:border-teal-500 focus:ring-teal-500',
+                  : 'border-gray-300 focus:border-brand-500 focus:ring-brand-500',
               )}
             />
-            {errors.name && <p className="mt-1 text-sm text-red-600">{errors.name}</p>}
+            {errors.name && <p className="field-error">{errors.name}</p>}
           </div>
 
           {/* Category Name (Bangla) */}
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-gray-700">Name (বাংলা)</label>
+            <label className="field-label">Name (বাংলা)</label>
             <input
               type="text"
               value={nameBn}
               onChange={(e) => setNameBn(e.target.value)}
               placeholder="e.g., ইলেকট্রনিক্স"
-              className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
+              className="field-input w-full"
             />
           </div>
 
           {/* Slug */}
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-gray-700">Slug</label>
+            <label className="field-label">Slug</label>
             <input
               type="text"
               value={slug}
               onChange={(e) => setSlug(e.target.value)}
-              className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
+              className="field-input w-full"
             />
           </div>
 
           {/* Parent Category */}
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-gray-700">
-              Parent Category
-            </label>
+            <label className="field-label">Parent Category</label>
             <select
               value={selectedParentId ?? ''}
               onChange={(e) => setSelectedParentId(e.target.value || null)}
-              className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:border-teal-500 focus:outline-none"
+              className="field-input w-full"
             >
               <option value="">None (Top Level)</option>
               {parentOptions.map((option) => (
@@ -340,7 +338,7 @@ export function CategoryFormDialog({
 
           {/* Description */}
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-gray-700">Description</label>
+            <label className="field-label">Description</label>
             <RichTextEditor
               value={description}
               onChange={setDescription}
@@ -352,7 +350,7 @@ export function CategoryFormDialog({
 
           {/* Category Image */}
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-gray-700">Image</label>
+            <label className="field-label">Image</label>
             <div className="flex items-center gap-4">
               {image ? (
                 <div className="relative h-16 w-16 overflow-hidden rounded-lg border border-gray-200">
@@ -372,7 +370,7 @@ export function CategoryFormDialog({
               <button
                 onClick={() => fileInputRef.current?.click()}
                 disabled={isUploading}
-                className="inline-flex items-center gap-1.5 rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                className="btn btn-secondary btn-sm gap-1.5"
               >
                 {isUploading ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
@@ -402,25 +400,18 @@ export function CategoryFormDialog({
               type="checkbox"
               checked={isActive}
               onChange={(e) => setIsActive(e.target.checked)}
-              className="h-4 w-4 rounded border-gray-300 text-teal-600 focus:ring-teal-500"
+              className="h-4 w-4 rounded border-gray-300 text-brand-600 focus:ring-brand-500"
             />
             <span className="text-sm font-medium text-gray-700">Active</span>
           </label>
         </div>
 
         {/* Footer */}
-        <div className="mt-6 flex items-center justify-end gap-3 border-t border-gray-200 pt-4">
-          <button
-            onClick={onClose}
-            className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
-          >
+        <div className="mt-6 flex items-center justify-end gap-3 border-t border-foreground/[0.04] pt-4">
+          <button onClick={onClose} className="btn btn-secondary">
             Cancel
           </button>
-          <button
-            onClick={handleSave}
-            disabled={isSaving}
-            className="inline-flex items-center gap-2 rounded-lg bg-teal-600 px-4 py-2 text-sm font-medium text-white hover:bg-teal-700 disabled:opacity-50"
-          >
+          <button onClick={handleSave} disabled={isSaving} className="btn btn-primary gap-2">
             {isSaving && <Loader2 className="h-4 w-4 animate-spin" />}
             {isEditing ? 'Save Changes' : 'Create Category'}
           </button>

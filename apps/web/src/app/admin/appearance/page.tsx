@@ -47,7 +47,7 @@ export default function AdminAppearancePage() {
       setTheme(data.data || data);
     } catch (error) {
       console.error('Fetch theme error:', error);
-      toast.error(getApiErrorMessage(err, 'Failed to load theme settings'));
+      toast.error(getApiErrorMessage(error, 'Failed to load theme settings'));
     } finally {
       setLoading(false);
     }
@@ -70,7 +70,7 @@ export default function AdminAppearancePage() {
       toast.success('Theme saved');
     } catch (error) {
       console.error('Save theme error:', error);
-      toast.error(getApiErrorMessage(err, 'Failed to save theme'));
+      toast.error(getApiErrorMessage(error, 'Failed to save theme'));
     } finally {
       setSaving(false);
     }
@@ -94,7 +94,7 @@ export default function AdminAppearancePage() {
       toast.success('Theme reset to defaults');
     } catch (error) {
       console.error('Reset theme error:', error);
-      toast.error(getApiErrorMessage(err, 'Failed to reset theme'));
+      toast.error(getApiErrorMessage(error, 'Failed to reset theme'));
     }
   };
 
@@ -109,7 +109,7 @@ export default function AdminAppearancePage() {
   if (loading || !theme) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-teal-600" />
+        <div className="h-10 w-10 animate-spin rounded-full border-4 border-brand-100 border-t-primary" />
       </div>
     );
   }
@@ -118,23 +118,16 @@ export default function AdminAppearancePage() {
     <div className="space-y-6">
       {confirmDialog}
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Appearance</h1>
-          <p className="text-sm text-gray-500 mt-1">Customize your store's look and feel</p>
+          <h1 className="page-title">Appearance</h1>
+          <p className="page-subtitle">Customize your store's look and feel</p>
         </div>
-        <div className="flex items-center gap-3">
-          <button
-            onClick={handleReset}
-            className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50"
-          >
+        <div className="flex flex-wrap items-center gap-3">
+          <button onClick={handleReset} className="btn btn-secondary">
             Reset to Defaults
           </button>
-          <button
-            onClick={handleSave}
-            disabled={!hasChanges || saving}
-            className="px-4 py-2 bg-teal-600 text-white rounded-lg text-sm font-medium hover:bg-teal-700 disabled:opacity-50"
-          >
+          <button onClick={handleSave} disabled={!hasChanges || saving} className="btn btn-primary">
             {saving ? 'Saving...' : 'Save Changes'}
           </button>
         </div>
@@ -154,18 +147,14 @@ export default function AdminAppearancePage() {
       )}
 
       {/* Tabs */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-        <div className="border-b border-gray-200">
-          <nav className="flex -mb-px overflow-x-auto">
+      <div className="bento-card">
+        <div className="border-b border-foreground/[0.04]">
+          <nav className="flex gap-1 overflow-x-auto p-3 scrollbar-none">
             {Object.entries(TAB_LABELS).map(([key, label]) => (
               <button
                 key={key}
                 onClick={() => setActiveTab(key as SettingsTab)}
-                className={`px-6 py-3 text-sm font-medium border-b-2 whitespace-nowrap ${
-                  activeTab === key
-                    ? 'border-teal-500 text-teal-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
+                className={`chip ${activeTab === key ? 'chip-active' : ''}`}
               >
                 {label}
               </button>
@@ -212,17 +201,17 @@ export default function AdminAppearancePage() {
       </div>
 
       {/* Store Identity */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 space-y-4">
-        <h2 className="text-lg font-semibold text-gray-900">Store Identity</h2>
+      <div className="bento-card p-6 sm:p-8 space-y-4">
+        <h2 className="text-lg font-black text-gray-900 tracking-tight">Store Identity</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Logo URL</label>
+            <label className="field-label">Logo URL</label>
             <input
               type="text"
               value={theme.logoUrl}
               onChange={(e) => updateTheme('logoUrl', e.target.value)}
               placeholder="https://..."
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+              className="field-input w-full"
             />
             {theme.logoUrl && (
               <div className="mt-2 p-4 bg-gray-50 rounded-lg">
@@ -231,13 +220,13 @@ export default function AdminAppearancePage() {
             )}
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Favicon URL</label>
+            <label className="field-label">Favicon URL</label>
             <input
               type="text"
               value={theme.faviconUrl}
               onChange={(e) => updateTheme('faviconUrl', e.target.value)}
               placeholder="https://..."
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+              className="field-input w-full"
             />
             {theme.faviconUrl && (
               <div className="mt-2 p-4 bg-gray-50 rounded-lg">

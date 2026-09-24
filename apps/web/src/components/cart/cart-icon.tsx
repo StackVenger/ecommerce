@@ -17,19 +17,19 @@ export function CartIcon() {
   return (
     <button
       type="button"
-      className="relative inline-flex items-center justify-center rounded-lg p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors"
+      className="btn-icon relative border border-foreground/[0.05] bg-card text-gray-800 shadow-sm hover:bg-gray-50"
       onClick={toggleCart}
       aria-label={`Shopping cart${itemCount > 0 ? `, ${itemCount} items` : ''}`}
     >
       {/* Shopping bag icon */}
       <svg
         xmlns="http://www.w3.org/2000/svg"
-        width="22"
-        height="22"
+        width="20"
+        height="20"
         viewBox="0 0 24 24"
         fill="none"
         stroke="currentColor"
-        strokeWidth="1.5"
+        strokeWidth="2.25"
         strokeLinecap="round"
         strokeLinejoin="round"
       >
@@ -41,7 +41,7 @@ export function CartIcon() {
       {/* Animated badge */}
       {!isLoading && itemCount > 0 && (
         <span
-          className="absolute -top-0.5 -right-0.5 flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white animate-cart-badge"
+          className="animate-cart-badge absolute -right-1.5 -top-1.5 flex h-5 min-w-[1.25rem] items-center justify-center rounded-lg border-2 border-card bg-primary px-1 text-[10px] font-black text-white shadow-sm"
           key={itemCount} // Re-trigger animation when count changes
         >
           {itemCount > 99 ? '99+' : itemCount}

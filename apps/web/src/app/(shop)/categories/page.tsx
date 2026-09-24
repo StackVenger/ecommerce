@@ -1,9 +1,10 @@
 'use client';
 
-import { ChevronRight, LayoutGrid, Sparkles } from 'lucide-react';
+import { ArrowUpRight, ChevronRight, LayoutGrid, Package, Sparkles } from 'lucide-react';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 
+import { BentoGlow, EmptyState, StatCard } from '@/components/ui/bento';
 import { apiClient } from '@/lib/api/client';
 
 interface Category {
@@ -63,65 +64,83 @@ export default function CategoriesPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Hero Banner */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-teal-700 via-teal-600 to-emerald-600">
-        {/* Decorative circles */}
-        <div className="absolute -left-20 -top-20 h-72 w-72 rounded-full bg-white/5" />
-        <div className="absolute -bottom-16 right-10 h-56 w-56 rounded-full bg-white/5" />
-        <div className="absolute right-1/3 top-10 h-32 w-32 rounded-full bg-white/5" />
+      <div className="site-container px-4 py-6 sm:py-8">
+        <nav className="mb-4 flex items-center gap-2 text-xs font-bold text-gray-400">
+          <Link href="/" className="transition-colors hover:text-gray-900">
+            Home
+          </Link>
+          <ChevronRight className="h-3.5 w-3.5" />
+          <span className="text-gray-900">Categories</span>
+        </nav>
 
-        <div className="relative site-container px-4 py-16 sm:py-20">
-          <nav className="mb-6 flex items-center gap-2 text-sm text-teal-100">
-            <Link href="/" className="hover:text-white transition-colors">
-              Home
-            </Link>
-            <ChevronRight className="h-3.5 w-3.5" />
-            <span className="text-white font-medium">Categories</span>
-          </nav>
-
-          <div className="flex items-center gap-3 mb-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white/15 backdrop-blur-sm">
-              <LayoutGrid className="h-6 w-6 text-white" />
+        {/* Bento header */}
+        <div className="mb-6 grid grid-cols-2 gap-4 sm:mb-8 sm:gap-6 lg:grid-cols-12">
+          <div className="bento-dark col-span-2 rounded-[2rem] p-8 sm:p-10 lg:col-span-8">
+            <BentoGlow variant="dark" />
+            <div className="relative z-10">
+              <div className="mb-6 flex h-12 w-12 items-center justify-center rounded-2xl bg-white/10 backdrop-blur-md">
+                <LayoutGrid className="h-6 w-6 text-white" strokeWidth={2.25} />
+              </div>
+              <h1 className="text-3xl font-black leading-none tracking-tighter text-white sm:text-5xl">
+                Browse Categories
+              </h1>
+              <p className="mt-4 max-w-xl text-sm font-bold text-white/60 sm:text-base">
+                Explore our wide range of products across{' '}
+                <span className="text-white">{categories.length} categories</span>
+                {totalProducts > 0 && (
+                  <>
+                    {' '}
+                    with <span className="text-white">{totalProducts.toLocaleString()}+</span>{' '}
+                    products
+                  </>
+                )}
+              </p>
             </div>
-            <h1 className="text-3xl font-bold text-white sm:text-4xl">Browse Categories</h1>
           </div>
-
-          <p className="max-w-xl text-teal-100 text-lg">
-            Explore our wide range of products across{' '}
-            <span className="font-semibold text-white">{categories.length} categories</span>
-            {totalProducts > 0 && (
-              <>
-                {' '}
-                with{' '}
-                <span className="font-semibold text-white">
-                  {totalProducts.toLocaleString()}+
-                </span>{' '}
-                products
-              </>
-            )}
-          </p>
+          <StatCard
+            className="lg:col-span-2"
+            icon={LayoutGrid}
+            tone="brand"
+            label="Categories"
+            value={categories.length}
+            loading={loading}
+          />
+          <StatCard
+            className="lg:col-span-2"
+            icon={Package}
+            tone="blue"
+            label="Products"
+            value={totalProducts.toLocaleString()}
+            loading={loading}
+          />
         </div>
-      </div>
 
-      {/* Category Cards */}
-      <div className="site-container px-4 py-10">
+        {/* Category bento grid */}
         {loading ? (
-          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {Array.from({ length: 9 }).map((_, i) => (
+          <div className="grid grid-cols-1 gap-4 sm:gap-6 md:grid-cols-6 lg:grid-cols-12">
+            {Array.from({ length: 8 }).map((_, i) => (
               <div
                 key={i}
-                className={`animate-pulse rounded-2xl bg-gray-200 ${i < 2 ? 'sm:row-span-2 h-80 lg:h-[420px]' : 'h-56'}`}
-              />
+                className={`animate-pulse rounded-[2rem] bg-card p-3 shadow-bento ${
+                  i < 2 ? 'md:col-span-3 lg:col-span-6' : 'md:col-span-3 lg:col-span-4'
+                }`}
+              >
+                <div className={`rounded-[1.5rem] bg-gray-100 ${i < 2 ? 'h-64' : 'h-44'}`} />
+                <div className="flex gap-2 p-3">
+                  <div className="h-8 w-20 rounded-xl bg-gray-100" />
+                  <div className="h-8 w-24 rounded-xl bg-gray-100" />
+                </div>
+              </div>
             ))}
           </div>
         ) : categories.length === 0 ? (
-          <div className="py-20 text-center">
-            <LayoutGrid className="mx-auto h-16 w-16 text-gray-300 mb-4" />
-            <p className="text-xl font-medium text-gray-500">No categories found.</p>
-            <p className="mt-2 text-gray-400">Check back soon for new arrivals!</p>
-          </div>
+          <EmptyState
+            icon={LayoutGrid}
+            title="No categories found."
+            description="Check back soon for new arrivals!"
+          />
         ) : (
-          <div className="space-y-10">
+          <div className="grid grid-cols-1 gap-4 sm:gap-6 md:grid-cols-6 lg:grid-cols-12">
             {categories.map((cat, idx) => {
               const totalCount = getCatProductCount(cat);
               const hasChildren = cat.children && cat.children.length > 0;
@@ -134,64 +153,73 @@ export default function CategoriesPage() {
               }
 
               return (
-                <section key={cat.id}>
-                  {/* Parent category card */}
+                <section
+                  key={cat.id}
+                  className={`bento-card bento-card-hover flex flex-col p-3 ${
+                    isTall ? 'md:col-span-3 lg:col-span-6' : 'md:col-span-3 lg:col-span-4'
+                  }`}
+                >
+                  {/* Parent category tile */}
                   <Link
                     href={`/categories/${cat.slug}`}
-                    className={`group relative block overflow-hidden rounded-2xl transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl ${
-                      isTall ? 'h-72 sm:h-80' : 'h-56'
+                    className={`group relative block overflow-hidden rounded-[1.5rem] ${
+                      isTall ? 'h-64 sm:h-72' : 'h-48'
                     }`}
                   >
                     {bgImage ? (
                       <img
                         src={bgImage}
                         alt={cat.name}
-                        className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+                        className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                       />
                     ) : (
-                      <div className="absolute inset-0 bg-gradient-to-br from-teal-600 to-emerald-700" />
+                      <div className="absolute inset-0 bg-gradient-to-br from-brand-400 to-brand-700" />
                     )}
 
-                    <div className="absolute inset-0 bg-gradient-to-t from-gray-900/80 via-gray-900/40 to-gray-900/10 group-hover:from-gray-900/85" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-ink/85 via-ink/30 to-transparent" />
 
                     <div className="relative flex h-full flex-col justify-end p-5 sm:p-6">
                       {totalCount > 0 && (
-                        <span className="mb-3 inline-flex w-fit items-center gap-1 rounded-full bg-teal-500/90 px-3 py-1 text-xs font-medium text-white backdrop-blur-sm">
-                          <Sparkles className="h-3 w-3" />
+                        <span className="mb-3 inline-flex w-fit items-center gap-1 rounded-xl bg-white/15 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-white backdrop-blur-md">
+                          <Sparkles className="h-3 w-3" strokeWidth={2.5} />
                           {totalCount} products
                         </span>
                       )}
 
-                      <h3 className="text-xl font-bold text-white sm:text-2xl">{cat.name}</h3>
+                      <h3 className="text-xl font-black tracking-tight text-white sm:text-2xl">
+                        {cat.name}
+                      </h3>
 
-                      {cat.nameBn && <p className="mt-0.5 text-sm text-gray-300">{cat.nameBn}</p>}
+                      {cat.nameBn && (
+                        <p className="mt-0.5 text-sm font-bold text-white/60">{cat.nameBn}</p>
+                      )}
 
                       {cat.description && isTall && (
-                        <p className="mt-2 text-sm text-gray-300 line-clamp-2">{cat.description}</p>
+                        <p className="mt-2 line-clamp-2 text-sm font-medium text-white/60">
+                          {cat.description}
+                        </p>
                       )}
                     </div>
 
-                    <div className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-full bg-white/10 opacity-0 backdrop-blur-sm transition-all duration-300 group-hover:opacity-100 group-hover:bg-white/20">
-                      <ChevronRight className="h-5 w-5 text-white" />
+                    <div className="absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-xl bg-card text-gray-900 shadow-lg shadow-black/10 transition-all duration-300 group-hover:scale-110 sm:translate-y-1 sm:opacity-0 sm:group-hover:translate-y-0 sm:group-hover:opacity-100">
+                      <ArrowUpRight className="h-5 w-5" strokeWidth={2.5} />
                     </div>
                   </Link>
 
-                  {/* Subcategory grid */}
+                  {/* Subcategory chips */}
                   {hasChildren && (
-                    <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
+                    <div className="flex flex-wrap gap-2 px-2 pb-2 pt-4">
                       {cat.children!.map((sub) => {
                         const subCount = sub.productCount ?? sub._count?.products ?? 0;
                         return (
                           <Link
                             key={sub.id}
                             href={`/categories/${sub.slug}`}
-                            className="group/sub flex items-center justify-between rounded-xl border border-gray-200 bg-white px-4 py-3 transition-all hover:border-primary hover:shadow-md hover:-translate-y-0.5"
+                            className="group/sub inline-flex items-center gap-2 rounded-xl bg-gray-50 px-3 py-2 text-xs font-bold text-gray-700 transition-all hover:bg-brand-50 hover:text-brand-700"
                           >
-                            <span className="text-sm font-medium text-gray-700 group-hover/sub:text-primary truncate">
-                              {sub.name}
-                            </span>
+                            <span className="truncate">{sub.name}</span>
                             {subCount > 0 && (
-                              <span className="ml-2 flex-shrink-0 rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-500 group-hover/sub:bg-teal-50 group-hover/sub:text-primary">
+                              <span className="rounded-lg bg-card px-1.5 py-0.5 text-[10px] font-black tabular-nums text-gray-400 group-hover/sub:text-brand-600">
                                 {subCount}
                               </span>
                             )}

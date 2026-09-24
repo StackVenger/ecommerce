@@ -85,34 +85,38 @@ export function AddressForm({ address, onSubmit, onCancel, isLoading = false }: 
   };
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
-      <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-        <div className="flex items-center gap-2">
-          <MapPin className="w-5 h-5 text-primary" />
-          <h3 className="text-lg font-semibold text-gray-900">
-            {address ? 'Edit Address' : 'Add New Address'}
-          </h3>
+    <div className="bento-card">
+      <div className="flex items-center justify-between gap-4 border-b border-foreground/[0.04] px-6 py-5 sm:px-8">
+        <div className="flex items-center gap-3">
+          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-brand-50 text-brand-600">
+            <MapPin className="h-5 w-5" strokeWidth={2.25} />
+          </div>
+          <div>
+            <h3 className="section-title">{address ? 'Edit Address' : 'Add New Address'}</h3>
+            <p className="eyebrow mt-0.5">Delivery details</p>
+          </div>
         </div>
-        <button onClick={onCancel} className="p-1 text-gray-400 hover:text-gray-600 rounded">
-          <X className="w-5 h-5" />
+        <button
+          onClick={onCancel}
+          className="btn-icon h-10 w-10 rounded-xl text-gray-400 hover:bg-gray-100 hover:text-gray-900"
+          aria-label="Close address form"
+        >
+          <X className="h-5 w-5" strokeWidth={2.25} />
         </button>
       </div>
 
-      <form onSubmit={handleSubmit} className="p-6 space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-5 p-6 sm:p-8">
         {/* Label Selection */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Address Label</label>
-          <div className="flex gap-2">
+          <label className="field-label mb-2">Address Label</label>
+          <div className="flex flex-wrap gap-2">
             {addressLabels.map((label) => (
               <button
                 key={label}
                 type="button"
                 onClick={() => updateField('label', label)}
-                className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${
-                  formData.label === label
-                    ? 'bg-teal-100 text-primary border border-teal-300'
-                    : 'bg-gray-100 text-gray-600 border border-gray-200 hover:bg-gray-200'
-                }`}
+                className={`chip ${formData.label === label ? 'chip-active' : 'bg-gray-50'}`}
+                aria-pressed={formData.label === label}
               >
                 {label}
               </button>
@@ -123,98 +127,102 @@ export function AddressForm({ address, onSubmit, onCancel, isLoading = false }: 
         {/* Name and Phone */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Full Name *</label>
+            <label className="field-label">Full Name *</label>
             <input
               type="text"
               value={formData.fullName}
               onChange={(e) => updateField('fullName', e.target.value)}
               placeholder="e.g. Rizwan Ahmed"
-              className={`w-full px-3 py-2 border rounded-lg text-sm ${
-                errors.fullName ? 'border-red-300' : 'border-gray-300'
-              } focus:ring-2 focus:ring-primary focus:border-primary`}
+              className={`field-input ${
+                errors.fullName
+                  ? 'border-rose-300 focus:border-rose-300 focus:ring-rose-500/10'
+                  : ''
+              }`}
             />
-            {errors.fullName && <p className="text-xs text-red-500 mt-1">{errors.fullName}</p>}
+            {errors.fullName && <p className="field-error">{errors.fullName}</p>}
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number *</label>
+            <label className="field-label">Phone Number *</label>
             <input
               type="tel"
               value={formData.phone}
               onChange={(e) => updateField('phone', e.target.value)}
               placeholder="+8801XXXXXXXXX"
-              className={`w-full px-3 py-2 border rounded-lg text-sm ${
-                errors.phone ? 'border-red-300' : 'border-gray-300'
-              } focus:ring-2 focus:ring-primary focus:border-primary`}
+              className={`field-input ${
+                errors.phone ? 'border-rose-300 focus:border-rose-300 focus:ring-rose-500/10' : ''
+              }`}
             />
-            {errors.phone && <p className="text-xs text-red-500 mt-1">{errors.phone}</p>}
+            {errors.phone && <p className="field-error">{errors.phone}</p>}
           </div>
         </div>
 
         {/* Address Lines */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Address Line 1 *</label>
+          <label className="field-label">Address Line 1 *</label>
           <input
             type="text"
             value={formData.addressLine1}
             onChange={(e) => updateField('addressLine1', e.target.value)}
             placeholder="House/Flat No., Road, Area"
-            className={`w-full px-3 py-2 border rounded-lg text-sm ${
-              errors.addressLine1 ? 'border-red-300' : 'border-gray-300'
-            } focus:ring-2 focus:ring-primary focus:border-primary`}
+            className={`field-input ${
+              errors.addressLine1
+                ? 'border-rose-300 focus:border-rose-300 focus:ring-rose-500/10'
+                : ''
+            }`}
           />
-          {errors.addressLine1 && (
-            <p className="text-xs text-red-500 mt-1">{errors.addressLine1}</p>
-          )}
+          {errors.addressLine1 && <p className="field-error">{errors.addressLine1}</p>}
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Address Line 2</label>
+          <label className="field-label">Address Line 2</label>
           <input
             type="text"
             value={formData.addressLine2}
             onChange={(e) => updateField('addressLine2', e.target.value)}
             placeholder="Apartment, Suite, Floor (optional)"
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-primary"
+            className="field-input"
           />
         </div>
 
         {/* City, District, Division */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">City *</label>
+            <label className="field-label">City *</label>
             <input
               type="text"
               value={formData.city}
               onChange={(e) => updateField('city', e.target.value)}
               placeholder="e.g. Dhaka"
-              className={`w-full px-3 py-2 border rounded-lg text-sm ${
-                errors.city ? 'border-red-300' : 'border-gray-300'
-              } focus:ring-2 focus:ring-primary focus:border-primary`}
+              className={`field-input ${
+                errors.city ? 'border-rose-300 focus:border-rose-300 focus:ring-rose-500/10' : ''
+              }`}
             />
-            {errors.city && <p className="text-xs text-red-500 mt-1">{errors.city}</p>}
+            {errors.city && <p className="field-error">{errors.city}</p>}
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">District *</label>
+            <label className="field-label">District *</label>
             <input
               type="text"
               value={formData.district}
               onChange={(e) => updateField('district', e.target.value)}
               placeholder="e.g. Dhaka"
-              className={`w-full px-3 py-2 border rounded-lg text-sm ${
-                errors.district ? 'border-red-300' : 'border-gray-300'
-              } focus:ring-2 focus:ring-primary focus:border-primary`}
+              className={`field-input ${
+                errors.district
+                  ? 'border-rose-300 focus:border-rose-300 focus:ring-rose-500/10'
+                  : ''
+              }`}
             />
-            {errors.district && <p className="text-xs text-red-500 mt-1">{errors.district}</p>}
+            {errors.district && <p className="field-error">{errors.district}</p>}
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Division</label>
+            <label className="field-label">Division</label>
             <select
               value={formData.division}
               onChange={(e) => updateField('division', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-primary"
+              className="field-input"
             >
               <option value="">Select Division</option>
               {bdDivisions.map((div) => (
@@ -229,53 +237,45 @@ export function AddressForm({ address, onSubmit, onCancel, isLoading = false }: 
         {/* Postal Code and Landmark */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Postal Code</label>
+            <label className="field-label">Postal Code</label>
             <input
               type="text"
               value={formData.postalCode}
               onChange={(e) => updateField('postalCode', e.target.value)}
               placeholder="e.g. 1205"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-primary"
+              className="field-input"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Landmark</label>
+            <label className="field-label">Landmark</label>
             <input
               type="text"
               value={formData.landmark}
               onChange={(e) => updateField('landmark', e.target.value)}
               placeholder="Near mosque, school, etc."
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-primary"
+              className="field-input"
             />
           </div>
         </div>
 
         {/* Default Address */}
-        <label className="flex items-center gap-2 cursor-pointer">
+        <label className="flex w-fit cursor-pointer items-center gap-3 rounded-2xl bg-gray-50 px-4 py-3">
           <input
             type="checkbox"
             checked={formData.isDefault}
             onChange={(e) => updateField('isDefault', e.target.checked)}
-            className="w-4 h-4 text-primary rounded border-gray-300 focus:ring-primary"
+            className="h-4 w-4 rounded border-gray-300 text-brand-600 focus:ring-brand-500"
           />
-          <span className="text-sm text-gray-700">Set as default address</span>
+          <span className="text-sm font-bold text-gray-700">Set as default address</span>
         </label>
 
         {/* Action Buttons */}
-        <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
-          <button
-            type="button"
-            onClick={onCancel}
-            className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
-          >
+        <div className="flex flex-col-reverse gap-2 border-t border-foreground/[0.04] pt-6 sm:flex-row sm:justify-end">
+          <button type="button" onClick={onCancel} className="btn btn-soft">
             Cancel
           </button>
-          <button
-            type="submit"
-            disabled={isLoading}
-            className="flex items-center gap-2 px-5 py-2 text-sm font-medium text-white bg-primary rounded-lg hover:bg-primary/90 disabled:opacity-50 transition-colors"
-          >
+          <button type="submit" disabled={isLoading} className="btn btn-primary">
             <Save className="w-4 h-4" />
             {isLoading ? 'Saving...' : address ? 'Update Address' : 'Save Address'}
           </button>

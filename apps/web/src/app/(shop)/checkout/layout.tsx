@@ -1,3 +1,5 @@
+import { Lock } from 'lucide-react';
+
 import type { Metadata } from 'next';
 
 import { getSiteConfig } from '@/lib/config/site-config';
@@ -20,30 +22,15 @@ export default async function CheckoutLayout({ children }: { children: React.Rea
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Minimal header */}
-      <header className="border-b border-gray-200 bg-white">
-        <div className="site-container px-4 sm:px-6 lg:px-8">
-          <div className="flex h-16 items-center justify-between">
-            <a href="/" className="text-xl font-bold text-gray-900">
-              {siteName}
-            </a>
+      <header className="site-container px-4 pt-4 sm:px-6 sm:pt-6 lg:px-8">
+        <div className="flex h-14 items-center justify-between gap-3 rounded-[1.5rem] border border-foreground/[0.04] bg-card px-4 shadow-bento sm:h-16 sm:px-6">
+          <a href="/" className="truncate text-lg font-black tracking-tighter text-gray-900">
+            {siteName}
+          </a>
 
-            <div className="flex items-center gap-2 text-sm text-gray-500">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-                <path d="M7 11V7a5 5 0 0110 0v4" />
-              </svg>
-              <span>Secure Checkout</span>
-            </div>
+          <div className="flex shrink-0 items-center gap-2 rounded-xl bg-emerald-50 px-3 py-1.5 text-[10px] font-black uppercase tracking-widest text-emerald-600">
+            <Lock className="h-3.5 w-3.5" strokeWidth={2.5} />
+            <span>Secure Checkout</span>
           </div>
         </div>
       </header>

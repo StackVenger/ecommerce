@@ -4,6 +4,7 @@ import Link from 'next/link';
 import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
 
+import { ThemeToggle } from '@/components/theme/theme-toggle';
 import { getSiteConfig } from '@/lib/config/site-config';
 
 // ──────────────────────────────────────────────────────────
@@ -32,105 +33,108 @@ export default async function AuthLayout({ children }: AuthLayoutProps) {
   const { settings } = await getSiteConfig();
   const siteName = settings.general.site_name;
   return (
-    <div className="grid min-h-screen lg:grid-cols-2">
-      {/* ── Left panel: branding (hidden on mobile) ──────── */}
-      <div className="relative hidden bg-primary lg:flex lg:flex-col lg:justify-between lg:p-10">
-        {/* Background pattern */}
-        <div className="absolute inset-0 opacity-10">
-          <svg className="h-full w-full" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-            <defs>
-              <pattern
-                id="auth-grid"
-                x="0"
-                y="0"
-                width="40"
-                height="40"
-                patternUnits="userSpaceOnUse"
-              >
-                <path
-                  d="M0 40L40 0M-10 10L10 -10M30 50L50 30"
-                  stroke="currentColor"
-                  strokeWidth="1"
-                  fill="none"
-                  className="text-primary-foreground"
-                />
-              </pattern>
-            </defs>
-            <rect width="100%" height="100%" fill="url(#auth-grid)" />
-          </svg>
-        </div>
+    <div className="min-h-screen bg-gray-50 p-3 sm:p-4 lg:grid lg:grid-cols-2 lg:gap-4">
+      {/* ── Left panel: ink bento brand tile (hidden on mobile) ── */}
+      <aside className="bento-dark relative hidden lg:flex lg:flex-col lg:justify-between lg:p-10 xl:p-12">
+        <div className="bento-glow -right-16 -top-16 h-80 w-80 bg-primary/30" aria-hidden="true" />
+        <div
+          className="bento-glow -bottom-16 -left-16 h-64 w-64 bg-blue-500/10"
+          aria-hidden="true"
+        />
 
         {/* Logo */}
         <div className="relative z-10">
-          <Link href="/" className="flex items-center gap-2">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary-foreground/20">
-              <ShoppingBag className="h-6 w-6 text-primary-foreground" />
+          <Link href="/" className="inline-flex items-center gap-3">
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary text-white shadow-brand-glow">
+              <ShoppingBag className="h-5 w-5" strokeWidth={2.5} />
             </div>
-            <span className="text-xl font-bold text-primary-foreground">{siteName}</span>
+            <span className="text-xl font-black tracking-tight text-white">{siteName}</span>
           </Link>
         </div>
 
-        {/* Testimonial */}
         <div className="relative z-10 space-y-6">
-          <blockquote className="space-y-4">
-            <p className="text-lg leading-relaxed text-primary-foreground/90">
+          <div>
+            <p className="eyebrow text-white/40">Your store, your pulse</p>
+            <h2 className="mt-3 max-w-md text-4xl font-black leading-[1.05] tracking-tighter text-white xl:text-5xl">
+              Shop smarter. Checkout faster.
+            </h2>
+          </div>
+
+          {/* Stat tiles */}
+          <div className="grid grid-cols-3 gap-3">
+            {[
+              { value: '50K+', label: 'Happy customers' },
+              { value: '4.9', label: 'Average rating' },
+              { value: '24h', label: 'Fast delivery' },
+            ].map((stat) => (
+              <div
+                key={stat.label}
+                className="rounded-[1.5rem] border border-white/5 bg-white/[0.06] p-4 backdrop-blur-md xl:p-5"
+              >
+                <p className="text-2xl font-black tabular-nums tracking-tighter text-white xl:text-3xl">
+                  {stat.value}
+                </p>
+                <p className="mt-1 text-[10px] font-black uppercase tracking-widest text-white/40">
+                  {stat.label}
+                </p>
+              </div>
+            ))}
+          </div>
+
+          {/* Testimonial */}
+          <blockquote className="rounded-[2rem] bg-primary p-6 shadow-brand-glow xl:p-7">
+            <p className="text-base font-bold leading-relaxed text-white">
               &ldquo;This platform has completely transformed how I shop online. The selection is
               incredible, the prices are unbeatable, and delivery is always lightning fast. I
               can&apos;t imagine going back to any other store.&rdquo;
             </p>
-            <footer className="flex items-center gap-4">
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary-foreground/20 text-lg font-semibold text-primary-foreground">
+            <footer className="mt-5 flex items-center gap-3">
+              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/20 text-sm font-black text-white backdrop-blur-md">
                 SK
               </div>
               <div>
-                <p className="font-semibold text-primary-foreground">Sarah K.</p>
-                <p className="text-sm text-primary-foreground/70">Verified customer since 2024</p>
+                <p className="text-sm font-black text-white">Sarah K.</p>
+                <p className="text-[10px] font-black uppercase tracking-widest text-white/60">
+                  Verified customer since 2024
+                </p>
               </div>
             </footer>
           </blockquote>
-
-          {/* Stats */}
-          <div className="flex gap-8 border-t border-primary-foreground/20 pt-6">
-            <div>
-              <p className="text-2xl font-bold text-primary-foreground">50K+</p>
-              <p className="text-sm text-primary-foreground/70">Happy customers</p>
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-primary-foreground">4.9</p>
-              <p className="text-sm text-primary-foreground/70">Average rating</p>
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-primary-foreground">24h</p>
-              <p className="text-sm text-primary-foreground/70">Fast delivery</p>
-            </div>
-          </div>
         </div>
 
         {/* Footer */}
-        <p className="relative z-10 text-sm text-primary-foreground/50">
+        <p className="relative z-10 text-xs font-bold text-white/30">
           &copy; {new Date().getFullYear()} {siteName}. All rights reserved.
         </p>
-      </div>
+      </aside>
 
       {/* ── Right panel: form content ────────────────────── */}
-      <div className="flex flex-col">
+      <div className="flex min-h-[calc(100vh-1.5rem)] flex-col sm:min-h-[calc(100vh-2rem)]">
         {/* Mobile header */}
-        <div className="flex items-center justify-between p-6 lg:hidden">
-          <Link href="/" className="flex items-center gap-2">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary">
-              <ShoppingBag className="h-5 w-5 text-primary-foreground" />
+        <div className="flex items-center justify-between px-3 pb-2 pt-3 lg:hidden">
+          <Link href="/" className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-primary text-white shadow-brand-glow">
+              <ShoppingBag className="h-5 w-5" strokeWidth={2.5} />
             </div>
-            <span className="text-lg font-bold">{siteName}</span>
+            <span className="text-lg font-black tracking-tight text-gray-900">{siteName}</span>
           </Link>
+          <ThemeToggle />
         </div>
 
-        {/* Centered form area */}
-        <div className="flex flex-1 items-center justify-center px-6 py-12 sm:px-8 lg:px-12">
-          {children}
+        {/* Desktop theme toggle */}
+        <div className="hidden justify-end px-3 pt-3 lg:flex">
+          <ThemeToggle />
+        </div>
+
+        {/* Centered form card */}
+        <div className="flex flex-1 items-center justify-center py-6 lg:py-8">
+          <div className="bento-card flex w-full max-w-lg justify-center px-5 py-8 sm:px-10 sm:py-12">
+            {children}
+          </div>
         </div>
 
         {/* Mobile footer */}
-        <div className="p-6 text-center text-sm text-muted-foreground lg:hidden">
+        <div className="pb-4 text-center text-xs font-bold text-gray-400 lg:hidden">
           &copy; {new Date().getFullYear()} {siteName}. All rights reserved.
         </div>
       </div>

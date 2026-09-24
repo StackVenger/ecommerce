@@ -1,6 +1,6 @@
 import 'server-only';
 
-import { tailwindThemeVars } from './color-utils';
+import { fontStack, tailwindThemeVars } from './color-utils';
 
 import type { ThemeConfig } from '@/lib/config/site-config';
 
@@ -49,13 +49,13 @@ export function themeToCssVars(theme: ThemeConfig): string {
 
   const t = theme.typography ?? {};
   if (t.headingFont) {
-    lines.push(`  --font-heading: '${t.headingFont}', sans-serif;`);
+    lines.push(`  --font-heading: ${fontStack(t.headingFont)};`);
   }
   if (t.bodyFont) {
-    lines.push(`  --font-body: '${t.bodyFont}', sans-serif;`);
+    lines.push(`  --font-body: ${fontStack(t.bodyFont)};`);
   }
   if (t.banglaFont) {
-    lines.push(`  --font-bangla: '${t.banglaFont}', sans-serif;`);
+    lines.push(`  --font-bangla: ${fontStack(t.banglaFont)};`);
   }
   if (t.monoFont) {
     lines.push(`  --font-mono: '${t.monoFont}', monospace;`);

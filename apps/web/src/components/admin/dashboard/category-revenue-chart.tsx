@@ -10,6 +10,7 @@ import { fetchDashboardCharts, formatBDT, type CategoryRevenue } from '@/lib/api
 // ──────────────────────────────────────────────────────────
 
 const PIE_COLORS = [
+  '#f46e54',
   '#4f46e5',
   '#7c3aed',
   '#2563eb',
@@ -42,12 +43,12 @@ function CustomTooltip({ active, payload }: CustomTooltipProps) {
   }
 
   return (
-    <div className="rounded-lg border border-gray-200 bg-white p-3 shadow-lg">
-      <p className="mb-1 text-sm font-medium text-gray-900">{category.category}</p>
-      <p className="text-sm text-gray-600">
+    <div className="rounded-2xl bg-ink px-4 py-3 text-white shadow-xl shadow-black/10">
+      <p className="mb-1 text-xs font-black text-white">{category.category}</p>
+      <p className="text-[11px] font-bold text-white/60">
         Revenue: <span className="font-medium">{formatBDT(category.revenue)}</span>
       </p>
-      <p className="text-sm text-gray-600">
+      <p className="text-[11px] font-bold text-white/60">
         Share: <span className="font-medium">{category.percentage}%</span>
       </p>
     </div>
@@ -73,7 +74,9 @@ function CustomLegend({ payload }: { payload?: LegendPayloadItem[] }) {
       {payload.map((entry, index) => (
         <div key={index} className="flex items-center gap-1.5">
           <div className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: entry.color }} />
-          <span className="text-xs text-gray-600">{entry.value}</span>
+          <span className="text-[10px] font-black uppercase tracking-wider text-gray-500">
+            {entry.value}
+          </span>
         </div>
       ))}
     </div>
@@ -108,18 +111,20 @@ export function CategoryRevenueChart() {
 
   if (isLoading) {
     return (
-      <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-        <div className="mb-4 h-6 w-48 animate-pulse rounded bg-gray-200" />
-        <div className="h-80 animate-pulse rounded-lg bg-gray-100" />
+      <div className="bento-card p-6 sm:p-8">
+        <div className="mb-4 h-6 w-48 animate-pulse rounded-xl bg-gray-100" />
+        <div className="h-80 animate-pulse rounded-[1.5rem] bg-gray-50" />
       </div>
     );
   }
 
   if (categories.length === 0) {
     return (
-      <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-        <h3 className="text-lg font-semibold text-gray-900">Revenue by Category</h3>
-        <p className="mt-4 text-center text-sm text-gray-500">No category data available yet.</p>
+      <div className="bento-card p-6 sm:p-8">
+        <h3 className="section-title">Revenue by Category</h3>
+        <p className="mt-4 rounded-[1.5rem] bg-gray-50 py-10 text-center text-sm font-bold text-gray-400">
+          No category data available yet.
+        </p>
       </div>
     );
   }
@@ -127,12 +132,10 @@ export function CategoryRevenueChart() {
   const totalRevenue = categories.reduce((sum, c) => sum + c.revenue, 0);
 
   return (
-    <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+    <div className="bento-card p-6 sm:p-8">
       <div className="mb-6">
-        <h3 className="text-lg font-semibold text-gray-900">Revenue by Category</h3>
-        <p className="text-sm text-gray-500">
-          Total: {formatBDT(totalRevenue)} in the last 30 days
-        </p>
+        <h3 className="section-title">Revenue by Category</h3>
+        <p className="eyebrow mt-1">Total: {formatBDT(totalRevenue)} in the last 30 days</p>
       </div>
 
       <ResponsiveContainer width="100%" height={320}>

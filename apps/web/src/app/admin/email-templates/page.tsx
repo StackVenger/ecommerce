@@ -73,10 +73,10 @@ export default function EmailTemplatesPage() {
   const categories = [...new Set(EMAIL_TEMPLATES.map((t) => t.category))];
 
   return (
-    <div className="p-6">
-      <div className="mb-6 flex items-center justify-between">
+    <div className="space-y-6">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Email Templates</h1>
+          <h1 className="page-title">Email Templates</h1>
           <p className="text-gray-500">Preview and test email templates</p>
         </div>
         <div className="flex gap-2">
@@ -87,37 +87,32 @@ export default function EmailTemplatesPage() {
               setLocale(lang);
               loadPreview(selectedTemplate, lang);
             }}
-            className="rounded-lg border px-3 py-2"
+            className="field-input sm:w-auto"
           >
             <option value="en">English</option>
             <option value="bn">বাংলা</option>
           </select>
-          <button
-            onClick={() => loadPreview(selectedTemplate, locale)}
-            className="rounded-lg bg-teal-600 px-4 py-2 text-white hover:bg-teal-700"
-          >
+          <button onClick={() => loadPreview(selectedTemplate, locale)} className="btn btn-primary">
             Refresh Preview
           </button>
         </div>
       </div>
 
-      <div className="grid grid-cols-12 gap-6">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
         {/* Template List */}
-        <div className="col-span-3">
-          <div className="rounded-lg border bg-white">
+        <div className="lg:col-span-3">
+          <div className="bento-card overflow-hidden p-2">
             {categories.map((category) => (
               <div key={category}>
-                <h3 className="border-b bg-gray-50 px-4 py-2 text-xs font-semibold uppercase text-gray-500">
-                  {category}
-                </h3>
+                <h3 className="eyebrow px-4 pb-2 pt-4">{category}</h3>
                 {EMAIL_TEMPLATES.filter((t) => t.category === category).map((template) => (
                   <button
                     key={template.id}
                     onClick={() => handleSelect(template.id)}
-                    className={`w-full border-b px-4 py-3 text-left text-sm transition-colors ${
+                    className={`w-full rounded-2xl px-4 py-2.5 text-left text-sm font-bold transition-colors ${
                       selectedTemplate === template.id
-                        ? 'bg-teal-50 font-medium text-teal-700'
-                        : 'hover:bg-gray-50'
+                        ? 'bg-brand-50 text-brand-700'
+                        : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                     }`}
                   >
                     {template.name}
@@ -129,8 +124,8 @@ export default function EmailTemplatesPage() {
         </div>
 
         {/* Preview */}
-        <div className="col-span-9">
-          <div className="rounded-lg border bg-white">
+        <div className="min-w-0 lg:col-span-9">
+          <div className="bento-card">
             <div className="border-b px-4 py-3">
               <span className="text-sm text-gray-500">Preview: </span>
               <span className="font-medium">
@@ -143,7 +138,7 @@ export default function EmailTemplatesPage() {
             <div className="p-4">
               {loading ? (
                 <div className="flex h-96 items-center justify-center">
-                  <div className="h-8 w-8 animate-spin rounded-full border-2 border-teal-600 border-t-transparent" />
+                  <div className="h-8 w-8 animate-spin rounded-full border-2 border-brand-600 border-t-transparent" />
                 </div>
               ) : previewHtml ? (
                 <iframe
@@ -160,15 +155,11 @@ export default function EmailTemplatesPage() {
           </div>
 
           {/* Send Test Email */}
-          <div className="mt-4 rounded-lg border bg-white p-4">
+          <div className="bento-card mt-4 p-4">
             <h3 className="mb-2 font-medium">Send Test Email</h3>
             <div className="flex gap-2">
-              <input
-                type="email"
-                placeholder="test@example.com"
-                className="flex-1 rounded-lg border px-3 py-2 text-sm"
-              />
-              <button className="rounded-lg border border-teal-600 px-4 py-2 text-sm text-teal-600 hover:bg-teal-50">
+              <input type="email" placeholder="test@example.com" className="field-input flex-1" />
+              <button className="btn btn-sm border-brand-200 bg-card border text-brand-600 hover:bg-brand-50">
                 Send Test
               </button>
             </div>

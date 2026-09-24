@@ -106,17 +106,14 @@ export default function CustomCSSEditor({ value, onChange }: CustomCSSEditorProp
       {/* Toolbar */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <button
-            onClick={formatCSS}
-            className="px-3 py-1.5 border border-gray-300 rounded-lg text-xs font-medium text-gray-700 hover:bg-gray-50"
-          >
+          <button onClick={formatCSS} className="btn btn-secondary btn-sm">
             Format CSS
           </button>
           <button
             onClick={() => setShowPreview(!showPreview)}
             className={`px-3 py-1.5 border rounded-lg text-xs font-medium ${
               showPreview
-                ? 'border-teal-500 text-teal-600 bg-teal-50'
+                ? 'border-brand-500 text-brand-600 bg-brand-50'
                 : 'border-gray-300 text-gray-700 hover:bg-gray-50'
             }`}
           >
@@ -130,13 +127,13 @@ export default function CustomCSSEditor({ value, onChange }: CustomCSSEditorProp
 
       {/* CSS Snippets */}
       <div>
-        <h3 className="text-sm font-semibold text-gray-700 mb-2">Quick Snippets</h3>
+        <h3 className="text-sm font-black text-gray-900 mb-2 tracking-tight">Quick Snippets</h3>
         <div className="flex flex-wrap gap-2">
           {CSS_SNIPPETS.map((snippet) => (
             <button
               key={snippet.name}
               onClick={() => insertSnippet(snippet.css)}
-              className="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 rounded-lg text-xs font-medium text-gray-700 transition-colors"
+              className="btn btn-soft btn-sm"
             >
               + {snippet.name}
             </button>
@@ -146,7 +143,7 @@ export default function CustomCSSEditor({ value, onChange }: CustomCSSEditorProp
 
       {/* Editor */}
       <div className="relative">
-        <div className="flex border border-gray-300 rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-teal-500 focus-within:border-teal-500">
+        <div className="flex border border-gray-300 rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-brand-500 focus-within:border-brand-500">
           {/* Line Numbers */}
           <div className="bg-gray-50 border-r border-gray-300 px-3 py-3 select-none">
             {Array.from({ length: lineCount }, (_, i) => (
@@ -162,7 +159,7 @@ export default function CustomCSSEditor({ value, onChange }: CustomCSSEditorProp
             value={value}
             onChange={(e) => onChange(e.target.value)}
             onKeyDown={handleKeyDown}
-            className="flex-1 px-4 py-3 text-sm font-mono leading-5 resize-none focus:outline-none bg-gray-900 text-green-400"
+            className="flex-1 px-4 py-3 text-sm font-mono leading-5 resize-none focus:outline-none bg-ink text-green-400"
             style={{ minHeight: `${lineCount * 20 + 24}px`, tabSize: 2 }}
             spellCheck={false}
             placeholder={`/* Add your custom CSS here */\n\n/* Available CSS variables: */\n/* --color-primary, --color-secondary, --color-accent */\n/* --font-heading, --font-body, --font-bangla */\n/* --border-radius, --container-max-width */`}
@@ -172,7 +169,9 @@ export default function CustomCSSEditor({ value, onChange }: CustomCSSEditorProp
 
       {/* Available Variables Reference */}
       <div className="bg-gray-50 rounded-lg p-4">
-        <h3 className="text-sm font-semibold text-gray-700 mb-2">Available CSS Variables</h3>
+        <h3 className="text-sm font-black text-gray-900 mb-2 tracking-tight">
+          Available CSS Variables
+        </h3>
         <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
           {[
             '--color-primary',
@@ -209,7 +208,7 @@ export default function CustomCSSEditor({ value, onChange }: CustomCSSEditorProp
                   textarea.focus();
                 }
               }}
-              className="text-xs font-mono text-teal-600 hover:text-teal-800 text-left px-2 py-1 hover:bg-teal-50 rounded"
+              className="text-xs font-mono text-brand-600 hover:text-brand-800 text-left px-4 py-2 hover:bg-brand-50 rounded-xl font-bold transition-all"
             >
               {varName}
             </button>
@@ -220,8 +219,8 @@ export default function CustomCSSEditor({ value, onChange }: CustomCSSEditorProp
       {/* Preview */}
       {showPreview && (
         <div>
-          <h3 className="text-sm font-semibold text-gray-700 mb-2">Live Preview</h3>
-          <div className="border border-gray-200 rounded-lg overflow-hidden">
+          <h3 className="text-sm font-black text-gray-900 mb-2 tracking-tight">Live Preview</h3>
+          <div className="overflow-hidden rounded-[1.25rem] border border-foreground/[0.06]">
             <iframe
               srcDoc={`
                 <!DOCTYPE html>

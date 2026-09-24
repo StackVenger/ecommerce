@@ -1,10 +1,11 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
+import React, { useState, useEffect } from 'react';
 
-import { apiClient } from '@/lib/api/client';
 import InvoiceTemplate from '@/components/admin/orders/invoice-template';
+import { EmptyState, LoadingState } from '@/components/ui/bento';
+import { apiClient } from '@/lib/api/client';
 
 const STORE_INFO = {
   name: 'BDShop',
@@ -48,27 +49,25 @@ export default function InvoicePage() {
   }, [orderId]);
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-teal-600"></div>
-      </div>
-    );
+    return <LoadingState label="Loading invoice" className="min-h-[60vh]" />;
   }
 
   if (error || !invoiceData) {
     return (
-      <div className="text-center py-12">
-        <h2 className="text-xl font-semibold text-gray-900">Unable to load invoice</h2>
-        <p className="text-gray-500 mt-2">{error ?? 'Invoice data not found.'}</p>
-        <a href="/admin/orders" className="inline-flex items-center mt-4 text-teal-600 hover:text-teal-800">
-          &larr; Back to Orders
-        </a>
-      </div>
+      <EmptyState
+        title="Unable to load invoice"
+        description={error ?? 'Invoice data not found.'}
+        action={
+          <a href="/admin/orders" className="btn btn-soft">
+            &larr; Back to Orders
+          </a>
+        }
+      />
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 py-8 px-4">
+    <div className="min-h-screen py-2 sm:py-4 print:min-h-0 print:py-0">
       <InvoiceTemplate data={invoiceData} showActions={true} />
     </div>
   );

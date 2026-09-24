@@ -130,7 +130,7 @@ export function SearchBar() {
           onFocus={() => suggestions.length > 0 && setIsOpen(true)}
           onKeyDown={handleKeyDown}
           placeholder="Search products..."
-          className="w-full rounded-lg border border-gray-300 py-2.5 pl-10 pr-4 text-sm shadow-sm transition-shadow focus:border-blue-500 focus:shadow-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+          className="w-full rounded-2xl border border-foreground/[0.04] bg-card py-3 pl-11 pr-4 text-sm font-medium shadow-sm outline-none transition-all placeholder:text-gray-400 focus:ring-4 focus:ring-primary/10"
           autoComplete="off"
           role="combobox"
           aria-expanded={isOpen}
@@ -140,7 +140,7 @@ export function SearchBar() {
 
         {/* Search icon */}
         <svg
-          className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
+          className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -156,7 +156,7 @@ export function SearchBar() {
         {/* Loading spinner */}
         {loading && (
           <div className="absolute right-3 top-1/2 -translate-y-1/2">
-            <div className="h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-blue-600" />
+            <div className="h-4 w-4 animate-spin rounded-full border-2 border-gray-200 border-t-primary" />
           </div>
         )}
       </form>
@@ -167,7 +167,7 @@ export function SearchBar() {
           ref={dropdownRef}
           id="search-suggestions"
           role="listbox"
-          className="absolute top-full z-50 mt-1 w-full overflow-hidden rounded-lg border border-gray-200 bg-white shadow-lg"
+          className="absolute top-full z-50 mt-2 w-full overflow-hidden rounded-3xl border border-foreground/[0.04] bg-card p-2 shadow-bento-hover"
         >
           {suggestions.map((item, index) => (
             <Link
@@ -175,15 +175,15 @@ export function SearchBar() {
               href={`/product/${item.slug}`}
               role="option"
               aria-selected={index === selectedIndex}
-              className={`flex items-center gap-3 px-4 py-2.5 transition-colors ${
-                index === selectedIndex ? 'bg-blue-50' : 'hover:bg-gray-50'
+              className={`flex items-center gap-3 rounded-2xl px-3 py-2.5 transition-colors ${
+                index === selectedIndex ? 'bg-gray-50' : 'hover:bg-gray-50'
               }`}
               onClick={() => setIsOpen(false)}
             >
               {item.image ? (
-                <img src={item.image} alt="" className="h-10 w-10 rounded-md object-cover" />
+                <img src={item.image} alt="" className="h-11 w-11 rounded-2xl object-cover" />
               ) : (
-                <div className="flex h-10 w-10 items-center justify-center rounded-md bg-gray-100">
+                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gray-100">
                   <svg
                     className="h-5 w-5 text-gray-400"
                     fill="none"
@@ -200,29 +200,29 @@ export function SearchBar() {
                 </div>
               )}
               <div className="flex-1 min-w-0">
-                <p className="truncate text-sm font-medium text-gray-900">{item.name}</p>
+                <p className="truncate text-sm font-bold text-gray-900">{item.name}</p>
                 {item.categoryName && <p className="text-xs text-gray-500">{item.categoryName}</p>}
               </div>
               <div className="text-right">
                 {item.salePrice ? (
                   <>
-                    <p className="text-sm font-semibold text-red-600">
+                    <p className="text-sm font-black text-rose-600">
                       {formatPrice(item.salePrice)}
                     </p>
                     <p className="text-xs text-gray-400 line-through">{formatPrice(item.price)}</p>
                   </>
                 ) : (
-                  <p className="text-sm font-semibold text-gray-900">{formatPrice(item.price)}</p>
+                  <p className="text-sm font-black text-gray-900">{formatPrice(item.price)}</p>
                 )}
               </div>
             </Link>
           ))}
 
           {/* View all results link */}
-          <div className="border-t border-gray-100 px-4 py-2">
+          <div className="mt-1 border-t border-foreground/[0.04] px-2 pt-2">
             <button
               onClick={handleSubmit as any}
-              className="w-full text-center text-sm text-blue-600 hover:text-blue-800"
+              className="w-full rounded-xl py-2 text-center text-sm font-bold text-brand-700 hover:bg-brand-50"
             >
               View all results for &quot;{query}&quot;
             </button>
