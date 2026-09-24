@@ -1,6 +1,7 @@
 'use client';
 
 import { Loader2, MapPin, ShoppingBag, UserRound } from 'lucide-react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { toast } from 'sonner';
@@ -425,9 +426,10 @@ function CheckoutCouponInput() {
 interface GuestInfoFormProps {
   guestInfo: GuestInfo;
   onChange: (info: GuestInfo) => void;
+  errors?: Record<string, string>;
 }
 
-function GuestInfoForm({ guestInfo, onChange }: GuestInfoFormProps) {
+function GuestInfoForm({ guestInfo, onChange, errors }: GuestInfoFormProps) {
   return (
     <div className="bento-tile mb-6 p-5 sm:p-6">
       <div className="mb-3 flex items-center gap-3">
@@ -446,47 +448,59 @@ function GuestInfoForm({ guestInfo, onChange }: GuestInfoFormProps) {
       <div className="space-y-4">
         <div>
           <label htmlFor="guestName" className="field-label">
-            Full Name <span className="text-rose-500">*</span>
+            Full Name <span className="font-medium text-gray-400">(optional)</span>
           </label>
           <input
             id="guestName"
             type="text"
-            required
             value={guestInfo.fullName}
             onChange={(e) => onChange({ ...guestInfo, fullName: e.target.value })}
-            className="field-input"
+            className={`field-input ${
+              errors?.fullName
+                ? 'border-rose-400 bg-rose-50/40 text-rose-900 focus:border-rose-400 focus:ring-rose-500/10'
+                : ''
+            }`}
             placeholder="Your full name"
           />
+          {errors?.fullName && <p className="field-error">{errors.fullName}</p>}
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label htmlFor="guestEmail" className="field-label">
-              Email <span className="text-rose-500">*</span>
+              Email <span className="font-medium text-gray-400">(optional)</span>
             </label>
             <input
               id="guestEmail"
               type="email"
-              required
               value={guestInfo.email}
               onChange={(e) => onChange({ ...guestInfo, email: e.target.value })}
-              className="field-input"
+              className={`field-input ${
+                errors?.email
+                  ? 'border-rose-400 bg-rose-50/40 text-rose-900 focus:border-rose-400 focus:ring-rose-500/10'
+                  : ''
+              }`}
               placeholder="you@example.com"
             />
+            {errors?.email && <p className="field-error">{errors.email}</p>}
           </div>
           <div>
             <label htmlFor="guestPhone" className="field-label">
-              Phone <span className="text-rose-500">*</span>
+              Phone <span className="font-medium text-gray-400">(optional)</span>
             </label>
             <input
               id="guestPhone"
               type="tel"
-              required
               value={guestInfo.phone}
               onChange={(e) => onChange({ ...guestInfo, phone: e.target.value })}
-              className="field-input"
+              className={`field-input ${
+                errors?.phone
+                  ? 'border-rose-400 bg-rose-50/40 text-rose-900 focus:border-rose-400 focus:ring-rose-500/10'
+                  : ''
+              }`}
               placeholder="+880 1XXX-XXXXXX"
             />
+            {errors?.phone && <p className="field-error">{errors.phone}</p>}
           </div>
         </div>
       </div>
@@ -501,9 +515,10 @@ function GuestInfoForm({ guestInfo, onChange }: GuestInfoFormProps) {
 interface GuestAddressFormProps {
   address: GuestAddress;
   onChange: (address: GuestAddress) => void;
+  errors?: Record<string, string>;
 }
 
-function GuestAddressForm({ address, onChange }: GuestAddressFormProps) {
+function GuestAddressForm({ address, onChange, errors }: GuestAddressFormProps) {
   const districts = address.division ? BD_DIVISIONS[address.division] || [] : [];
 
   return (
@@ -519,9 +534,14 @@ function GuestAddressForm({ address, onChange }: GuestAddressFormProps) {
             required
             value={address.fullName}
             onChange={(e) => onChange({ ...address, fullName: e.target.value })}
-            className="field-input"
+            className={`field-input ${
+              errors?.addressFullName
+                ? 'border-rose-400 bg-rose-50/40 text-rose-900 focus:border-rose-400 focus:ring-rose-500/10'
+                : ''
+            }`}
             placeholder="Recipient full name"
           />
+          {errors?.addressFullName && <p className="field-error">{errors.addressFullName}</p>}
         </div>
         <div>
           <label htmlFor="shipPhone" className="field-label">
@@ -533,9 +553,14 @@ function GuestAddressForm({ address, onChange }: GuestAddressFormProps) {
             required
             value={address.phone}
             onChange={(e) => onChange({ ...address, phone: e.target.value })}
-            className="field-input"
+            className={`field-input ${
+              errors?.addressPhone
+                ? 'border-rose-400 bg-rose-50/40 text-rose-900 focus:border-rose-400 focus:ring-rose-500/10'
+                : ''
+            }`}
             placeholder="+880 1XXX-XXXXXX"
           />
+          {errors?.addressPhone && <p className="field-error">{errors.addressPhone}</p>}
         </div>
       </div>
 
@@ -549,9 +574,14 @@ function GuestAddressForm({ address, onChange }: GuestAddressFormProps) {
           required
           value={address.addressLine1}
           onChange={(e) => onChange({ ...address, addressLine1: e.target.value })}
-          className="field-input"
+          className={`field-input ${
+            errors?.addressLine1
+              ? 'border-rose-400 bg-rose-50/40 text-rose-900 focus:border-rose-400 focus:ring-rose-500/10'
+              : ''
+          }`}
           placeholder="House no., road, area"
         />
+        {errors?.addressLine1 && <p className="field-error">{errors.addressLine1}</p>}
       </div>
 
       <div>
@@ -578,7 +608,11 @@ function GuestAddressForm({ address, onChange }: GuestAddressFormProps) {
             required
             value={address.division}
             onChange={(e) => onChange({ ...address, division: e.target.value, district: '' })}
-            className="field-input"
+            className={`field-input ${
+              errors?.division
+                ? 'border-rose-400 bg-rose-50/40 text-rose-900 focus:border-rose-400 focus:ring-rose-500/10'
+                : ''
+            }`}
           >
             <option value="">Select Division</option>
             {Object.keys(BD_DIVISIONS).map((div) => (
@@ -587,6 +621,7 @@ function GuestAddressForm({ address, onChange }: GuestAddressFormProps) {
               </option>
             ))}
           </select>
+          {errors?.division && <p className="field-error">{errors.division}</p>}
         </div>
         <div>
           <label htmlFor="shipDistrict" className="field-label">
@@ -598,7 +633,11 @@ function GuestAddressForm({ address, onChange }: GuestAddressFormProps) {
             value={address.district}
             onChange={(e) => onChange({ ...address, district: e.target.value })}
             disabled={!address.division}
-            className="field-input"
+            className={`field-input disabled:cursor-not-allowed ${
+              errors?.district
+                ? 'border-rose-400 bg-rose-50/40 text-rose-900 focus:border-rose-400 focus:ring-rose-500/10'
+                : ''
+            }`}
           >
             <option value="">Select District</option>
             {districts.map((dist) => (
@@ -607,6 +646,7 @@ function GuestAddressForm({ address, onChange }: GuestAddressFormProps) {
               </option>
             ))}
           </select>
+          {errors?.district && <p className="field-error">{errors.district}</p>}
         </div>
       </div>
 
@@ -621,9 +661,14 @@ function GuestAddressForm({ address, onChange }: GuestAddressFormProps) {
             required
             value={address.area}
             onChange={(e) => onChange({ ...address, area: e.target.value })}
-            className="field-input"
+            className={`field-input ${
+              errors?.area
+                ? 'border-rose-400 bg-rose-50/40 text-rose-900 focus:border-rose-400 focus:ring-rose-500/10'
+                : ''
+            }`}
             placeholder="Area or town"
           />
+          {errors?.area && <p className="field-error">{errors.area}</p>}
         </div>
         <div>
           <label htmlFor="shipPostal" className="field-label">
@@ -635,9 +680,14 @@ function GuestAddressForm({ address, onChange }: GuestAddressFormProps) {
             required
             value={address.postalCode}
             onChange={(e) => onChange({ ...address, postalCode: e.target.value })}
-            className="field-input"
+            className={`field-input ${
+              errors?.postalCode
+                ? 'border-rose-400 bg-rose-50/40 text-rose-900 focus:border-rose-400 focus:ring-rose-500/10'
+                : ''
+            }`}
             placeholder="1000"
           />
+          {errors?.postalCode && <p className="field-error">{errors.postalCode}</p>}
         </div>
       </div>
     </div>
@@ -800,6 +850,110 @@ const PAYMENT_OPTIONS: Array<{
 ];
 
 // ──────────────────────────────────────────────────────────
+// Checkout Login Form Component
+// ──────────────────────────────────────────────────────────
+
+function CheckoutLoginForm() {
+  const { login } = useAuth();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    setIsSubmitting(true);
+
+    try {
+      await login({
+        email,
+        password,
+        rememberMe: true,
+      });
+      toast.success('Welcome back!');
+    } catch (err: unknown) {
+      const msg = getApiErrorMessage(err, 'Failed to sign in. Please try again.');
+      setError(msg);
+      toast.error(msg);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4 max-w-md mx-auto py-2">
+      {error && (
+        <div className="rounded-2xl border border-rose-100 bg-rose-50 p-4 text-sm font-bold text-rose-700">
+          {error}
+        </div>
+      )}
+
+      <div>
+        <label htmlFor="checkoutEmail" className="field-label">
+          Email Address <span className="text-rose-500">*</span>
+        </label>
+        <input
+          id="checkoutEmail"
+          type="email"
+          required
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="you@example.com"
+          className="field-input"
+        />
+      </div>
+
+      <div>
+        <div className="mb-1.5 flex items-center justify-between">
+          <label htmlFor="checkoutPassword" className="field-label mb-0">
+            Password <span className="text-rose-500">*</span>
+          </label>
+          <Link
+            href="/forgot-password"
+            className="text-xs font-bold text-brand-700 hover:underline"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Forgot password?
+          </Link>
+        </div>
+        <input
+          id="checkoutPassword"
+          type="password"
+          required
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          placeholder="Enter your password"
+          className="field-input"
+        />
+      </div>
+
+      <button type="submit" disabled={isSubmitting} className="btn btn-primary btn-lg mt-2 w-full">
+        {isSubmitting ? (
+          <span className="flex items-center justify-center gap-2">
+            <Loader2 className="h-4 w-4 animate-spin" strokeWidth={2.5} />
+            Signing in...
+          </span>
+        ) : (
+          'Sign In'
+        )}
+      </button>
+
+      <p className="mt-4 text-center text-sm font-medium text-gray-500">
+        Don&apos;t have an account?{' '}
+        <Link
+          href={`/register?redirect=${encodeURIComponent('/checkout')}`}
+          className="font-bold text-brand-700 hover:underline"
+        >
+          Create one now
+        </Link>
+      </p>
+    </form>
+  );
+}
+
+// ──────────────────────────────────────────────────────────
 // Checkout Page
 // ──────────────────────────────────────────────────────────
 
@@ -812,6 +966,54 @@ export default function CheckoutPage() {
   const [completedSteps, setCompletedSteps] = useState<StepId[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
+  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+  const [checkoutMode, setCheckoutMode] = useState<'guest' | 'login'>('guest');
+
+  const handleGuestInfoChange = (info: GuestInfo) => {
+    setCheckoutData((prev) => ({ ...prev, guestInfo: info }));
+    setValidationErrors((prev) => {
+      const next = { ...prev };
+      if (info.fullName !== checkoutData.guestInfo.fullName) {
+        delete next.fullName;
+      }
+      if (info.email !== checkoutData.guestInfo.email) {
+        delete next.email;
+      }
+      if (info.phone !== checkoutData.guestInfo.phone) {
+        delete next.phone;
+      }
+      return next;
+    });
+  };
+
+  const handleGuestAddressChange = (addr: GuestAddress) => {
+    setCheckoutData((prev) => ({ ...prev, guestAddress: addr }));
+    setValidationErrors((prev) => {
+      const next = { ...prev };
+      if (addr.fullName !== checkoutData.guestAddress.fullName) {
+        delete next.addressFullName;
+      }
+      if (addr.phone !== checkoutData.guestAddress.phone) {
+        delete next.addressPhone;
+      }
+      if (addr.addressLine1 !== checkoutData.guestAddress.addressLine1) {
+        delete next.addressLine1;
+      }
+      if (addr.division !== checkoutData.guestAddress.division) {
+        delete next.division;
+      }
+      if (addr.district !== checkoutData.guestAddress.district) {
+        delete next.district;
+      }
+      if (addr.area !== checkoutData.guestAddress.area) {
+        delete next.area;
+      }
+      if (addr.postalCode !== checkoutData.guestAddress.postalCode) {
+        delete next.postalCode;
+      }
+      return next;
+    });
+  };
 
   // Saved addresses (authenticated users)
   const [savedAddresses, setSavedAddresses] = useState<Address[]>([]);
@@ -941,24 +1143,97 @@ export default function CheckoutPage() {
     shippingMethods,
   ]);
 
-  // Validation for each step
-  const isGuestInfoValid =
-    checkoutData.guestInfo.fullName.trim() !== '' &&
-    checkoutData.guestInfo.email.trim() !== '' &&
-    checkoutData.guestInfo.phone.trim() !== '';
+  // Validation for each step (Bangladeshi perspective)
 
-  const isGuestAddressValid =
-    checkoutData.guestAddress.fullName.trim() !== '' &&
-    checkoutData.guestAddress.phone.trim() !== '' &&
-    checkoutData.guestAddress.addressLine1.trim() !== '' &&
-    checkoutData.guestAddress.division.trim() !== '' &&
-    checkoutData.guestAddress.district.trim() !== '' &&
-    checkoutData.guestAddress.area.trim() !== '' &&
-    checkoutData.guestAddress.postalCode.trim() !== '';
+  const validateAddressStep = (): boolean => {
+    const newErrors: Record<string, string> = {};
 
-  const isAddressStepValid = isGuest
-    ? isGuestInfoValid && isGuestAddressValid
-    : checkoutData.addressId !== null;
+    if (isGuest) {
+      // 1. Guest Info Validation (optional fields - only validate when they have values)
+      const guestName = checkoutData.guestInfo.fullName.trim();
+      if (guestName) {
+        if (guestName.length < 3) {
+          newErrors.fullName = 'Name must be at least 3 characters long';
+        } else if (!/^[a-zA-Z\s.]+$/.test(guestName)) {
+          newErrors.fullName = 'Name can only contain letters, spaces, and periods (.)';
+        }
+      }
+
+      const guestEmail = checkoutData.guestInfo.email.trim();
+      if (guestEmail) {
+        if (!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(guestEmail)) {
+          newErrors.email = 'Please enter a valid email address';
+        }
+      }
+
+      const guestPhone = checkoutData.guestInfo.phone.trim();
+      if (guestPhone) {
+        const cleanPhone = guestPhone.replace(/[\s-]/g, '');
+        if (!/^(?:\+?88)?01[3-9]\d{8}$/.test(cleanPhone)) {
+          newErrors.phone =
+            'Please enter a valid 11-digit Bangladeshi mobile number (e.g., 017XXXXXXXX)';
+        }
+      }
+
+      // 2. Guest Address Validation
+      const addressName = checkoutData.guestAddress.fullName.trim();
+      if (!addressName) {
+        newErrors.addressFullName = 'Recipient name is required';
+      } else if (addressName.length < 3) {
+        newErrors.addressFullName = 'Recipient name must be at least 3 characters long';
+      } else if (!/^[a-zA-Z\s.]+$/.test(addressName)) {
+        newErrors.addressFullName =
+          'Recipient name can only contain letters, spaces, and periods (.)';
+      }
+
+      const addressPhone = checkoutData.guestAddress.phone.trim();
+      if (!addressPhone) {
+        newErrors.addressPhone = 'Recipient phone number is required';
+      } else {
+        const cleanAddrPhone = addressPhone.replace(/[\s-]/g, '');
+        if (!/^(?:\+?88)?01[3-9]\d{8}$/.test(cleanAddrPhone)) {
+          newErrors.addressPhone =
+            'Please enter a valid 11-digit Bangladeshi mobile number (e.g., 017XXXXXXXX)';
+        }
+      }
+
+      const addressLine1 = checkoutData.guestAddress.addressLine1.trim();
+      if (!addressLine1) {
+        newErrors.addressLine1 = 'Street address is required';
+      } else if (addressLine1.length < 6) {
+        newErrors.addressLine1 = 'Please enter a detailed street address (minimum 6 characters)';
+      }
+
+      if (!checkoutData.guestAddress.division) {
+        newErrors.division = 'Division is required';
+      }
+
+      if (!checkoutData.guestAddress.district) {
+        newErrors.district = 'District is required';
+      }
+
+      const area = checkoutData.guestAddress.area.trim();
+      if (!area) {
+        newErrors.area = 'Area/town is required';
+      } else if (area.length < 3) {
+        newErrors.area = 'Area/town must be at least 3 characters long';
+      }
+
+      const postalCode = checkoutData.guestAddress.postalCode.trim();
+      if (!postalCode) {
+        newErrors.postalCode = 'Postal code is required';
+      } else if (!/^\d{4}$/.test(postalCode)) {
+        newErrors.postalCode = 'Postal code in Bangladesh must be exactly 4 digits (e.g., 1209)';
+      }
+    } else {
+      if (!checkoutData.addressId) {
+        newErrors.addressId = 'Please select a shipping address';
+      }
+    }
+
+    setValidationErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   // Step navigation
   const goToNextStep = () => {
@@ -1004,10 +1279,8 @@ export default function CheckoutPage() {
 
   // Handle address continue - load shipping
   const handleAddressContinue = async () => {
-    if (!isAddressStepValid) {
-      toast.error(
-        isGuest ? 'Please fill in all required fields' : 'Please select a shipping address',
-      );
+    if (!validateAddressStep()) {
+      toast.error('Please correct the validation errors before continuing');
       return;
     }
     await loadShipping();
@@ -1042,9 +1315,15 @@ export default function CheckoutPage() {
       }
 
       if (isGuest) {
-        payload.guestFullName = checkoutData.guestInfo.fullName;
-        payload.guestEmail = checkoutData.guestInfo.email;
-        payload.guestPhone = checkoutData.guestInfo.phone;
+        if (checkoutData.guestInfo.fullName.trim() !== '') {
+          payload.guestFullName = checkoutData.guestInfo.fullName.trim();
+        }
+        if (checkoutData.guestInfo.email.trim() !== '') {
+          payload.guestEmail = checkoutData.guestInfo.email.trim();
+        }
+        if (checkoutData.guestInfo.phone.trim() !== '') {
+          payload.guestPhone = checkoutData.guestInfo.phone.trim();
+        }
         payload.shippingFullName = checkoutData.guestAddress.fullName;
         payload.shippingPhone = checkoutData.guestAddress.phone;
         payload.shippingAddressLine1 = checkoutData.guestAddress.addressLine1;
@@ -1124,23 +1403,109 @@ export default function CheckoutPage() {
                 : 'Select or add a delivery address'}
             </p>
 
-            {/* Guest contact info */}
+            {/* Mode Selector for unauthenticated guests */}
             {isGuest && (
+              <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <button
+                  type="button"
+                  onClick={() => setCheckoutMode('guest')}
+                  aria-pressed={checkoutMode === 'guest'}
+                  className={`flex items-start gap-4 rounded-[1.5rem] border-2 p-4 text-left transition-all sm:p-5 ${
+                    checkoutMode === 'guest'
+                      ? 'border-primary bg-brand-50/60 shadow-brand-glow'
+                      : 'border-foreground/[0.04] bg-card hover:border-foreground/[0.1] hover:shadow-bento-hover'
+                  }`}
+                >
+                  <div
+                    className={`mt-1 flex h-5 w-5 items-center justify-center rounded-full border-2 flex-shrink-0 ${
+                      checkoutMode === 'guest' ? 'border-primary' : 'border-gray-300'
+                    }`}
+                  >
+                    {checkoutMode === 'guest' && (
+                      <div className="h-2.5 w-2.5 rounded-full bg-primary" />
+                    )}
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-black text-gray-900">Checkout as Guest</h3>
+                    <p className="mt-1 text-xs font-medium text-gray-500">
+                      No account needed. Fast and simple checkout.
+                    </p>
+                  </div>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setCheckoutMode('login')}
+                  aria-pressed={checkoutMode === 'login'}
+                  className={`flex items-start gap-4 rounded-[1.5rem] border-2 p-4 text-left transition-all sm:p-5 ${
+                    checkoutMode === 'login'
+                      ? 'border-primary bg-brand-50/60 shadow-brand-glow'
+                      : 'border-foreground/[0.04] bg-card hover:border-foreground/[0.1] hover:shadow-bento-hover'
+                  }`}
+                >
+                  <div
+                    className={`mt-1 flex h-5 w-5 items-center justify-center rounded-full border-2 flex-shrink-0 ${
+                      checkoutMode === 'login' ? 'border-primary' : 'border-gray-300'
+                    }`}
+                  >
+                    {checkoutMode === 'login' && (
+                      <div className="h-2.5 w-2.5 rounded-full bg-primary" />
+                    )}
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-black text-gray-900">Sign In / Register</h3>
+                    <p className="mt-1 text-xs font-medium text-gray-500">
+                      Use saved addresses, track orders, and more.
+                    </p>
+                  </div>
+                </button>
+              </div>
+            )}
+
+            {/* Inline Login Form */}
+            {isGuest && checkoutMode === 'login' && (
+              <div className="bento-tile mb-6 p-6">
+                <div className="mb-4 flex items-center gap-3">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="text-primary"
+                  >
+                    <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
+                    <circle cx="12" cy="7" r="4" />
+                  </svg>
+                  <h3 className="section-title text-base">Sign In to Your Account</h3>
+                </div>
+                <CheckoutLoginForm />
+              </div>
+            )}
+
+            {/* Guest contact info */}
+            {isGuest && checkoutMode === 'guest' && (
               <GuestInfoForm
                 guestInfo={checkoutData.guestInfo}
-                onChange={(info) => setCheckoutData((prev) => ({ ...prev, guestInfo: info }))}
+                onChange={handleGuestInfoChange}
+                errors={validationErrors}
               />
             )}
 
             {/* Guest address form */}
-            {isGuest && (
+            {isGuest && checkoutMode === 'guest' && (
               <div className="mb-6">
                 <h3 className="mb-4 text-base font-black tracking-tight text-gray-900">
                   Delivery Address
                 </h3>
                 <GuestAddressForm
                   address={checkoutData.guestAddress}
-                  onChange={(addr) => setCheckoutData((prev) => ({ ...prev, guestAddress: addr }))}
+                  onChange={handleGuestAddressChange}
+                  errors={validationErrors}
                 />
               </div>
             )}
@@ -1193,16 +1558,18 @@ export default function CheckoutPage() {
               </>
             )}
 
-            <div className="flex justify-end border-t border-foreground/[0.04] pt-6">
-              <button
-                type="button"
-                onClick={handleAddressContinue}
-                disabled={!isAddressStepValid}
-                className="btn btn-primary btn-lg w-full sm:w-auto"
-              >
-                Continue to Shipping
-              </button>
-            </div>
+            {(!isGuest || checkoutMode === 'guest') && (
+              <div className="flex justify-end border-t border-foreground/[0.04] pt-6">
+                <button
+                  type="button"
+                  onClick={handleAddressContinue}
+                  disabled={shippingLoading || isSubmitting}
+                  className="btn btn-primary btn-lg w-full sm:w-auto"
+                >
+                  Continue to Shipping
+                </button>
+              </div>
+            )}
           </div>
         );
 
@@ -1636,9 +2003,42 @@ export default function CheckoutPage() {
     );
   }
 
+  // Surface cart price changes: CartItem.price is the snapshot at add-to-cart
+  // time; the variant/product carry the live price. If the admin changed the
+  // price since then, the customer's cart total still uses the snapshot —
+  // warn them once so they can review before placing the order.
+  const priceChangeNotices = (cart?.items ?? [])
+    .map((item) => {
+      const livePrice = Number(item.variant?.price ?? item.product.price);
+      const snapshotPrice = Number(item.price);
+      if (Math.abs(livePrice - snapshotPrice) <= 0.005) {
+        return null;
+      }
+      const label = item.variant
+        ? `${item.product.name} (${item.variant.name})`
+        : item.product.name;
+      return `The price of ${label} changed since you added it (was ৳${snapshotPrice.toFixed(2)}, now ৳${livePrice.toFixed(2)}).`;
+    })
+    .filter((m): m is string => m !== null);
+
   return (
     <div className="site-container px-4 py-6 sm:px-6 sm:py-8 lg:px-8 lg:py-10">
       <PageHeader title="Checkout" description="Complete your order in four quick steps." />
+
+      {priceChangeNotices.length > 0 && (
+        <div className="mb-6 rounded-lg border border-yellow-200 bg-yellow-50 px-4 py-3">
+          <p className="text-sm font-medium text-yellow-800">Prices have changed</p>
+          <ul className="mt-1 list-disc pl-5 text-sm text-yellow-700">
+            {priceChangeNotices.map((msg) => (
+              <li key={msg}>{msg}</li>
+            ))}
+          </ul>
+          <p className="mt-2 text-xs text-yellow-700">
+            Your cart total still uses the prices at the time you added these items. Remove and
+            re-add the items to use the latest price.
+          </p>
+        </div>
+      )}
 
       <Stepper
         currentStep={currentStep}

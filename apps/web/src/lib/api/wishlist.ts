@@ -28,14 +28,21 @@ export interface WishlistItem {
 // API Functions
 // ──────────────────────────────────────────────────────────
 
-export async function getWishlist(): Promise<WishlistItem[]> {
+export async function getWishlist(): Promise<{
+  items: WishlistItem[];
+  removedItems: { name: string; reason: 'archived' }[];
+}> {
   const response = await apiClient.get<{
     success: boolean;
     data: WishlistItem[];
     count: number;
+    removedItems?: { name: string; reason: 'archived' }[];
   }>('/wishlist');
 
-  return response.data.data;
+  return {
+    items: response.data.data,
+    removedItems: response.data.removedItems ?? [],
+  };
 }
 
 export async function addToWishlist(productId: string): Promise<void> {
@@ -74,10 +81,9 @@ export function formatPrice(price: number): string {
 /**
  * Calculate discount percentage between compare-at and current price.
  */
-export function getDiscountPercentage(
-  price: number,
-  compareAtPrice: number | null,
-): number | null {
-  if (!compareAtPrice || compareAtPrice <= price) return null;
+export function getDiscountPercentage(price: number, compareAtPrice: number | null): number | null {
+  if (!compareAtPrice || compareAtPrice <= price) {
+    return null;
+  }
   return Math.round(((compareAtPrice - price) / compareAtPrice) * 100);
 }

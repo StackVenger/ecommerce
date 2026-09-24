@@ -45,6 +45,7 @@ interface Product {
   isFeatured: boolean;
   shortDescription: string | null;
   stock: number;
+  defaultVariantId?: string;
 }
 
 interface Category {
@@ -61,9 +62,12 @@ interface Category {
 // ────────────────────────────────────────────────────────────────────────────
 
 function normalizeProduct(raw: any): Product {
+  const defaultVariant = Array.isArray(raw.variants)
+    ? (raw.variants.find((v: any) => v.isDefault === true) ?? raw.variants[0] ?? null)
+    : null;
+
   const defaultVariantImage: string | null = (() => {
-    const v = Array.isArray(raw.variants) ? raw.variants[0] : null;
-    const img = v?.images?.[0];
+    const img = defaultVariant?.images?.[0];
     if (!img) {
       return null;
     }
@@ -74,20 +78,35 @@ function normalizeProduct(raw: any): Product {
     ? raw.images.map((img: any) => (typeof img === 'string' ? img : img.url))
     : [];
 
+  const price = defaultVariant ? Number(defaultVariant.price) : Number(raw.price);
+  const compareAtPrice = defaultVariant
+    ? defaultVariant.compareAtPrice
+      ? Number(defaultVariant.compareAtPrice)
+      : undefined
+    : raw.compareAtPrice
+      ? Number(raw.compareAtPrice)
+      : undefined;
+  const stock = defaultVariant ? (defaultVariant.quantity ?? 0) : (raw.quantity ?? 0);
+  const defaultVariantId = defaultVariant ? defaultVariant.id : undefined;
+
   return {
     id: raw.id,
     name: raw.name,
     slug: raw.slug,
-    price: Number(raw.price),
-    compareAtPrice: raw.compareAtPrice ? Number(raw.compareAtPrice) : undefined,
+    price,
+    compareAtPrice,
     images: defaultVariantImage ? [defaultVariantImage, ...rawImages] : rawImages,
     averageRating: Number(raw.averageRating ?? 0),
-    reviewCount: raw._count?.reviews ?? raw.totalReviews ?? 0,
+    // Prefer the denormalized column — it's written by the same recompute
+    // helper as averageRating, so the stars and count always agree. _count
+    // is a fallback for any legacy response that lacks totalReviews.
+    reviewCount: raw.totalReviews ?? raw._count?.reviews ?? 0,
     brandName: raw.brand?.name ?? raw.brandName ?? null,
     categoryName: raw.category?.name ?? raw.categoryName ?? null,
     isFeatured: raw.isFeatured ?? false,
     shortDescription: raw.shortDescription ?? null,
-    stock: raw.quantity ?? 0,
+    stock,
+    defaultVariantId,
   };
 }
 
@@ -231,7 +250,7 @@ export default function HomePage() {
   const [sidebarBanners, setSidebarBanners] = useState<PromoBanner[]>([]);
   const [heroIndex, setHeroIndex] = useState(0);
   const [loading, setLoading] = useState(true);
-  const { addItem } = useCart();
+  const { cart, addItem } = useCart();
   const { wishlist, toggleWishlist } = useWishlist();
 
   useEffect(() => {
@@ -306,7 +325,14 @@ export default function HomePage() {
 
   const handleAddToCart = useCallback(
     (product: Product) => {
-      addItem({ productId: product.id, quantity: 1 });
+      addItem(
+        {
+          productId: product.id,
+          variantId: product.defaultVariantId,
+          quantity: 1,
+        },
+        { openDrawer: false },
+      );
     },
     [addItem],
   );
@@ -317,6 +343,7 @@ export default function HomePage() {
   // ── Render helpers ──
 
   function renderProductCard(product: Product) {
+    const isAlreadyInCart = cart?.items?.some((item) => item.productId === product.id);
     const discount = discountPercent(product.price, product.compareAtPrice);
 
     return (
@@ -332,6 +359,7 @@ export default function HomePage() {
         originalPrice={product.compareAtPrice}
         formatPrice={formatBDT}
         badges={discount > 0 ? [{ label: `-${discount}%`, tone: 'sale' }] : []}
+        inCart={isAlreadyInCart}
         outOfStock={product.stock <= 0}
         onAddToCart={() => handleAddToCart(product)}
         wishlisted={wishlist.has(product.id)}

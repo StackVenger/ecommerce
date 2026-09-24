@@ -1,3 +1,4 @@
+import { Type } from 'class-transformer';
 import {
   IsString,
   IsNotEmpty,
@@ -9,7 +10,6 @@ import {
   Min,
   MaxLength,
 } from 'class-validator';
-import { Type } from 'class-transformer';
 
 export class VariantAttributeValueDto {
   @IsString()
@@ -49,6 +49,12 @@ export class CreateVariantDto {
   @Min(0)
   @Type(() => Number)
   quantity?: number;
+
+  @IsNumber()
+  @IsOptional()
+  @Min(0)
+  @Type(() => Number)
+  lowStockThreshold?: number;
 
   @IsNumber({ maxDecimalPlaces: 2 })
   @IsOptional()
@@ -105,6 +111,12 @@ export class UpdateVariantDto {
   @Min(0)
   @Type(() => Number)
   quantity?: number;
+
+  @IsNumber()
+  @IsOptional()
+  @Min(0)
+  @Type(() => Number)
+  lowStockThreshold?: number;
 
   @IsNumber({ maxDecimalPlaces: 2 })
   @IsOptional()

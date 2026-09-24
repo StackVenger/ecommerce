@@ -55,6 +55,23 @@ interface Product {
   category: { name: string } | null;
   brand: { name: string } | null;
   createdAt: string;
+  variants?: {
+    id: string;
+    isActive: boolean;
+    isDefault: boolean;
+    quantity: number;
+    lowStockThreshold: number;
+    price: number;
+    images: { url: string; thumbnailUrl: string | null; alt: string | null }[];
+  }[];
+  inventory?: {
+    lowStockThreshold: number;
+    quantity: number;
+  } | null;
+  _count?: {
+    variants: number;
+    reviews: number;
+  };
 }
 
 interface PaginationMeta {
@@ -89,17 +106,68 @@ function StatusBadge({ status }: { status: string }) {
 // Stock Badge
 // ──────────────────────────────────────────────────────────
 
-function StockBadge({ stock }: { stock: number }) {
-  let color = 'bg-emerald-50 text-emerald-600';
-  if (stock <= 0) {
-    color = 'bg-rose-50 text-rose-600';
-  } else if (stock <= 10) {
-    color = 'bg-amber-50 text-amber-600';
-  }
+function StockBadge({ product }: { product: Product }) {
+  const activeVariants = product.variants ?? [];
+  const hasActiveVariants = activeVariants.length > 0;
 
-  return (
-    <span className={cn('pill', color)}>{stock <= 0 ? 'Out of stock' : `${stock} in stock`}</span>
-  );
+  if (hasActiveVariants) {
+    const totalStock = activeVariants.reduce((sum, v) => sum + v.quantity, 0);
+    const lowVariants = activeVariants.filter(
+      (v) => v.quantity > 0 && v.quantity <= v.lowStockThreshold,
+    );
+    const outVariants = activeVariants.filter((v) => v.quantity <= 0);
+
+    const allOut = activeVariants.every((v) => v.quantity <= 0);
+    const anyLow = lowVariants.length > 0;
+
+    let color = 'bg-emerald-50 text-emerald-600';
+    let text = `${totalStock} in stock`;
+
+    if (allOut) {
+      color = 'bg-rose-50 text-rose-600';
+      text = 'Out of stock';
+    } else if (anyLow) {
+      color = 'bg-amber-50 text-amber-600';
+      text = `Low stock — ${totalStock} left`;
+    }
+
+    // Build subtext
+    const subParts: string[] = [];
+    if (lowVariants.length > 0) {
+      subParts.push(`${lowVariants.length} of ${activeVariants.length} variants low`);
+    }
+    if (outVariants.length > 0) {
+      subParts.push(`${outVariants.length} out`);
+    }
+
+    return (
+      <div className="flex flex-col gap-1">
+        <div>
+          <span className={cn('pill', color)}>{text}</span>
+        </div>
+        {subParts.length > 0 && (
+          <span className="text-[11px] font-bold text-gray-500">{subParts.join(', ')}</span>
+        )}
+      </div>
+    );
+  } else {
+    // Non-variant products: use product.quantity and inventory.lowStockThreshold ?? 10
+    const stock = product.quantity;
+    const threshold = product.inventory?.lowStockThreshold ?? 10;
+
+    let color = 'bg-emerald-50 text-emerald-600';
+    let text = `${stock} in stock`;
+
+    if (stock <= 0) {
+      color = 'bg-rose-50 text-rose-600';
+      text = 'Out of stock';
+    } else if (stock <= threshold) {
+      color = 'bg-amber-50 text-amber-600';
+      text = `Low stock — ${stock} left`;
+    }
+
+    return <span className={cn('pill', color)}>{text}</span>;
+  }
 }
 
 // ──────────────────────────────────────────────────────────
@@ -159,6 +227,17 @@ export default function AdminProductsPage() {
 
   useEffect(() => {
     fetchProducts();
+  }, [fetchProducts]);
+
+  // Refetch when the admin tabs back to this page — stock changes whenever
+  // a customer places or cancels an order, and the StockBadge should reflect
+  // those decrements without forcing the admin to hit reload.
+  useEffect(() => {
+    const onFocus = () => {
+      fetchProducts();
+    };
+    window.addEventListener('focus', onFocus);
+    return () => window.removeEventListener('focus', onFocus);
   }, [fetchProducts]);
 
   // ─── Selection Handlers ───────────────────────────────────────────
@@ -448,113 +527,117 @@ export default function AdminProductsPage() {
                   </td>
                 </tr>
               ) : (
-                products.map((product) => (
-                  <tr
-                    key={product.id}
-                    className={cn('group', selectedIds.has(product.id) && 'bg-brand-50/60')}
-                  >
-                    <td>
-                      <input
-                        type="checkbox"
-                        checked={selectedIds.has(product.id)}
-                        onChange={() => toggleSelect(product.id)}
-                        aria-label={`Select ${product.name}`}
-                        className="h-4 w-4 rounded border-gray-300 text-brand-600 focus:ring-brand-500"
-                      />
-                    </td>
-                    <td>
-                      <div className="flex items-center gap-3">
-                        <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center overflow-hidden rounded-[14px] border border-foreground/[0.04] bg-gray-50 shadow-sm transition-transform group-hover:scale-105">
-                          {product.images?.[0]?.url ? (
-                            <img
-                              src={product.images[0].url}
-                              alt={product.images[0].alt || product.name}
-                              className="h-full w-full object-cover"
-                            />
-                          ) : (
-                            <ImageIcon className="h-5 w-5 text-gray-300" />
+                products.map((product) => {
+                  const coverImage =
+                    product.variants?.find((v) => v.isDefault)?.images?.[0] || product.images?.[0];
+                  return (
+                    <tr
+                      key={product.id}
+                      className={cn('group', selectedIds.has(product.id) && 'bg-brand-50/60')}
+                    >
+                      <td>
+                        <input
+                          type="checkbox"
+                          checked={selectedIds.has(product.id)}
+                          onChange={() => toggleSelect(product.id)}
+                          aria-label={`Select ${product.name}`}
+                          className="h-4 w-4 rounded border-gray-300 text-brand-600 focus:ring-brand-500"
+                        />
+                      </td>
+                      <td>
+                        <div className="flex items-center gap-3">
+                          <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center overflow-hidden rounded-[14px] border border-foreground/[0.04] bg-gray-50 shadow-sm transition-transform group-hover:scale-105">
+                            {coverImage?.url ? (
+                              <img
+                                src={coverImage.url}
+                                alt={coverImage.alt || product.name}
+                                className="h-full w-full object-cover"
+                              />
+                            ) : (
+                              <ImageIcon className="h-5 w-5 text-gray-300" />
+                            )}
+                          </div>
+                          <div className="min-w-0 max-w-[18rem]">
+                            <Link
+                              href={`/admin/products/${product.id}/edit`}
+                              className="block truncate text-sm font-black text-gray-900 transition-colors hover:text-brand-600"
+                            >
+                              {product.name}
+                            </Link>
+                            <p className="truncate text-[11px] font-bold text-gray-500">
+                              <span className="tracking-wider 2xl:hidden">{product.sku}</span>
+                              {product.brand && (
+                                <>
+                                  <span className="2xl:hidden"> · </span>
+                                  {product.brand.name}
+                                </>
+                              )}
+                            </p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="hidden whitespace-nowrap text-xs font-bold tracking-wider text-gray-500 2xl:table-cell">
+                        {product.sku}
+                      </td>
+                      <td className="whitespace-nowrap">
+                        <div className="flex flex-col">
+                          <span className="text-sm font-black tabular-nums tracking-tighter text-gray-900">
+                            {formatBDT(Number(product.price))}
+                          </span>
+                          {product.compareAtPrice && (
+                            <span className="text-[11px] font-bold text-gray-400 line-through">
+                              {formatBDT(Number(product.compareAtPrice))}
+                            </span>
                           )}
                         </div>
-                        <div className="min-w-0 max-w-[18rem]">
+                      </td>
+                      <td className="whitespace-nowrap">
+                        <StockBadge product={product} />
+                      </td>
+                      <td className="whitespace-nowrap">
+                        {product.category?.name ? (
+                          <span className="rounded-xl bg-gray-100 px-3 py-1.5 text-[11px] font-bold text-gray-600">
+                            {product.category.name}
+                          </span>
+                        ) : (
+                          <span className="text-gray-400">—</span>
+                        )}
+                      </td>
+                      <td className="whitespace-nowrap">
+                        <StatusBadge status={product.status} />
+                      </td>
+                      <td className="whitespace-nowrap text-right">
+                        <div className="flex items-center justify-end gap-1">
+                          <Link
+                            href={`/products/${product.slug}`}
+                            target="_blank"
+                            className="rounded-xl p-2 text-gray-400 transition-all hover:bg-card hover:text-gray-900 hover:shadow-md"
+                            title="View on store"
+                            aria-label={`View ${product.name} on store`}
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Link>
                           <Link
                             href={`/admin/products/${product.id}/edit`}
-                            className="block truncate text-sm font-black text-gray-900 transition-colors hover:text-brand-600"
+                            className="rounded-xl p-2 text-gray-400 transition-all hover:bg-card hover:text-gray-900 hover:shadow-md"
+                            title="Edit"
+                            aria-label={`Edit ${product.name}`}
                           >
-                            {product.name}
+                            <Edit className="h-4 w-4" />
                           </Link>
-                          <p className="truncate text-[11px] font-bold text-gray-500">
-                            <span className="tracking-wider 2xl:hidden">{product.sku}</span>
-                            {product.brand && (
-                              <>
-                                <span className="2xl:hidden"> · </span>
-                                {product.brand.name}
-                              </>
-                            )}
-                          </p>
+                          <button
+                            onClick={() => handleDeleteOne(product.id, product.name)}
+                            className="rounded-xl p-2 text-gray-400 transition-all hover:bg-rose-50 hover:text-rose-600"
+                            title="Delete"
+                            aria-label={`Delete ${product.name}`}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
                         </div>
-                      </div>
-                    </td>
-                    <td className="hidden whitespace-nowrap text-xs font-bold tracking-wider text-gray-500 2xl:table-cell">
-                      {product.sku}
-                    </td>
-                    <td className="whitespace-nowrap">
-                      <div className="flex flex-col">
-                        <span className="text-sm font-black tabular-nums tracking-tighter text-gray-900">
-                          {formatBDT(Number(product.price))}
-                        </span>
-                        {product.compareAtPrice && (
-                          <span className="text-[11px] font-bold text-gray-400 line-through">
-                            {formatBDT(Number(product.compareAtPrice))}
-                          </span>
-                        )}
-                      </div>
-                    </td>
-                    <td className="whitespace-nowrap">
-                      <StockBadge stock={product.quantity} />
-                    </td>
-                    <td className="whitespace-nowrap">
-                      {product.category?.name ? (
-                        <span className="rounded-xl bg-gray-100 px-3 py-1.5 text-[11px] font-bold text-gray-600">
-                          {product.category.name}
-                        </span>
-                      ) : (
-                        <span className="text-gray-400">—</span>
-                      )}
-                    </td>
-                    <td className="whitespace-nowrap">
-                      <StatusBadge status={product.status} />
-                    </td>
-                    <td className="whitespace-nowrap text-right">
-                      <div className="flex items-center justify-end gap-1">
-                        <Link
-                          href={`/products/${product.slug}`}
-                          target="_blank"
-                          className="rounded-xl p-2 text-gray-400 transition-all hover:bg-card hover:text-gray-900 hover:shadow-md"
-                          title="View on store"
-                          aria-label={`View ${product.name} on store`}
-                        >
-                          <Eye className="h-4 w-4" />
-                        </Link>
-                        <Link
-                          href={`/admin/products/${product.id}/edit`}
-                          className="rounded-xl p-2 text-gray-400 transition-all hover:bg-card hover:text-gray-900 hover:shadow-md"
-                          title="Edit"
-                          aria-label={`Edit ${product.name}`}
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Link>
-                        <button
-                          onClick={() => handleDeleteOne(product.id, product.name)}
-                          className="rounded-xl p-2 text-gray-400 transition-all hover:bg-rose-50 hover:text-rose-600"
-                          title="Delete"
-                          aria-label={`Delete ${product.name}`}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>

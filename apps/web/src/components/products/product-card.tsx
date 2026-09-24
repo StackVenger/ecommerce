@@ -1,6 +1,6 @@
 'use client';
 
-import { Heart, Package, ShoppingCart, Star } from 'lucide-react';
+import { Check, Heart, Package, ShoppingCart, Star } from 'lucide-react';
 import Link from 'next/link';
 import { useState } from 'react';
 
@@ -42,6 +42,8 @@ interface ProductCardProps {
   /** Omit to render a browse-only card with no cart button. */
   onAddToCart?: (e: React.MouseEvent<HTMLButtonElement>) => void;
   addDisabled?: boolean;
+  /** The product is already in the cart: button disables and shows a check ("Added to cart"). */
+  inCart?: boolean;
   /** Omit `onToggleWishlist` to hide the heart. */
   wishlisted?: boolean;
   onToggleWishlist?: (e: React.MouseEvent<HTMLButtonElement>) => void;
@@ -74,6 +76,7 @@ export function ProductCard({
   outOfStock = false,
   onAddToCart,
   addDisabled = false,
+  inCart = false,
   wishlisted = false,
   onToggleWishlist,
   layout = 'grid',
@@ -167,17 +170,24 @@ export function ProductCard({
       <button
         type="button"
         onClick={onAddToCart}
-        disabled={addDisabled}
-        aria-label={`Add ${name} to cart`}
-        title="Add to cart"
+        disabled={addDisabled || inCart}
+        aria-label={inCart ? `${name} is in your cart` : `Add ${name} to cart`}
+        title={inCart ? 'Added to cart' : 'Add to cart'}
         className={cn(
-          'relative z-10 flex shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-600 shadow-sm transition-all hover:bg-primary hover:text-white active:scale-95 disabled:opacity-50',
+          'relative z-10 flex shrink-0 items-center justify-center rounded-xl shadow-sm transition-all active:scale-95',
+          inCart
+            ? 'cursor-not-allowed bg-emerald-50 text-emerald-600'
+            : 'bg-brand-50 text-brand-600 hover:bg-primary hover:text-white disabled:opacity-50',
           compact ? 'h-8 w-8' : 'h-10 w-10',
           isList && 'w-auto gap-2 px-4 text-xs font-black',
         )}
       >
-        <ShoppingCart className={compact ? 'h-3.5 w-3.5' : 'h-4 w-4'} strokeWidth={2.5} />
-        {isList && <span>Add to cart</span>}
+        {inCart ? (
+          <Check className={compact ? 'h-3.5 w-3.5' : 'h-4 w-4'} strokeWidth={3} />
+        ) : (
+          <ShoppingCart className={compact ? 'h-3.5 w-3.5' : 'h-4 w-4'} strokeWidth={2.5} />
+        )}
+        {isList && <span>{inCart ? 'Added to cart' : 'Add to cart'}</span>}
       </button>
     )
   ) : null;

@@ -17,11 +17,12 @@ function formatPrice(price: number) {
 }
 
 export function ChatProductCards({ products }: ChatProductCardsProps) {
-  const { addItem } = useCart();
+  const { cart, addItem } = useCart();
 
   return (
     <div className="flex gap-2.5 overflow-x-auto pb-2 -mx-1 px-1 scrollbar-none">
       {products.map((product) => {
+        const isAlreadyInCart = cart?.items?.some((item) => item.productId === product.id);
         const hasDiscount = product.compareAtPrice && product.compareAtPrice > product.price;
         const discountPercent = hasDiscount
           ? Math.round(((product.compareAtPrice! - product.price) / product.compareAtPrice!) * 100)
@@ -42,7 +43,10 @@ export function ChatProductCards({ products }: ChatProductCardsProps) {
             formatPrice={formatPrice}
             badges={hasDiscount ? [{ label: `-${discountPercent}%`, tone: 'sale' }] : []}
             outOfStock={!product.inStock}
-            onAddToCart={() => addItem({ productId: product.id, quantity: 1 })}
+            inCart={isAlreadyInCart}
+            onAddToCart={() =>
+              addItem({ productId: product.id, quantity: 1 }, { openDrawer: false })
+            }
           />
         );
       })}

@@ -83,13 +83,16 @@ export class OrdersController {
   // ─── Guest Order Lookup ─────────────────────────────────────────────────────
 
   /**
-   * Look up a guest order by order number + email.
+   * Look up an order for the public tracker page by order number alone.
+   * The response is intentionally minimal — only the fields the tracker UI
+   * renders. No address, no contact info, no internal IDs. Any extra query
+   * params (e.g. legacy `&email=`) are ignored.
    *
-   * GET /orders/guest?orderNumber=X&email=Y
+   * GET /orders/guest?orderNumber=X
    */
   @Get('orders/guest')
-  async findGuestOrder(@Query('orderNumber') orderNumber: string, @Query('email') email: string) {
-    const result = await this.ordersService.findGuestOrder(orderNumber, email);
+  async findGuestOrder(@Query('orderNumber') orderNumber: string) {
+    const result = await this.ordersService.findGuestOrder(orderNumber);
     return { success: true, data: result };
   }
 

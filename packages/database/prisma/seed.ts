@@ -2247,8 +2247,11 @@ async function seedProducts(brandMap: Record<string, string>) {
       isFeatured: p.isFeatured,
       weight: p.weight,
       weightUnit: 'kg',
-      averageRating: +(3.5 + Math.random() * 1.4).toFixed(1),
-      totalReviews: Math.floor(10 + Math.random() * 290),
+      // averageRating + totalReviews are denormalized aggregates that should
+      // reflect the actual approved Review rows seeded later. We don't write
+      // random values here — that would create a mismatch between the stars
+      // (read from these columns) and the count of real reviews. The seed
+      // runs recomputeProductRatingStats() over every product at the end.
     };
 
     const product = await prisma.product.upsert({
@@ -4190,6 +4193,33 @@ async function seedReviews() {
   );
 }
 
+/**
+ * Recompute Product.averageRating + Product.totalReviews from the seeded
+ * Review rows. Mirrors apps/api/src/reviews/reviews.service.ts
+ * `recomputeProductRatingStats` — counts only APPROVED reviews so the
+ * storefront's stars match what visitors will see for live customer reviews.
+ */
+async function recomputeAllRatingStats() {
+  const products = await prisma.product.findMany({ select: { id: true } });
+  let updated = 0;
+  for (const { id } of products) {
+    const stats = await prisma.review.aggregate({
+      where: { productId: id, status: 'APPROVED' },
+      _avg: { rating: true },
+      _count: { id: true },
+    });
+    await prisma.product.update({
+      where: { id },
+      data: {
+        averageRating: Math.round((stats._avg.rating ?? 0) * 100) / 100,
+        totalReviews: stats._count.id,
+      },
+    });
+    updated += 1;
+  }
+  console.log(`  Recomputed rating stats for ${updated} products`);
+}
+
 // ---------------------------------------------------------------------------
 // Main
 // ---------------------------------------------------------------------------
@@ -4211,6 +4241,10 @@ async function main() {
   await seedThemeSettings();
   await seedOrders();
   await seedReviews();
+  // Reviews are the source of truth — recompute the denormalized aggregates
+  // last so the homepage / list pages render the right star count from the
+  // moment the seed finishes.
+  await recomputeAllRatingStats();
 
   console.log('\nSeed completed successfully.');
 }

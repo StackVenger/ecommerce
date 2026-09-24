@@ -8,14 +8,17 @@ import {
   Param,
   UseGuards,
   Headers,
+  UnauthorizedException,
+  BadRequestException,
 } from '@nestjs/common';
 
 import { CartService } from './cart.service';
 import { AddCartItemDto } from './dto/add-cart-item.dto';
-import { UpdateCartItemDto } from './dto/update-cart-item.dto';
 import { ApplyCouponDto } from './dto/apply-coupon.dto';
-import { OptionalAuthGuard } from '../auth/guards/optional-auth.guard';
+import { UpdateCartItemDto } from './dto/update-cart-item.dto';
 import { CurrentUser, AuthenticatedUser } from '../auth/decorators/current-user.decorator';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { OptionalAuthGuard } from '../auth/guards/optional-auth.guard';
 
 /**
  * Shopping cart controller.
@@ -40,10 +43,7 @@ export class CartController {
     @CurrentUser() user: AuthenticatedUser | null,
     @Headers('x-session-id') sessionId?: string,
   ) {
-    return this.cartService.getCart(
-      user?.id,
-      !user ? sessionId : undefined,
-    );
+    return this.cartService.getCart(user?.id, !user ? sessionId : undefined);
   }
 
   /**
@@ -56,10 +56,7 @@ export class CartController {
     @CurrentUser() user: AuthenticatedUser | null,
     @Headers('x-session-id') sessionId?: string,
   ) {
-    return this.cartService.getOrCreateCart(
-      user?.id,
-      !user ? sessionId : undefined,
-    );
+    return this.cartService.getOrCreateCart(user?.id, !user ? sessionId : undefined);
   }
 
   // ─── Items ────────────────────────────────────────────────────────────────────
@@ -75,11 +72,7 @@ export class CartController {
     @CurrentUser() user: AuthenticatedUser | null,
     @Headers('x-session-id') sessionId?: string,
   ) {
-    return this.cartService.addItem(
-      dto,
-      user?.id,
-      !user ? sessionId : undefined,
-    );
+    return this.cartService.addItem(dto, user?.id, !user ? sessionId : undefined);
   }
 
   /**
@@ -113,11 +106,7 @@ export class CartController {
     @CurrentUser() user: AuthenticatedUser | null,
     @Headers('x-session-id') sessionId?: string,
   ) {
-    return this.cartService.removeItem(
-      itemId,
-      user?.id,
-      !user ? sessionId : undefined,
-    );
+    return this.cartService.removeItem(itemId, user?.id, !user ? sessionId : undefined);
   }
 
   /**
@@ -130,10 +119,7 @@ export class CartController {
     @CurrentUser() user: AuthenticatedUser | null,
     @Headers('x-session-id') sessionId?: string,
   ) {
-    return this.cartService.clearCart(
-      user?.id,
-      !user ? sessionId : undefined,
-    );
+    return this.cartService.clearCart(user?.id, !user ? sessionId : undefined);
   }
 
   // ─── Coupon ───────────────────────────────────────────────────────────────────
@@ -152,11 +138,7 @@ export class CartController {
     @CurrentUser() user: AuthenticatedUser | null,
     @Headers('x-session-id') sessionId?: string,
   ) {
-    return this.cartService.applyCoupon(
-      dto,
-      user?.id,
-      !user ? sessionId : undefined,
-    );
+    return this.cartService.applyCoupon(dto, user?.id, !user ? sessionId : undefined);
   }
 
   /**
@@ -169,10 +151,7 @@ export class CartController {
     @CurrentUser() user: AuthenticatedUser | null,
     @Headers('x-session-id') sessionId?: string,
   ) {
-    return this.cartService.removeCoupon(
-      user?.id,
-      !user ? sessionId : undefined,
-    );
+    return this.cartService.removeCoupon(user?.id, !user ? sessionId : undefined);
   }
 
   // ─── Merge ────────────────────────────────────────────────────────────────────
@@ -183,12 +162,16 @@ export class CartController {
    * POST /cart/merge
    */
   @Post('merge')
+  @UseGuards(JwtAuthGuard)
   async mergeGuestCart(
     @CurrentUser() user: AuthenticatedUser,
     @Headers('x-session-id') sessionId: string,
   ) {
-    if (!user?.id || !sessionId) {
-      return this.cartService.getOrCreateCart(user?.id);
+    if (!user?.id) {
+      throw new UnauthorizedException('You must be logged in to merge a cart');
+    }
+    if (!sessionId) {
+      throw new BadRequestException('Session ID is required to merge a cart');
     }
 
     return this.cartService.mergeGuestCart(user.id, sessionId);

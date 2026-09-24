@@ -23,6 +23,7 @@ interface Product {
   categoryName: string | null;
   brandName: string | null;
   stock: number;
+  defaultVariantId?: string;
 }
 
 interface Pagination {
@@ -33,22 +34,46 @@ interface Pagination {
 }
 
 function normalizeProduct(raw: any): Product {
-  const price = Number(raw.price);
-  const cap = raw.compareAtPrice ? Number(raw.compareAtPrice) : null;
+  const defaultVariant = Array.isArray(raw.variants)
+    ? (raw.variants.find((v: any) => v.isDefault === true) ?? raw.variants[0] ?? null)
+    : null;
+
+  const defaultVariantImage: string | null = (() => {
+    const img = defaultVariant?.images?.[0];
+    if (!img) {
+      return null;
+    }
+    return typeof img === 'string' ? img : (img.url ?? null);
+  })();
+
+  const rawImages: string[] = Array.isArray(raw.images)
+    ? raw.images.map((img: any) => (typeof img === 'string' ? img : img.url))
+    : [];
+
+  const price = defaultVariant ? Number(defaultVariant.price) : Number(raw.price);
+  const cap = defaultVariant
+    ? defaultVariant.compareAtPrice
+      ? Number(defaultVariant.compareAtPrice)
+      : null
+    : raw.compareAtPrice
+      ? Number(raw.compareAtPrice)
+      : null;
+  const stock = defaultVariant ? (defaultVariant.quantity ?? 0) : (raw.quantity ?? 0);
+  const defaultVariantId = defaultVariant ? defaultVariant.id : undefined;
+
   return {
     id: raw.id,
     name: raw.name,
     slug: raw.slug,
     price,
     compareAtPrice: cap && cap > price ? cap : null,
-    images: Array.isArray(raw.images)
-      ? raw.images.map((img: any) => (typeof img === 'string' ? img : img.url))
-      : [],
+    images: defaultVariantImage ? [defaultVariantImage, ...rawImages] : rawImages,
     averageRating: Number(raw.averageRating ?? 0),
-    reviewCount: raw._count?.reviews ?? raw.totalReviews ?? 0,
+    reviewCount: raw.totalReviews ?? raw._count?.reviews ?? 0,
     categoryName: raw.category?.name ?? null,
     brandName: raw.brand?.name ?? null,
-    stock: raw.quantity ?? 0,
+    stock,
+    defaultVariantId,
   };
 }
 
@@ -62,7 +87,7 @@ const SORT_OPTIONS = [
 export default function SearchPage() {
   const searchParams = useSearchParams();
   const q = searchParams.get('q') ?? '';
-  const { addItem, isUpdating } = useCart();
+  const { cart, addItem, isUpdating } = useCart();
 
   const [products, setProducts] = useState<Product[]>([]);
   const [pagination, setPagination] = useState<Pagination | null>(null);
@@ -121,7 +146,14 @@ export default function SearchPage() {
     if (product.stock <= 0) {
       return;
     }
-    addItem({ productId: product.id, quantity: 1 });
+    addItem(
+      {
+        productId: product.id,
+        variantId: product.defaultVariantId,
+        quantity: 1,
+      },
+      { openDrawer: false },
+    );
   };
 
   if (!q) {
@@ -208,6 +240,7 @@ export default function SearchPage() {
         ) : (
           <ProductGrid>
             {products.map((product) => {
+              const isAlreadyInCart = cart?.items?.some((item) => item.productId === product.id);
               const hasDiscount = product.compareAtPrice !== null;
               const discountPercent = hasDiscount
                 ? Math.round(
@@ -228,6 +261,7 @@ export default function SearchPage() {
                   originalPrice={product.compareAtPrice}
                   formatPrice={formatPrice}
                   badges={hasDiscount ? [{ label: `-${discountPercent}%`, tone: 'sale' }] : []}
+                  inCart={isAlreadyInCart}
                   outOfStock={product.stock <= 0}
                   onAddToCart={(e) => handleQuickAdd(e, product)}
                   addDisabled={isUpdating}

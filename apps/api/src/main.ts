@@ -1,17 +1,26 @@
-import { NestFactory } from '@nestjs/core';
+import { join } from 'path';
+
 import { ValidationPipe, Logger, VersioningType } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { NestFactory } from '@nestjs/core';
+import { type NestExpressApplication } from '@nestjs/platform-express';
 
 import { AppModule } from './app.module';
 import { setupSwagger } from './common/swagger/swagger.config';
 
 async function bootstrap(): Promise<void> {
   const logger = new Logger('Bootstrap');
-  const app = await NestFactory.create(AppModule, {
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, {
     logger: ['log', 'error', 'warn', 'debug', 'verbose'],
   });
 
   const configService = app.get(ConfigService);
+
+  // Serve static uploads
+  const uploadDir = configService.get<string>('UPLOAD_DIR', join(process.cwd(), 'uploads'));
+  app.useStaticAssets(uploadDir, {
+    prefix: '/uploads',
+  });
 
   // Global prefix
   app.setGlobalPrefix('api');
@@ -24,7 +33,10 @@ async function bootstrap(): Promise<void> {
 
   // CORS configuration
   const corsOrigin = configService.get<string>('CORS_ORIGIN', 'http://localhost:3000');
-  const allowedOrigins = corsOrigin.split(',').map((o) => o.trim()).filter(Boolean);
+  const allowedOrigins = corsOrigin
+    .split(',')
+    .map((o) => o.trim())
+    .filter(Boolean);
   app.enableCors({
     origin: allowedOrigins.length === 1 ? allowedOrigins[0] : allowedOrigins,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
@@ -62,4 +74,4 @@ async function bootstrap(): Promise<void> {
   logger.log(`Environment: ${configService.get<string>('NODE_ENV', 'development')}`);
 }
 
-bootstrap();
+void bootstrap();

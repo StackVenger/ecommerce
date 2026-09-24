@@ -1,12 +1,4 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Delete,
-  Param,
-  UseGuards,
-  Req,
-} from '@nestjs/common';
+import { Controller, Get, Post, Delete, Param, UseGuards, Req } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { Request } from 'express';
 
@@ -20,20 +12,18 @@ export class WishlistController {
   @Get()
   async getWishlist(@Req() req: Request) {
     const userId = (req.user as any).id;
-    const items = await this.wishlistService.getWishlist(userId);
+    const { items, removedItems } = await this.wishlistService.getWishlist(userId);
 
     return {
       success: true,
       data: items,
       count: items.length,
+      removedItems,
     };
   }
 
   @Post(':productId')
-  async addToWishlist(
-    @Req() req: Request,
-    @Param('productId') productId: string,
-  ) {
+  async addToWishlist(@Req() req: Request, @Param('productId') productId: string) {
     const userId = (req.user as any).id;
     const item = await this.wishlistService.addToWishlist(userId, productId);
 
@@ -45,10 +35,7 @@ export class WishlistController {
   }
 
   @Delete(':productId')
-  async removeFromWishlist(
-    @Req() req: Request,
-    @Param('productId') productId: string,
-  ) {
+  async removeFromWishlist(@Req() req: Request, @Param('productId') productId: string) {
     const userId = (req.user as any).id;
     const result = await this.wishlistService.removeFromWishlist(userId, productId);
 
@@ -60,10 +47,7 @@ export class WishlistController {
   }
 
   @Get('check/:productId')
-  async isInWishlist(
-    @Req() req: Request,
-    @Param('productId') productId: string,
-  ) {
+  async isInWishlist(@Req() req: Request, @Param('productId') productId: string) {
     const userId = (req.user as any).id;
     const inWishlist = await this.wishlistService.isInWishlist(userId, productId);
 

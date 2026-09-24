@@ -45,6 +45,12 @@ export interface Cart {
   total: number;
   itemCount: number;
   couponCode: string | null;
+  /**
+   * Items the server silently removed on this load (product archived /
+   * variant deactivated). Frontend should surface a one-time toast and
+   * not persist this across re-renders.
+   */
+  removedItems?: { name: string; reason: 'archived' | 'variant_inactive' }[];
   createdAt: string;
   updatedAt: string;
 }
@@ -204,8 +210,12 @@ export async function removeCoupon(): Promise<Cart> {
  * Merge a guest cart into the authenticated user's cart (called after login).
  */
 export async function mergeCart(): Promise<Cart> {
-  const { data } = await apiClient.post<Cart>('/cart/merge', null, {
-    headers: sessionHeaders(),
-  });
+  const { data } = await apiClient.post<Cart>(
+    '/cart/merge',
+    {},
+    {
+      headers: sessionHeaders(),
+    },
+  );
   return data;
 }

@@ -164,6 +164,18 @@ export class ProductsController {
   }
 
   /**
+   * Resolve a historical slug to the product's current canonical slug.
+   * The storefront calls this when /products/[slug] 404s so it can issue
+   * a 301 redirect to the new URL instead of dropping the user on a 404.
+   * Declared before the public :slug route so Nest matches it first.
+   */
+  @Get('slug-alias/:slug')
+  @Public()
+  async resolveSlugAlias(@Param('slug') slug: string) {
+    return this.productsService.resolveSlugAlias(slug);
+  }
+
+  /**
    * Get a single product by slug with full details.
    * Public endpoint - no authentication required.
    */

@@ -62,6 +62,9 @@ model User {
   carts         Cart[]
   orders        Order[]
   reviews       Review[]
+  reviewHelpfuls ReviewHelpful[]
+  askedQuestions    ProductQuestion[] @relation("AskedQuestions")
+  answeredQuestions ProductQuestion[] @relation("AnsweredQuestions")
   wishlists     Wishlist[]
   notifications Notification[]
   auditLogs     AuditLog[]
@@ -101,7 +104,7 @@ model Address {
   phone        String
   addressLine1 String
   addressLine2 String?
-  city         String?
+  city         String   @default("")
   division     String
   district     String
   area         String?
@@ -216,8 +219,10 @@ model Product {
   cartItems   CartItem[]
   orderItems  OrderItem[]
   reviews     Review[]
+  questions   ProductQuestion[]
   wishlists   Wishlist[]
   viewEvents  ProductViewEvent[]
+  slugAliases ProductSlugAlias[]
 
   @@index([slug])
   @@index([categoryId])
@@ -226,6 +231,20 @@ model Product {
   @@index([price])
   @@index([createdAt])
   @@map("products")
+}
+
+/// Historical slug -> product mapping. Populated whenever an admin renames a
+/// product's slug so old URLs can 301-redirect instead of 404.
+model ProductSlugAlias {
+  id        String   @id @default(cuid())
+  productId String
+  oldSlug   String   @unique
+  createdAt DateTime @default(now())
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([productId])
+  @@map("product_slug_aliases")
 }
 
 model ProductVariant {
@@ -237,6 +256,7 @@ model ProductVariant {
   compareAtPrice Decimal? @db.Decimal(10, 2)
   costPrice      Decimal? @db.Decimal(10, 2)
   quantity       Int      @default(0)
+  lowStockThreshold Int   @default(10)
   weight         Decimal? @db.Decimal(8, 2)
   weightUnit     String?  @default("kg")
   isActive       Boolean  @default(true)
@@ -317,6 +337,7 @@ model ProductImage {
 model Inventory {
   id               String   @id @default(cuid())
   productId        String   @unique
+  /// @deprecated — superseded by Product.quantity / ProductVariant.quantity
   quantity         Int      @default(0)
   reservedQuantity Int      @default(0)
   lowStockThreshold Int     @default(10)
@@ -385,8 +406,8 @@ model CartItem {
   updatedAt DateTime @updatedAt
 
   cart    Cart            @relation(fields: [cartId], references: [id], onDelete: Cascade)
-  product Product         @relation(fields: [productId], references: [id])
-  variant ProductVariant? @relation(fields: [variantId], references: [id])
+  product Product         @relation(fields: [productId], references: [id], onDelete: Cascade)
+  variant ProductVariant? @relation(fields: [variantId], references: [id], onDelete: Cascade)
 
   @@unique([cartId, productId, variantId])
   @@map("cart_items")
@@ -425,6 +446,12 @@ model Order {
   deliveredAt         DateTime?
   cancelledAt         DateTime?
   cancellationReason  String?
+  /// Whether the order's line-item stock has been decremented. Set true at
+  /// placement (default flow) or at PENDING→CONFIRMED transition (safety net
+  /// for legacy orders that pre-date this field). Cancellation only restores
+  /// stock when this is true, preventing double-restore on orders that were
+  /// never decremented.
+  stockCommitted      Boolean       @default(false)
   createdAt           DateTime      @default(now())
   updatedAt           DateTime      @updatedAt
 
@@ -560,19 +587,25 @@ model ShippingMethod {
 }
 
 model OrderShipping {
-  id               String   @id @default(cuid())
-  orderId          String   @unique
-  shippingMethodId String
-  trackingNumber   String?
-  carrier          String?
+  id                String    @id @default(cuid())
+  orderId           String    @unique
+  /// FK to shipping_methods. Optional because runtime checkout uses
+  /// hardcoded codes ('standard', 'express') that may not have a row yet —
+  /// see methodCode for that case.
+  shippingMethodId  String?
+  /// Snapshot of the shipping method code at order time ('standard' / 'express' / DB id).
+  methodCode        String?
+  cost              Decimal   @default(0) @db.Decimal(10, 2)
+  trackingNumber    String?
+  carrier           String?
   estimatedDelivery DateTime?
-  shippedAt        DateTime?
-  deliveredAt      DateTime?
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  shippedAt         DateTime?
+  deliveredAt       DateTime?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
 
-  order          Order          @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  shippingMethod ShippingMethod @relation(fields: [shippingMethodId], references: [id])
+  order          Order           @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  shippingMethod ShippingMethod? @relation(fields: [shippingMethodId], references: [id])
 
   @@map("order_shippings")
 }
@@ -586,27 +619,64 @@ enum ReviewStatus {
 }
 
 model Review {
-  id         String       @id @default(cuid())
-  productId  String
-  userId     String
-  rating     Int
-  title      String?
-  comment    String?
-  images     String[]     @default([])
-  status     ReviewStatus @default(PENDING)
-  isVerified Boolean      @default(false)
-  adminReply String?
-  repliedAt  DateTime?
-  createdAt  DateTime     @default(now())
-  updatedAt  DateTime     @updatedAt
+  id           String       @id @default(cuid())
+  productId    String
+  userId       String
+  rating       Int
+  title        String?
+  comment      String?
+  images       String[]     @default([])
+  status       ReviewStatus @default(PENDING)
+  isVerified   Boolean      @default(false)
+  adminReply   String?
+  repliedAt    DateTime?
+  helpfulCount Int          @default(0)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
 
-  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
-  user    User    @relation(fields: [userId], references: [id])
+  product      Product         @relation(fields: [productId], references: [id], onDelete: Cascade)
+  user         User            @relation(fields: [userId], references: [id])
+  helpfulVotes ReviewHelpful[]
 
   @@unique([productId, userId])
   @@index([productId])
   @@index([status])
   @@map("reviews")
+}
+
+model ReviewHelpful {
+  id        String   @id @default(cuid())
+  reviewId  String
+  userId    String
+  createdAt DateTime @default(now())
+
+  review Review @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([reviewId, userId])
+  @@index([reviewId])
+  @@map("review_helpful")
+}
+
+model ProductQuestion {
+  id         String    @id @default(cuid())
+  productId  String
+  userId     String?
+  question   String
+  answer     String?
+  answeredBy String?
+  answeredAt DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  product  Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  user     User?   @relation("AskedQuestions", fields: [userId], references: [id], onDelete: SetNull)
+  answerer User?   @relation("AnsweredQuestions", fields: [answeredBy], references: [id], onDelete: SetNull)
+
+  @@index([productId])
+  @@index([userId])
+  @@index([answeredBy])
+  @@map("product_questions")
 }
 
 // ─── Wishlist ────────────────────────────────────────────────────────────────
@@ -665,6 +735,10 @@ model Banner {
   id          String         @id @default(cuid())
   title       String
   titleBn     String?
+  subtitle    String?
+  subtitleBn  String?
+  ctaText     String?
+  ctaTextBn   String?
   image       String
   mobileImage String?
   link        String?

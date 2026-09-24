@@ -6,7 +6,12 @@ import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 
 import { EmptyState, IconTile, PageHeader } from '@/components/ui/bento';
-import { trackGuestOrder, getStatusLabel, formatOrderAmount, type Order } from '@/lib/api/orders';
+import {
+  trackGuestOrder,
+  getStatusLabel,
+  formatOrderAmount,
+  type TrackedOrderSummary,
+} from '@/lib/api/orders';
 
 // ──────────────────────────────────────────────────────────
 // Status Color Map
@@ -37,37 +42,37 @@ function getStatusColor(status: string): string {
 
 export default function TrackOrderPage() {
   const searchParams = useSearchParams();
+  // `email` may still be present in legacy URLs from old confirmation emails;
+  // we read but ignore it (the backend ignores it too).
   const prefillOrderNumber = searchParams.get('orderNumber') || '';
-  const prefillEmail = searchParams.get('email') || '';
 
   const [orderNumber, setOrderNumber] = useState(prefillOrderNumber);
-  const [email, setEmail] = useState(prefillEmail);
-  const [order, setOrder] = useState<Order | null>(null);
+  const [order, setOrder] = useState<TrackedOrderSummary | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
 
-  // Auto-search if prefilled from checkout redirect
+  // Auto-search if prefilled from checkout redirect or a tracking-email link
   useEffect(() => {
-    if (prefillOrderNumber && prefillEmail) {
+    if (prefillOrderNumber) {
       handleSearch();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleSearch = async () => {
-    if (!orderNumber.trim() || !email.trim()) {
-      toast.error('Please enter both order number and email');
+    if (!orderNumber.trim()) {
+      toast.error('Please enter your order number');
       return;
     }
 
     setIsLoading(true);
     setHasSearched(true);
     try {
-      const result = await trackGuestOrder(orderNumber.trim(), email.trim());
+      const result = await trackGuestOrder(orderNumber.trim());
       setOrder(result);
     } catch {
       setOrder(null);
-      toast.error('Order not found. Please check your order number and email.');
+      toast.error('Order not found. Please check your order number.');
     } finally {
       setIsLoading(false);
     }
@@ -82,7 +87,7 @@ export default function TrackOrderPage() {
     <div className="mx-auto max-w-4xl px-4 py-6 sm:px-6 sm:py-10 lg:px-8">
       <PageHeader
         title="Track Your Order"
-        description="Enter your order number and email address to view your order status."
+        description="Enter your order number to view your order status."
       />
 
       <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-12">
@@ -98,7 +103,7 @@ export default function TrackOrderPage() {
               <p className="eyebrow mt-1">Guest order lookup</p>
             </div>
           </div>
-          <div className={`grid grid-cols-1 gap-4 ${order ? '' : 'md:grid-cols-2'}`}>
+          <div className="grid grid-cols-1 gap-4">
             <div>
               <label htmlFor="orderNumber" className="field-label">
                 Order Number
@@ -109,21 +114,6 @@ export default function TrackOrderPage() {
                 value={orderNumber}
                 onChange={(e) => setOrderNumber(e.target.value)}
                 placeholder="e.g. ORD-20260217-XXXXX"
-                className="field-input"
-                required
-              />
-            </div>
-
-            <div>
-              <label htmlFor="email" className="field-label">
-                Email Address
-              </label>
-              <input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="The email you used during checkout"
                 className="field-input"
                 required
               />
@@ -242,7 +232,7 @@ export default function TrackOrderPage() {
           <EmptyState
             icon={SearchX}
             title="Order Not Found"
-            description="We couldn't find an order matching that order number and email. Please double-check your details and try again."
+            description="We couldn't find an order with that number. Please double-check it and try again."
             className="lg:col-span-12"
           />
         )}

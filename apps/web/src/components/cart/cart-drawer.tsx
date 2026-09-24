@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { Fragment } from 'react';
+import { Fragment, useState, useEffect } from 'react';
 
 import type { CartItem } from '@/lib/api/cart';
 
@@ -29,7 +29,67 @@ interface QuantitySelectorProps {
 }
 
 function QuantitySelector({ itemId, quantity, maxStock }: QuantitySelectorProps) {
-  const { updateItemQuantity, isUpdating } = useCart();
+  const { updateItemQuantity, isUpdating, setTempQuantity } = useCart();
+  const [inputValue, setInputValue] = useState<string>(quantity.toString());
+  const [isFocused, setIsFocused] = useState<boolean>(false);
+  const [initialQuantity, setInitialQuantity] = useState<number>(quantity);
+
+  // Sync local input value with external quantity changes ONLY if the user is not actively typing
+  useEffect(() => {
+    if (!isFocused) {
+      setInputValue(quantity.toString());
+    }
+  }, [quantity, isFocused]);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setInputValue(val);
+
+    const parsed = parseInt(val, 10);
+    if (!isNaN(parsed) && parsed >= 0) {
+      const clamped = Math.min(parsed, maxStock);
+      setTempQuantity(itemId, clamped);
+    } else {
+      setTempQuantity(itemId, 0);
+    }
+  };
+
+  const handleCommit = (valStr: string) => {
+    const parsed = parseInt(valStr, 10);
+    if (isNaN(parsed) || parsed < 1) {
+      if (initialQuantity !== 1) {
+        updateItemQuantity(itemId, 1);
+      }
+      setInputValue('1');
+    } else if (parsed > maxStock) {
+      if (initialQuantity !== maxStock) {
+        updateItemQuantity(itemId, maxStock);
+      }
+      setInputValue(maxStock.toString());
+    } else {
+      if (initialQuantity !== parsed) {
+        updateItemQuantity(itemId, parsed);
+      }
+      setInputValue(parsed.toString());
+    }
+    setTempQuantity(itemId, null);
+  };
+
+  const handleFocus = () => {
+    setIsFocused(true);
+    setInitialQuantity(quantity);
+  };
+
+  const handleBlur = () => {
+    setIsFocused(false);
+    handleCommit(inputValue);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      (e.target as HTMLInputElement).blur();
+    }
+  };
 
   return (
     <div className="flex items-center rounded-xl bg-gray-100 p-1">
@@ -45,7 +105,18 @@ function QuantitySelector({ itemId, quantity, maxStock }: QuantitySelectorProps)
         </svg>
       </button>
 
-      <span className="min-w-[2rem] text-center text-sm font-black tabular-nums">{quantity}</span>
+      <input
+        type="number"
+        min={1}
+        max={maxStock}
+        value={inputValue}
+        onChange={handleInputChange}
+        onFocus={handleFocus}
+        onBlur={handleBlur}
+        onKeyDown={handleKeyDown}
+        className="w-10 bg-transparent py-0.5 text-center text-sm font-black tabular-nums text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary/20 rounded-lg [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+        aria-label="Quantity"
+      />
 
       <button
         type="button"

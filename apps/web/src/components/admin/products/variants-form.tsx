@@ -19,6 +19,7 @@ import { toast } from 'sonner';
 
 import { useConfirm } from '@/components/admin/ui/confirm-dialog';
 import { apiClient } from '@/lib/api/client';
+import { cn } from '@/lib/utils';
 
 // ──────────────────────────────────────────────────────────
 // Types
@@ -34,7 +35,10 @@ interface Variant {
   id: string;
   options: Record<string, string>;
   price: number | null;
+  compareAtPrice?: number | null;
+  costPrice?: number | null;
   stock: number;
+  lowStockThreshold: number;
   sku: string;
   isActive: boolean;
   isDefault?: boolean;
@@ -115,7 +119,10 @@ function generateVariantMatrix(
       id: generateId(),
       options: optionValues,
       price: basePrice || null,
+      compareAtPrice: null,
+      costPrice: null,
       stock: 0,
+      lowStockThreshold: 10,
       sku: `${baseSku}-${Object.values(optionValues).join('-').toUpperCase().replace(/\s+/g, '')}`,
       isActive: true,
       isDefault: false,
@@ -138,9 +145,25 @@ function VariantImagePicker({ value, productImages, onChange }: VariantImagePick
   const [open, setOpen] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [coords, setCoords] = useState<{ top: number; left: number } | null>(null);
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
   const triggerRef = useRef<HTMLButtonElement | null>(null);
   const popoverRef = useRef<HTMLDivElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  const handleReorderDrop = (targetIndex: number) => {
+    if (draggedIndex === null || draggedIndex === targetIndex) {
+      setDraggedIndex(null);
+      setDragOverIndex(null);
+      return;
+    }
+    const reordered = [...value];
+    const [moved] = reordered.splice(draggedIndex, 1);
+    reordered.splice(targetIndex, 0, moved ?? '');
+    onChange(reordered);
+    setDraggedIndex(null);
+    setDragOverIndex(null);
+  };
 
   // Position the popover relative to the viewport so it escapes the table's
   // `overflow-x-auto` ancestor. Anchored to the trigger's bottom-right,
@@ -276,6 +299,9 @@ function VariantImagePicker({ value, productImages, onChange }: VariantImagePick
             <div className="mb-2 flex items-center justify-between">
               <span className="text-xs font-medium text-gray-700">
                 Variant images ({value.length})
+                {value.length >= 2 && (
+                  <span className="text-gray-400 font-normal"> — drag to reorder</span>
+                )}
               </span>
               {value.length > 0 && (
                 <button
@@ -293,7 +319,22 @@ function VariantImagePicker({ value, productImages, onChange }: VariantImagePick
                 {value.map((url, i) => (
                   <div
                     key={`${url}-${i}`}
-                    className="group relative aspect-square overflow-hidden rounded-md border border-gray-200 bg-gray-50"
+                    draggable
+                    onDragStart={() => setDraggedIndex(i)}
+                    onDragOver={(e) => {
+                      e.preventDefault();
+                      setDragOverIndex(i);
+                    }}
+                    onDrop={() => handleReorderDrop(i)}
+                    onDragEnd={() => {
+                      setDraggedIndex(null);
+                      setDragOverIndex(null);
+                    }}
+                    className={cn(
+                      'group relative aspect-square overflow-hidden rounded-md border bg-gray-50 transition-all cursor-move',
+                      dragOverIndex === i ? 'border-brand-400 scale-105' : 'border-gray-200',
+                      draggedIndex === i && 'opacity-50',
+                    )}
                   >
                     <img src={url} alt="" className="h-full w-full object-cover" />
                     {i === 0 && (
@@ -303,6 +344,7 @@ function VariantImagePicker({ value, productImages, onChange }: VariantImagePick
                     )}
                     <button
                       type="button"
+                      draggable={false}
                       onClick={(e) => {
                         e.stopPropagation();
                         removeAt(i);
@@ -419,6 +461,8 @@ interface OptionTypeEditorProps {
 
 function OptionTypeEditor({ option, onChange, onRemove, index }: OptionTypeEditorProps) {
   const [newValue, setNewValue] = useState('');
+  const [draggedValueIndex, setDraggedValueIndex] = useState<number | null>(null);
+  const [dragOverValueIndex, setDragOverValueIndex] = useState<number | null>(null);
 
   const addValue = () => {
     const trimmed = newValue.trim();
@@ -433,6 +477,20 @@ function OptionTypeEditor({ option, onChange, onRemove, index }: OptionTypeEdito
       ...option,
       values: option.values.filter((_, i) => i !== valueIndex),
     });
+  };
+
+  const handleValueReorderDrop = (targetIndex: number) => {
+    if (draggedValueIndex === null || draggedValueIndex === targetIndex) {
+      setDraggedValueIndex(null);
+      setDragOverValueIndex(null);
+      return;
+    }
+    const reordered = [...option.values];
+    const [moved] = reordered.splice(draggedValueIndex, 1);
+    reordered.splice(targetIndex, 0, moved ?? '');
+    onChange({ ...option, values: reordered });
+    setDraggedValueIndex(null);
+    setDragOverValueIndex(null);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -475,11 +533,27 @@ function OptionTypeEditor({ option, onChange, onRemove, index }: OptionTypeEdito
         <div className="mb-2 flex flex-wrap gap-2">
           {option.values.map((value, valueIndex) => (
             <span
-              key={valueIndex}
-              className="inline-flex items-center gap-1 rounded-full bg-brand-50 px-3 py-1 text-sm text-brand-600"
+              key={`${value}-${valueIndex}`}
+              draggable
+              onDragStart={() => setDraggedValueIndex(valueIndex)}
+              onDragOver={(e) => {
+                e.preventDefault();
+                setDragOverValueIndex(valueIndex);
+              }}
+              onDrop={() => handleValueReorderDrop(valueIndex)}
+              onDragEnd={() => {
+                setDraggedValueIndex(null);
+                setDragOverValueIndex(null);
+              }}
+              className={cn(
+                'inline-flex cursor-move items-center gap-1 rounded-full border border-transparent bg-brand-50 px-3 py-1 text-sm font-bold text-brand-600 transition-all',
+                dragOverValueIndex === valueIndex && 'scale-105 border-brand-400 bg-brand-100',
+                draggedValueIndex === valueIndex && 'opacity-50',
+              )}
             >
               {value}
               <button
+                type="button"
                 onClick={() => removeValue(valueIndex)}
                 className="rounded-full p-0.5 hover:bg-brand-200"
               >
@@ -764,7 +838,16 @@ export function VariantsForm({
                     Price (৳)
                   </th>
                   <th className="px-4 py-4 text-left text-[10px] font-black uppercase tracking-[0.2em] text-gray-500">
+                    Compare At (৳)
+                  </th>
+                  <th className="px-4 py-4 text-left text-[10px] font-black uppercase tracking-[0.2em] text-gray-500">
+                    Cost Price (৳)
+                  </th>
+                  <th className="px-4 py-4 text-left text-[10px] font-black uppercase tracking-[0.2em] text-gray-500">
                     Stock
+                  </th>
+                  <th className="px-4 py-4 text-left text-[10px] font-black uppercase tracking-[0.2em] text-gray-500">
+                    Low stock at
                   </th>
                   <th className="px-4 py-4 text-left text-[10px] font-black uppercase tracking-[0.2em] text-gray-500">
                     SKU
@@ -858,7 +941,49 @@ export function VariantsForm({
                                 e.target.value ? parseFloat(e.target.value) : null,
                               )
                             }
-                            className="w-24 rounded-r px-2 py-1.5 text-sm focus:outline-none"
+                            className="w-24 bg-transparent px-2 py-1.5 text-sm font-bold focus:outline-none"
+                          />
+                        </div>
+                      </td>
+                      <td className="px-4 py-2">
+                        <div className="flex overflow-hidden rounded-xl border border-foreground/[0.06] bg-card shadow-sm transition-all focus-within:border-brand-300 focus-within:ring-4 focus-within:ring-brand-500/10">
+                          <span className="inline-flex items-center border-r border-foreground/[0.06] bg-gray-50 px-2.5 text-xs font-bold text-gray-500">
+                            ৳
+                          </span>
+                          <input
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            value={variant.compareAtPrice ?? ''}
+                            onChange={(e) =>
+                              updateVariant(
+                                index,
+                                'compareAtPrice',
+                                e.target.value ? parseFloat(e.target.value) : null,
+                              )
+                            }
+                            className="w-24 bg-transparent px-2 py-1.5 text-sm font-bold focus:outline-none"
+                          />
+                        </div>
+                      </td>
+                      <td className="px-4 py-2">
+                        <div className="flex overflow-hidden rounded-xl border border-foreground/[0.06] bg-card shadow-sm transition-all focus-within:border-brand-300 focus-within:ring-4 focus-within:ring-brand-500/10">
+                          <span className="inline-flex items-center border-r border-foreground/[0.06] bg-gray-50 px-2.5 text-xs font-bold text-gray-500">
+                            ৳
+                          </span>
+                          <input
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            value={variant.costPrice ?? ''}
+                            onChange={(e) =>
+                              updateVariant(
+                                index,
+                                'costPrice',
+                                e.target.value ? parseFloat(e.target.value) : null,
+                              )
+                            }
+                            className="w-24 bg-transparent px-2 py-1.5 text-sm font-bold focus:outline-none"
                           />
                         </div>
                       </td>
@@ -869,6 +994,21 @@ export function VariantsForm({
                           value={variant.stock}
                           onChange={(e) =>
                             updateVariant(index, 'stock', parseInt(e.target.value, 10) || 0)
+                          }
+                          className="field-input w-20 py-2.5"
+                        />
+                      </td>
+                      <td className="px-4 py-2">
+                        <input
+                          type="number"
+                          min="0"
+                          value={variant.lowStockThreshold}
+                          onChange={(e) =>
+                            updateVariant(
+                              index,
+                              'lowStockThreshold',
+                              parseInt(e.target.value, 10) || 0,
+                            )
                           }
                           className="field-input w-20 py-2.5"
                         />

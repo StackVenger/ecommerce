@@ -1,6 +1,7 @@
 'use client';
 
 import {
+  Check,
   ChevronRight,
   Heart,
   Minus,
@@ -13,8 +14,9 @@ import {
   PackageSearch,
 } from 'lucide-react';
 import Link from 'next/link';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
+import { toast } from 'sonner';
 
 import { ProductQuestions } from '@/components/products/product-questions';
 import { ReviewForm } from '@/components/reviews/review-form';
@@ -43,7 +45,9 @@ interface ProductVariant {
   name: string;
   sku: string;
   price: number;
+  compareAtPrice: number | null;
   quantity: number;
+  lowStockThreshold: number;
   isDefault?: boolean;
   images: ProductImage[];
   attributeValues: {
@@ -81,6 +85,7 @@ interface Product {
   } | null;
   images: ProductImage[];
   variants: ProductVariant[];
+  inventory?: { lowStockThreshold: number } | null;
   attributes: { id: string; name: string; type: string; values: string[] }[];
   reviewSummary: {
     averageRating: number;
@@ -122,8 +127,9 @@ function formatWeight(grams: number): string {
 
 export default function ProductPage() {
   const { slug } = useParams<{ slug: string }>();
-  const { addItem, isUpdating } = useCart();
+  const { cart, addItem, isUpdating } = useCart();
   const { isAuthenticated } = useAuth();
+
   const { wishlist, toggleWishlist } = useWishlist();
 
   const [product, setProduct] = useState<Product | null>(null);
@@ -139,6 +145,8 @@ export default function ProductPage() {
   const [addingToCart, setAddingToCart] = useState(false);
   const [cartError, setCartError] = useState<string | null>(null);
   const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>({});
+
+  const router = useRouter();
 
   useEffect(() => {
     async function fetchProduct() {
@@ -156,12 +164,42 @@ export default function ProductPage() {
             ? raw.variants.map((v: ProductVariant) => ({
                 ...v,
                 price: Number(v.price),
+                compareAtPrice: v.compareAtPrice ? Number(v.compareAtPrice) : null,
                 quantity: v.quantity ?? 0,
+                lowStockThreshold: v.lowStockThreshold ?? 10,
               }))
             : [],
+          inventory: raw.inventory
+            ? { lowStockThreshold: raw.inventory.lowStockThreshold ?? 10 }
+            : null,
         };
         setProduct(normalised);
+
+        // Pre-select the default variant options on load
+        if (normalised.variants.length > 0) {
+          const defaultVar =
+            normalised.variants.find((v) => v.isDefault === true) ?? normalised.variants[0] ?? null;
+          if (defaultVar) {
+            const initialOpts: Record<string, string> = {};
+            for (const av of defaultVar.attributeValues) {
+              initialOpts[av.attribute.name] = av.value;
+            }
+            setSelectedOptions(initialOpts);
+          }
+        }
       } catch {
+        // Slug 404: try resolving it as a historical slug alias and
+        // 301-style redirect to the canonical slug before giving up.
+        try {
+          const { data: aliasData } = await apiClient.get(`/products/slug-alias/${slug}`);
+          const alias = aliasData.data ?? aliasData;
+          if (alias?.slug && alias.slug !== slug) {
+            router.replace(`/products/${alias.slug}`);
+            return;
+          }
+        } catch {
+          // No alias either — fall through to the standard not-found state.
+        }
         setError('Product not found');
       } finally {
         setLoading(false);
@@ -170,7 +208,7 @@ export default function ProductPage() {
     if (slug) {
       fetchProduct();
     }
-  }, [slug]);
+  }, [slug, router]);
 
   // ─── Variant lookup ───────────────────────────────────────────────
 
@@ -216,6 +254,23 @@ export default function ProductPage() {
       }) ?? null
     );
   }, [product, variantsActive, allOptionsSelected, selectedOptions]);
+
+  const isAlreadyInCart = useMemo(() => {
+    if (!cart || !product) {
+      return false;
+    }
+    if (variantsActive) {
+      if (!selectedVariant) {
+        return cart.items.some((item) => item.productId === product.id && !item.variantId);
+      }
+      return cart.items.some(
+        (item) =>
+          item.productId === product.id &&
+          (item.variantId === selectedVariant.id || !item.variantId),
+      );
+    }
+    return cart.items.some((item) => item.productId === product.id && !item.variantId);
+  }, [cart, product, variantsActive, selectedVariant]);
 
   // The "default variant" is the one the admin flagged as default (or the
   // first active variant as fallback). On first paint — before the buyer
@@ -297,7 +352,7 @@ export default function ProductPage() {
     }
     if (variantsActive) {
       if (!selectedVariant) {
-        setCartError('Please select all options before adding to cart.');
+        toast.error('Please select all options before adding to cart.');
         return;
       }
       if (selectedVariant.quantity <= 0) {
@@ -310,11 +365,14 @@ export default function ProductPage() {
     setAddingToCart(true);
     setCartError(null);
     try {
-      await addItem({
-        productId: product.id,
-        variantId: selectedVariant?.id,
-        quantity,
-      });
+      await addItem(
+        {
+          productId: product.id,
+          variantId: selectedVariant?.id,
+          quantity,
+        },
+        { openDrawer: false },
+      );
     } catch (err: any) {
       const msg = err?.response?.data?.message || err?.message || 'Failed to add to cart';
       setCartError(msg);
@@ -369,15 +427,19 @@ export default function ProductPage() {
 
   // Display fields come from the effective variant (selected if any,
   // otherwise the admin-marked default) when variants exist; from the
-  // base product otherwise. `compareAtPrice` stays product-level since
-  // the admin form doesn't capture a per-variant compare price.
+  // base product otherwise.
   const displayPrice = effectiveVariant ? Number(effectiveVariant.price) : product.price;
+  const displayCompareAtPrice = effectiveVariant
+    ? effectiveVariant.compareAtPrice !== undefined && effectiveVariant.compareAtPrice !== null
+      ? Number(effectiveVariant.compareAtPrice)
+      : null
+    : product.compareAtPrice;
   const displayStock = selectedVariant ? selectedVariant.quantity : product.quantity;
   const displaySku = effectiveVariant?.sku ?? product.sku;
 
   const discount =
-    product.compareAtPrice && product.compareAtPrice > displayPrice
-      ? Math.round((1 - displayPrice / Number(product.compareAtPrice)) * 100)
+    displayCompareAtPrice && displayCompareAtPrice > displayPrice
+      ? Math.round((1 - displayPrice / Number(displayCompareAtPrice)) * 100)
       : 0;
 
   const inStock = variantsActive
@@ -385,7 +447,17 @@ export default function ProductPage() {
       ? selectedVariant.quantity > 0
       : product.variants.some((v) => v.quantity > 0)
     : product.quantity > 0;
-  const lowStock = inStock && displayStock <= 10;
+  // Use per-variant threshold when a variant is selected; per-product
+  // Inventory.lowStockThreshold (default 10) for non-variant products.
+  // When variants exist but none is selected, "low" means any single
+  // variant is at/below its own threshold.
+  const lowStock =
+    inStock &&
+    (variantsActive
+      ? selectedVariant
+        ? selectedVariant.quantity <= selectedVariant.lowStockThreshold
+        : product.variants.some((v) => v.quantity > 0 && v.quantity <= v.lowStockThreshold)
+      : product.quantity <= (product.inventory?.lowStockThreshold ?? 10));
 
   // Gallery: when an effective variant has its own images, those drive
   // the hero (and the rest of the strip). Product-level images are
@@ -567,10 +639,10 @@ export default function ProductPage() {
                 <span className="text-3xl font-black tabular-nums tracking-tighter text-gray-900 sm:text-4xl">
                   {formatBDT(displayPrice)}
                 </span>
-                {product.compareAtPrice && Number(product.compareAtPrice) > displayPrice && (
+                {displayCompareAtPrice && Number(displayCompareAtPrice) > displayPrice && (
                   <>
                     <span className="text-sm font-bold text-gray-400 line-through">
-                      {formatBDT(Number(product.compareAtPrice))}
+                      {formatBDT(Number(displayCompareAtPrice))}
                     </span>
                     <span className="pill pill-danger">{discount}% Off</span>
                   </>
@@ -739,15 +811,27 @@ export default function ProductPage() {
                 <button
                   type="button"
                   onClick={handleAddToCart}
-                  disabled={!inStock || addingToCart || isUpdating}
+                  disabled={!inStock || addingToCart || isUpdating || isAlreadyInCart}
                   className={`btn btn-lg w-full flex-1 basis-full sm:basis-auto ${
-                    inStock
-                      ? 'btn-primary disabled:opacity-60'
-                      : 'cursor-not-allowed bg-gray-200 text-gray-500'
+                    !inStock
+                      ? 'cursor-not-allowed bg-gray-200 text-gray-500'
+                      : isAlreadyInCart
+                        ? 'cursor-not-allowed bg-emerald-50 text-emerald-600'
+                        : 'btn-primary disabled:opacity-60'
                   }`}
                 >
-                  <ShoppingCart className="h-5 w-5" strokeWidth={2.25} />
-                  {!inStock ? 'Out of Stock' : addingToCart ? 'Adding...' : 'Add to Cart'}
+                  {isAlreadyInCart ? (
+                    <Check className="h-5 w-5" strokeWidth={2.5} />
+                  ) : (
+                    <ShoppingCart className="h-5 w-5" strokeWidth={2.25} />
+                  )}
+                  {!inStock
+                    ? 'Out of Stock'
+                    : isAlreadyInCart
+                      ? 'Added to Cart'
+                      : addingToCart
+                        ? 'Adding...'
+                        : 'Add to Cart'}
                 </button>
               </div>
 

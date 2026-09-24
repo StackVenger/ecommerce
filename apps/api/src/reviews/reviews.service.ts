@@ -37,7 +37,7 @@ export class ReviewsService {
       throw new BadRequestException('You can only review products you have purchased');
     }
 
-    return this.prisma.review.create({
+    const review = await this.prisma.review.create({
       data: {
         userId,
         productId: dto.productId,
@@ -54,6 +54,12 @@ export class ReviewsService {
         user: { select: { id: true, firstName: true, lastName: true } },
       },
     });
+
+    // PENDING reviews don't influence the visible aggregate, but recompute
+    // defensively so the column stays consistent if a moderator preapproves.
+    await this.recomputeProductRatingStats(dto.productId);
+
+    return review;
   }
 
   /** Get a single review by ID. */
@@ -84,10 +90,16 @@ export class ReviewsService {
       throw new BadRequestException('You can only edit your own reviews');
     }
 
-    return this.prisma.review.update({
+    const updated = await this.prisma.review.update({
       where: { id },
       data: { ...data, status: 'PENDING' },
     });
+
+    // An edit reverts an APPROVED review back to PENDING, so the visible
+    // aggregate has to shed this review's contribution.
+    await this.recomputeProductRatingStats(review.productId);
+
+    return updated;
   }
 
   /** Delete a user's own review. */
@@ -102,7 +114,35 @@ export class ReviewsService {
     if (Array.isArray(review.images) && review.images.length > 0) {
       await this.uploadService.deleteByUrls(review.images);
     }
+
+    await this.recomputeProductRatingStats(review.productId);
+
     return { deleted: true };
+  }
+
+  /**
+   * Recompute the denormalized rating aggregates on Product
+   * (`averageRating`, `totalReviews`) from the underlying Review rows.
+   * Called on every review create / update / delete / status change.
+   *
+   * Only APPROVED reviews contribute — PENDING and rejected reviews
+   * are visible to admins but never to customers, so they should not
+   * shift the storefront-facing rating.
+   */
+  async recomputeProductRatingStats(productId: string): Promise<void> {
+    const stats = await this.prisma.review.aggregate({
+      where: { productId, status: 'APPROVED' },
+      _avg: { rating: true },
+      _count: { id: true },
+    });
+    await this.prisma.product.update({
+      where: { id: productId },
+      data: {
+        // Decimal(3, 2) — two decimals matches the schema precision.
+        averageRating: Math.round((stats._avg.rating ?? 0) * 100) / 100,
+        totalReviews: stats._count.id,
+      },
+    });
   }
 
   /** Get paginated reviews for a product (only approved). */

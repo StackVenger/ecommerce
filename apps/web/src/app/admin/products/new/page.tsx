@@ -53,7 +53,10 @@ interface Variant {
   id: string;
   options: Record<string, string>;
   price: number | null;
+  compareAtPrice?: number | null;
+  costPrice?: number | null;
   stock: number;
+  lowStockThreshold: number;
   sku: string;
   isActive: boolean;
   isDefault?: boolean;
@@ -256,7 +259,10 @@ export default function AdminProductCreatePage() {
           return {
             options: cleanOptions,
             price: v.price,
+            compareAtPrice: v.compareAtPrice ?? null,
+            costPrice: v.costPrice ?? null,
             stock: v.stock,
+            lowStockThreshold: v.lowStockThreshold ?? 10,
             sku: v.sku.trim() || undefined,
             isActive: v.isActive,
             isDefault: v.isDefault === true,
@@ -267,7 +273,13 @@ export default function AdminProductCreatePage() {
 
       if (cleanVariants.length > 0) {
         await apiClient
-          .put(`/products/${product.id}/variants/replace`, { variants: cleanVariants })
+          .put(`/products/${product.id}/variants/replace`, {
+            variants: cleanVariants,
+            options: formData.options.map((o) => ({
+              name: o.name,
+              values: o.values,
+            })),
+          })
           .catch((err) => {
             console.error('Failed to sync variants:', err);
             toast.error('Product saved, but variant sync failed — open Edit to retry');
@@ -434,7 +446,8 @@ export default function AdminProductCreatePage() {
                 id="sku"
                 type="text"
                 value={formData.sku}
-                onChange={(e) => updateField('sku', e.target.value.toUpperCase())}
+                onChange={(e) => updateField('sku', e.target.value)}
+                onBlur={(e) => updateField('sku', e.target.value.toUpperCase())}
                 placeholder="e.g., RICE-BAS-001"
                 className={cn(
                   'field-input w-full uppercase',

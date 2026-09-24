@@ -1,6 +1,6 @@
 'use client';
 
-import { Heart, ShoppingCart, Trash2, Package, Tag } from 'lucide-react';
+import { Check, Heart, ShoppingCart, Trash2, Package, Tag } from 'lucide-react';
 import Link from 'next/link';
 import { useEffect, useState, useCallback } from 'react';
 
@@ -18,11 +18,11 @@ export default function WishlistPage() {
   const [items, setItems] = useState<WishlistItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [removingIds, setRemovingIds] = useState<Set<string>>(new Set());
-  const { addItem } = useCart();
+  const { cart, addItem } = useCart();
 
   const fetchWishlist = useCallback(async () => {
     try {
-      const data = await getWishlist();
+      const { items: data } = await getWishlist();
       setItems(data);
     } catch (error) {
       console.error('Failed to fetch wishlist:', error);
@@ -54,7 +54,7 @@ export default function WishlistPage() {
 
   const handleAddToCart = async (item: WishlistItem) => {
     try {
-      await addItem({ productId: item.productId, quantity: 1 });
+      await addItem({ productId: item.productId, quantity: 1 }, { openDrawer: false });
     } catch (error) {
       console.error('Failed to add to cart:', error);
     }
@@ -93,6 +93,9 @@ export default function WishlistPage() {
             const { product } = item;
             const discount = getDiscountPercentage(product.price, product.compareAtPrice);
             const isRemoving = removingIds.has(item.productId);
+            const isAlreadyInCart = cart?.items?.some(
+              (cartItem) => cartItem.productId === item.productId,
+            );
 
             return (
               <div
@@ -173,12 +176,24 @@ export default function WishlistPage() {
 
                     <button
                       onClick={() => handleAddToCart(item)}
-                      disabled={!product.inStock}
-                      className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-600 shadow-sm transition-all hover:bg-primary hover:text-white active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
-                      aria-label={`Add ${product.name} to cart`}
-                      title="Add to Cart"
+                      disabled={!product.inStock || isAlreadyInCart}
+                      className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl shadow-sm transition-all active:scale-95 disabled:cursor-not-allowed ${
+                        isAlreadyInCart
+                          ? 'bg-emerald-50 text-emerald-600'
+                          : 'bg-brand-50 text-brand-600 hover:bg-primary hover:text-white disabled:opacity-50'
+                      }`}
+                      aria-label={
+                        isAlreadyInCart
+                          ? `${product.name} is in your cart`
+                          : `Add ${product.name} to cart`
+                      }
+                      title={isAlreadyInCart ? 'Added to Cart' : 'Add to Cart'}
                     >
-                      <ShoppingCart className="h-4 w-4" strokeWidth={2.5} />
+                      {isAlreadyInCart ? (
+                        <Check className="h-4 w-4" strokeWidth={3} />
+                      ) : (
+                        <ShoppingCart className="h-4 w-4" strokeWidth={2.5} />
+                      )}
                     </button>
                   </div>
                 </div>

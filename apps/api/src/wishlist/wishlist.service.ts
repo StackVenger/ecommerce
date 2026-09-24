@@ -23,23 +23,47 @@ export class WishlistService {
       orderBy: { createdAt: 'desc' },
     });
 
-    return items.map((item) => ({
-      id: item.id,
-      productId: item.productId,
-      product: {
-        id: item.product.id,
-        name: item.product.name,
-        slug: item.product.slug,
-        price: item.product.price,
-        compareAtPrice: item.product.compareAtPrice,
-        image: item.product.images[0]?.url ?? null,
-        brand: item.product.brand?.name ?? null,
-        category: item.product.category?.name ?? null,
-        inStock: item.product.quantity > 0,
-        stock: item.product.quantity,
-      },
-      addedAt: item.createdAt,
-    }));
+    // Hard-deleted products cascade away via FK already. Archived products
+    // remain in the wishlist row but should not be presented to the customer
+    // as buyable — strip them, record names for the toast, and idempotently
+    // delete the rows so the wishlist self-heals.
+    const archivedRowIds: string[] = [];
+    const removed: { name: string; reason: 'archived' }[] = [];
+    const survivors: typeof items = [];
+    for (const item of items) {
+      if (item.product?.status === 'ARCHIVED') {
+        archivedRowIds.push(item.id);
+        removed.push({ name: item.product.name, reason: 'archived' });
+        continue;
+      }
+      survivors.push(item);
+    }
+    if (archivedRowIds.length > 0) {
+      await this.prisma.wishlist.deleteMany({
+        where: { id: { in: archivedRowIds } },
+      });
+    }
+
+    return {
+      items: survivors.map((item) => ({
+        id: item.id,
+        productId: item.productId,
+        product: {
+          id: item.product.id,
+          name: item.product.name,
+          slug: item.product.slug,
+          price: item.product.price,
+          compareAtPrice: item.product.compareAtPrice,
+          image: item.product.images[0]?.url ?? null,
+          brand: item.product.brand?.name ?? null,
+          category: item.product.category?.name ?? null,
+          inStock: item.product.quantity > 0,
+          stock: item.product.quantity,
+        },
+        addedAt: item.createdAt,
+      })),
+      removedItems: removed,
+    };
   }
 
   async addToWishlist(userId: string, productId: string) {

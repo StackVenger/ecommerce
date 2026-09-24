@@ -13,6 +13,7 @@ import { toast } from 'sonner';
 
 import type { Cart, CartItem, AddCartItemPayload } from '@/lib/api/cart';
 
+import { useAuth } from '@/hooks/use-auth';
 import * as cartApi from '@/lib/api/cart';
 import { getApiErrorMessage } from '@/lib/api/errors';
 
@@ -38,7 +39,7 @@ export interface CartContextValue {
   /** Toggle the cart drawer */
   toggleCart: () => void;
   /** Add an item to the cart (optimistic) */
-  addItem: (payload: AddCartItemPayload) => Promise<void>;
+  addItem: (payload: AddCartItemPayload, options?: { openDrawer?: boolean }) => Promise<void>;
   /** Update a cart item's quantity (optimistic) */
   updateItemQuantity: (itemId: string, quantity: number) => Promise<void>;
   /** Remove an item from the cart (optimistic) */
@@ -53,6 +54,8 @@ export interface CartContextValue {
   refreshCart: () => Promise<void>;
   /** Merge guest cart after login */
   mergeGuestCart: () => Promise<void>;
+  /** Set ephemeral/temporary item quantity for dynamic UI calculations */
+  setTempQuantity: (itemId: string, quantity: number | null) => void;
 }
 
 // ──────────────────────────────────────────────────────────
@@ -101,11 +104,48 @@ interface CartProviderProps {
 }
 
 export function CartProvider({ children }: CartProviderProps) {
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
+  const prevAuthenticatedRef = useRef(isAuthenticated);
   const [cart, setCart] = useState<Cart | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isUpdating, setIsUpdating] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const previousCartRef = useRef<Cart | null>(null);
+
+  const [tempQuantities, setTempQuantities] = useState<Record<string, number>>({});
+
+  const setTempQuantity = useCallback((itemId: string, quantity: number | null) => {
+    setTempQuantities((prev) => {
+      const next = { ...prev };
+      if (quantity === null || isNaN(quantity)) {
+        delete next[itemId];
+      } else {
+        next[itemId] = quantity;
+      }
+      return next;
+    });
+  }, []);
+
+  const derivedCart = useMemo(() => {
+    if (!cart) {
+      return null;
+    }
+    if (Object.keys(tempQuantities).length === 0) {
+      return cart;
+    }
+    const updatedItems = cart.items.map((item) => {
+      const override = tempQuantities[item.id];
+      if (override !== undefined && override !== null) {
+        return {
+          ...item,
+          quantity: override,
+          lineTotal: item.price * override,
+        };
+      }
+      return item;
+    });
+    return recalculateCart({ ...cart, items: updatedItems });
+  }, [cart, tempQuantities]);
 
   // ── Initial fetch ──────────────────────────────────────
 
@@ -113,6 +153,13 @@ export function CartProvider({ children }: CartProviderProps) {
     async function loadCart() {
       try {
         const data = await cartApi.getCart();
+        // Server-side purge of archived products / deactivated variants —
+        // surface as a one-time toast so the customer notices items vanished
+        // from their cart rather than silently being charged less.
+        if (data.removedItems && data.removedItems.length > 0) {
+          const names = data.removedItems.map((r) => r.name).join(', ');
+          toast.warning(`Removed from cart: ${names} (no longer available).`);
+        }
         setCart(data);
       } catch {
         setCart(emptyCart());
@@ -151,7 +198,8 @@ export function CartProvider({ children }: CartProviderProps) {
   // ── Cart mutations ─────────────────────────────────────
 
   const addItem = useCallback(
-    async (payload: AddCartItemPayload) => {
+    async (payload: AddCartItemPayload, options?: { openDrawer?: boolean }) => {
+      const openDrawer = options?.openDrawer ?? true;
       setIsUpdating(true);
       savePreviousCart();
 
@@ -194,7 +242,9 @@ export function CartProvider({ children }: CartProviderProps) {
       try {
         const updatedCart = await cartApi.addCartItem(payload);
         setCart(updatedCart);
-        setIsOpen(true);
+        if (openDrawer) {
+          setIsOpen(true);
+        }
         toast.success('Added to cart');
       } catch (error) {
         rollback();
@@ -342,23 +392,36 @@ export function CartProvider({ children }: CartProviderProps) {
   }, []);
 
   const mergeGuestCart = useCallback(async () => {
+    // Wait a brief moment to ensure cookies are written and Axios interceptors are synchronized
+    await new Promise((resolve) => setTimeout(resolve, 50));
     try {
       const data = await cartApi.mergeCart();
       setCart(data);
       cartApi.clearSessionId();
-    } catch {
-      // Silent fail on merge
+    } catch (error) {
+      console.error('Failed to merge guest cart:', error);
     }
   }, []);
+
+  // ── Auto-merge guest cart on login ──────────────────────
+
+  useEffect(() => {
+    if (!authLoading && isAuthenticated && !prevAuthenticatedRef.current) {
+      mergeGuestCart();
+    }
+    if (!authLoading) {
+      prevAuthenticatedRef.current = isAuthenticated;
+    }
+  }, [isAuthenticated, authLoading, mergeGuestCart]);
 
   // ── Context value ──────────────────────────────────────
 
   const value = useMemo<CartContextValue>(
     () => ({
-      cart,
+      cart: derivedCart,
       isLoading,
       isUpdating,
-      itemCount: cart?.itemCount ?? 0,
+      itemCount: derivedCart?.itemCount ?? 0,
       isOpen,
       openCart,
       closeCart,
@@ -371,9 +434,10 @@ export function CartProvider({ children }: CartProviderProps) {
       removeCoupon: removeCouponAction,
       refreshCart,
       mergeGuestCart,
+      setTempQuantity,
     }),
     [
-      cart,
+      derivedCart,
       isLoading,
       isUpdating,
       isOpen,
@@ -388,6 +452,7 @@ export function CartProvider({ children }: CartProviderProps) {
       removeCouponAction,
       refreshCart,
       mergeGuestCart,
+      setTempQuantity,
     ],
   );
 

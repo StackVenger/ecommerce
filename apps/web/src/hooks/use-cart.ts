@@ -59,6 +59,7 @@ const defaultCartValue: CartContextValue = {
   removeCoupon: async () => {},
   refreshCart: async () => {},
   mergeGuestCart: async () => {},
+  setTempQuantity: () => {},
 };
 
 export function useCart(): CartContextValue {

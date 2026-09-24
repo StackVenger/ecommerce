@@ -1,10 +1,6 @@
-import {
-  Injectable,
-  Logger,
-  BadRequestException,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable, Logger, BadRequestException, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import Stripe from 'stripe';
 
 import { PrismaService } from '../prisma/prisma.service';
@@ -30,6 +26,7 @@ export class PaymentService {
   constructor(
     private readonly config: ConfigService,
     private readonly prisma: PrismaService,
+    private readonly eventEmitter: EventEmitter2,
   ) {
     const stripeKey = this.config.get<string>('STRIPE_SECRET_KEY');
     if (stripeKey && stripeKey !== 'sk_test_...') {
@@ -72,27 +69,23 @@ export class PaymentService {
 
     this.logger.log(`Creating Stripe checkout session for order ${orderId}`);
 
-    const totalBDT = items.reduce(
-      (sum, item) => sum + item.priceBDT * item.quantity,
-      0,
-    ) + shippingCostBDT;
+    const totalBDT =
+      items.reduce((sum, item) => sum + item.priceBDT * item.quantity, 0) + shippingCostBDT;
 
     this.validateAmount(totalBDT);
 
-    const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = items.map(
-      (item) => ({
-        price_data: {
-          currency: 'usd',
-          product_data: {
-            name: item.name,
-            description: item.description || `Price: ${formatBDT(item.priceBDT)}`,
-            ...(item.image && { images: [item.image] }),
-          },
-          unit_amount: convertBDTtoUSDCents(item.priceBDT),
+    const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = items.map((item) => ({
+      price_data: {
+        currency: 'usd',
+        product_data: {
+          name: item.name,
+          description: item.description || `Price: ${formatBDT(item.priceBDT)}`,
+          ...(item.image && { images: [item.image] }),
         },
-        quantity: item.quantity,
-      }),
-    );
+        unit_amount: convertBDTtoUSDCents(item.priceBDT),
+      },
+      quantity: item.quantity,
+    }));
 
     if (shippingCostBDT > 0) {
       lineItems.push({
@@ -153,11 +146,7 @@ export class PaymentService {
 
     const stripe = this.ensureStripe();
     try {
-      event = stripe.webhooks.constructEvent(
-        payload,
-        signature,
-        this.webhookSecret,
-      );
+      event = stripe.webhooks.constructEvent(payload, signature, this.webhookSecret);
     } catch (err) {
       this.logger.error(`Webhook signature verification failed: ${err.message}`);
       throw new BadRequestException('Invalid webhook signature');
@@ -167,19 +156,19 @@ export class PaymentService {
 
     switch (event.type) {
       case 'checkout.session.completed': {
-        const session = event.data.object as Stripe.Checkout.Session;
+        const session = event.data.object;
         await this.handleCheckoutSessionCompleted(session);
         break;
       }
 
       case 'payment_intent.succeeded': {
-        const paymentIntent = event.data.object as Stripe.PaymentIntent;
+        const paymentIntent = event.data.object;
         await this.handlePaymentIntentSucceeded(paymentIntent);
         break;
       }
 
       case 'payment_intent.payment_failed': {
-        const paymentIntent = event.data.object as Stripe.PaymentIntent;
+        const paymentIntent = event.data.object;
         await this.handlePaymentIntentFailed(paymentIntent);
         break;
       }
@@ -191,12 +180,7 @@ export class PaymentService {
     return { received: true, eventType: event.type };
   }
 
-  async processRefund(
-    orderId: string,
-    type: RefundType,
-    amountBDT?: number,
-    reason?: string,
-  ) {
+  async processRefund(orderId: string, type: RefundType, amountBDT?: number, reason?: string) {
     const payment = await this.getPaymentByOrderId(orderId);
 
     if (payment.status !== 'COMPLETED') {
@@ -206,9 +190,7 @@ export class PaymentService {
     }
 
     if (payment.method !== 'STRIPE' || !payment.stripePaymentIntentId) {
-      throw new BadRequestException(
-        'Only Stripe payments with a payment intent can be refunded',
-      );
+      throw new BadRequestException('Only Stripe payments with a payment intent can be refunded');
     }
 
     let refundAmountBDT: number;
@@ -217,9 +199,7 @@ export class PaymentService {
       refundAmountBDT = payment.amount;
     } else {
       if (!amountBDT || amountBDT <= 0) {
-        throw new BadRequestException(
-          'Partial refund requires a valid amount in ৳ (BDT)',
-        );
+        throw new BadRequestException('Partial refund requires a valid amount in ৳ (BDT)');
       }
       if (amountBDT > payment.amount) {
         throw new BadRequestException(
@@ -265,14 +245,14 @@ export class PaymentService {
       },
     });
 
-    await this.prisma.order.update({
-      where: { id: orderId },
-      data: {
-        paymentStatus: newStatus,
-        ...(type === RefundType.FULL && { status: 'CANCELLED' }),
-        updatedAt: new Date(),
-      },
-    });
+    // Order has no paymentStatus column — Payment.status is the source of
+    // truth. Only mirror the order-level transition for full refunds.
+    if (type === RefundType.FULL) {
+      await this.prisma.order.update({
+        where: { id: orderId },
+        data: { status: 'CANCELLED', updatedAt: new Date() },
+      });
+    }
 
     this.logger.log(
       `Refund ${refund.id} processed for order ${orderId}: ${formatBDT(refundAmountBDT)}`,
@@ -300,9 +280,7 @@ export class PaymentService {
     });
 
     if (existingPayment) {
-      throw new BadRequestException(
-        `Payment already exists for order ${orderId}`,
-      );
+      throw new BadRequestException(`Payment already exists for order ${orderId}`);
     }
 
     const payment = await this.createPaymentRecord({
@@ -313,18 +291,14 @@ export class PaymentService {
       status: 'PENDING',
     });
 
+    // Order has no paymentStatus column — Payment.status (PENDING) is the SOT.
+    // Flip order to CONFIRMED so customer-facing status reflects the booked sale.
     await this.prisma.order.update({
       where: { id: orderId },
-      data: {
-        paymentStatus: 'PENDING',
-        status: 'CONFIRMED',
-        updatedAt: new Date(),
-      },
+      data: { status: 'CONFIRMED', updatedAt: new Date() },
     });
 
-    this.logger.log(
-      `COD payment created for order ${orderId}: ${formatBDT(amountBDT)}`,
-    );
+    this.logger.log(`COD payment created for order ${orderId}: ${formatBDT(amountBDT)}`);
 
     return {
       paymentId: payment.id,
@@ -340,9 +314,7 @@ export class PaymentService {
     const payment = await this.getPaymentByOrderId(orderId);
 
     if (payment.method !== 'COD') {
-      throw new BadRequestException(
-        'This payment is not a Cash on Delivery payment',
-      );
+      throw new BadRequestException('This payment is not a Cash on Delivery payment');
     }
 
     if (payment.status === 'COMPLETED') {
@@ -361,17 +333,20 @@ export class PaymentService {
       },
     });
 
-    await this.prisma.order.update({
-      where: { id: orderId },
-      data: {
-        paymentStatus: 'PAID',
-        updatedAt: new Date(),
-      },
-    });
-
+    // Payment.status is the SOT for payment state — Order.status stays
+    // wherever the admin/fulfilment moved it last. No order.update here.
     this.logger.log(
       `COD payment for order ${orderId} marked as PAID: ${formatBDT(payment.amount)}`,
     );
+
+    // Customer-facing "we received your payment" email. Listeners can be
+    // added in email-events.service.ts; the emit is safe with no subscribers.
+    this.eventEmitter.emit('payment.received', {
+      orderId,
+      paymentId: payment.id,
+      method: 'COD',
+      amountBDT: Number(payment.amount),
+    });
 
     return {
       paymentId: payment.id,
@@ -406,16 +381,21 @@ export class PaymentService {
         },
       });
 
+      // Order has no paymentStatus column — Payment.status (COMPLETED) is the SOT.
+      // Flip order status to CONFIRMED for fulfilment.
       await this.prisma.order.update({
         where: { id: orderId },
-        data: {
-          paymentStatus: 'PAID',
-          status: 'CONFIRMED',
-          updatedAt: new Date(),
-        },
+        data: { status: 'CONFIRMED', updatedAt: new Date() },
       });
 
       this.logger.log(`Order ${orderId} payment marked as PAID`);
+
+      this.eventEmitter.emit('payment.received', {
+        orderId,
+        paymentId: payment.id,
+        method: 'STRIPE',
+        amountBDT: Number(payment.amount),
+      });
     }
   }
 
@@ -468,9 +448,7 @@ export class PaymentService {
     stripeSessionId?: string;
     stripePaymentIntentId?: string;
   }) {
-    this.logger.log(
-      `Creating payment record for order ${data.orderId}: ${formatBDT(data.amount)}`,
-    );
+    this.logger.log(`Creating payment record for order ${data.orderId}: ${formatBDT(data.amount)}`);
 
     return this.prisma.payment.create({
       data: {

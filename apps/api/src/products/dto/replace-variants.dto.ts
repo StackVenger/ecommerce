@@ -26,10 +26,35 @@ export class ReplaceVariantItemDto {
   @Type(() => Number)
   price?: number | null;
 
+  @IsOptional()
+  @IsNumber({ maxDecimalPlaces: 2 })
+  @Min(0)
+  @Type(() => Number)
+  compareAtPrice?: number | null;
+
+  @IsOptional()
+  @IsNumber({ maxDecimalPlaces: 2 })
+  @Min(0)
+  @Type(() => Number)
+  costPrice?: number | null;
+
+  /**
+   * Absolute stock value. When omitted, the API does NOT touch the
+   * variant's existing quantity in the DB — important so admin saves
+   * (which often don't change stock) don't overwrite decrements made
+   * by concurrent customer orders.
+   */
+  @IsOptional()
   @IsInt()
   @Min(0)
   @Type(() => Number)
-  stock: number;
+  stock?: number;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  @Type(() => Number)
+  lowStockThreshold?: number;
 
   @IsOptional()
   @IsString()
@@ -49,9 +74,24 @@ export class ReplaceVariantItemDto {
   imageUrls?: string[];
 }
 
+export class ReplaceVariantOptionDto {
+  @IsString()
+  name: string;
+
+  @IsArray()
+  @IsString({ each: true })
+  values: string[];
+}
+
 export class ReplaceVariantsDto {
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => ReplaceVariantItemDto)
   variants: ReplaceVariantItemDto[];
+
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => ReplaceVariantOptionDto)
+  options?: ReplaceVariantOptionDto[];
 }

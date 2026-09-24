@@ -1,6 +1,7 @@
 import { Injectable, Logger, NotFoundException, BadRequestException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { EventEmitter2 } from '@nestjs/event-emitter';
+import { Prisma } from '@prisma/client';
 
 import { EmailService } from '../email/email.service';
 import { PrismaService } from '../prisma/prisma.service';
@@ -13,10 +14,49 @@ import {
 import { ShippingService } from './shipping.service';
 
 /**
+ * Recompute Product.status based on effective stock. Duplicated from
+ * products.service.ts (where the canonical implementation lives) to keep
+ * orders.service free of cross-module dependencies — adding ProductsService
+ * here would create a circular import path. Keep the two implementations
+ * in lockstep when modifying.
+ */
+async function recomputeProductStatus(
+  tx: Prisma.TransactionClient,
+  productId: string,
+): Promise<void> {
+  const product = await tx.product.findUnique({
+    where: { id: productId },
+    select: {
+      status: true,
+      quantity: true,
+      variants: { where: { isActive: true }, select: { quantity: true } },
+    },
+  });
+  if (!product) {
+    return;
+  }
+  if (product.status === 'ARCHIVED' || product.status === 'DRAFT') {
+    return;
+  }
+  const effectiveStock =
+    product.variants.length > 0
+      ? product.variants.reduce((s, v) => s + v.quantity, 0)
+      : product.quantity;
+  const desired = effectiveStock <= 0 ? 'OUT_OF_STOCK' : 'ACTIVE';
+  if (desired !== product.status) {
+    await tx.product.update({
+      where: { id: productId },
+      data: { status: desired },
+    });
+  }
+}
+
+/**
  * Validation result for a single cart item during checkout.
  */
 interface ItemValidation {
   productId: string;
+  variantId?: string;
   name: string;
   requestedQuantity: number;
   availableStock: number;
@@ -36,6 +76,8 @@ interface CheckoutValidation {
   shippingCost: number;
   total: number;
   errors: string[];
+  /** Non-blocking notices — e.g. cart snapshot price differs from current live price. */
+  warnings: string[];
 }
 
 /**
@@ -71,6 +113,80 @@ export class OrdersService {
     private readonly configService: ConfigService,
     private readonly eventEmitter: EventEmitter2,
   ) {}
+
+  // ─── Stock commitment helpers ──────────────────────────────────────────────
+  //
+  // Stock is decremented at order placement and (defensively) at PENDING →
+  // CONFIRMED transition for any order whose stockCommitted flag is false.
+  // Cancellation only restores stock when the flag is true so legacy orders
+  // that were never decremented don't get a phantom restore.
+  //
+  // Both helpers MUST be called inside a Prisma $transaction so failures
+  // (insufficient stock) roll back atomically.
+
+  private async commitOrderStock(
+    tx: Prisma.TransactionClient,
+    items: Array<{
+      productId: string;
+      variantId: string | null;
+      quantity: number;
+      productName?: string | null;
+    }>,
+  ): Promise<Set<string>> {
+    const touched = new Set<string>();
+    for (const item of items) {
+      const label = item.productName ?? 'item';
+      if (item.variantId) {
+        const v = await tx.productVariant.update({
+          where: { id: item.variantId },
+          data: { quantity: { decrement: item.quantity } },
+        });
+        if (v.quantity < 0) {
+          throw new BadRequestException(
+            `Insufficient stock for variant of "${label}" (would go to ${v.quantity}).`,
+          );
+        }
+      } else {
+        const p = await tx.product.update({
+          where: { id: item.productId },
+          data: { quantity: { decrement: item.quantity } },
+        });
+        if (p.quantity < 0) {
+          throw new BadRequestException(
+            `Insufficient stock for "${label}" (would go to ${p.quantity}).`,
+          );
+        }
+      }
+      touched.add(item.productId);
+    }
+    return touched;
+  }
+
+  private async restoreOrderStock(
+    tx: Prisma.TransactionClient,
+    items: Array<{
+      productId: string;
+      variantId: string | null;
+      quantity: number;
+    }>,
+  ): Promise<Set<string>> {
+    const touched = new Set<string>();
+    for (const item of items) {
+      if (item.variantId) {
+        await tx.productVariant.update({
+          where: { id: item.variantId },
+          data: { quantity: { increment: item.quantity } },
+        });
+      } else {
+        await tx.product.update({
+          where: { id: item.productId },
+          data: { quantity: { increment: item.quantity } },
+        });
+      }
+      touched.add(item.productId);
+    }
+    return touched;
+  }
 
   // ─── Order Number Generator ─────────────────────────────────────────────────
 
@@ -123,7 +239,10 @@ export class OrdersService {
       where: cartWhere,
       include: {
         items: {
-          include: { product: true },
+          include: {
+            product: true,
+            variant: true,
+          },
           orderBy: { createdAt: 'asc' },
         },
       },
@@ -134,28 +253,55 @@ export class OrdersService {
     }
 
     const itemValidations: ItemValidation[] = [];
+    const warnings: string[] = [];
 
     for (const item of cart.items) {
       const product = item.product;
-      const inStock = product.quantity >= item.quantity;
+      const variant = item.variant;
+
+      const inStock = variant
+        ? variant.quantity >= item.quantity && variant.isActive
+        : product.quantity >= item.quantity;
+
+      const availableStock = variant ? variant.quantity : product.quantity;
 
       if (!inStock) {
-        errors.push(
-          `"${product.name}" has only ${product.quantity} in stock (requested ${item.quantity})`,
-        );
+        if (variant) {
+          errors.push(
+            `variant "${variant.name}" has only ${variant.quantity} in stock (requested ${item.quantity})`,
+          );
+        } else {
+          errors.push(
+            `"${product.name}" has only ${product.quantity} in stock (requested ${item.quantity})`,
+          );
+        }
       }
 
       if (product.status !== 'ACTIVE') {
         errors.push(`"${product.name}" is no longer available`);
       }
 
+      // Snapshot vs live price comparison. CartItem.price is captured at
+      // add-to-cart time; if the admin has since changed Product/Variant
+      // price, surface a non-blocking warning so the customer can decide
+      // whether to proceed. The cart total stays at the snapshot value.
+      const livePrice = Number(variant?.price ?? product.price);
+      const snapshotPrice = Number(item.price);
+      if (Math.abs(livePrice - snapshotPrice) > 0.005) {
+        const label = variant ? `${product.name} (${variant.name})` : product.name;
+        warnings.push(
+          `The price of ${label} changed since you added it (was ৳${snapshotPrice.toFixed(2)}, now ৳${livePrice.toFixed(2)}).`,
+        );
+      }
+
       itemValidations.push({
         productId: product.id,
-        name: product.name,
+        variantId: item.variantId || undefined,
+        name: variant ? `${product.name} (${variant.name})` : product.name,
         requestedQuantity: item.quantity,
-        availableStock: product.quantity,
-        unitPrice: Number(product.price),
-        lineTotal: Number(product.price) * item.quantity,
+        availableStock,
+        unitPrice: snapshotPrice,
+        lineTotal: snapshotPrice * item.quantity,
         inStock,
       });
     }
@@ -164,15 +310,6 @@ export class OrdersService {
 
     // Address validation: authenticated users use addressId, guests provide inline
     if (isGuest) {
-      if (!dto.guestEmail) {
-        errors.push('Guest email is required');
-      }
-      if (!dto.guestFullName) {
-        errors.push('Guest name is required');
-      }
-      if (!dto.guestPhone) {
-        errors.push('Guest phone is required');
-      }
       if (!dto.shippingAddressLine1) {
         errors.push('Shipping address is required');
       }
@@ -271,6 +408,7 @@ export class OrdersService {
       shippingCost,
       total,
       errors,
+      warnings,
     };
   }
 
@@ -347,15 +485,20 @@ export class OrdersService {
     const orderNumber = await this.generateOrderNumber();
 
     const order = await this.prisma.$transaction(async (tx) => {
-      for (const item of cart.items) {
-        const product = await tx.product.update({
-          where: { id: item.productId },
-          data: { quantity: { decrement: item.quantity } },
-        });
+      const touchedProductIds = await this.commitOrderStock(
+        tx,
+        cart.items.map((item) => ({
+          productId: item.productId,
+          variantId: item.variantId,
+          quantity: item.quantity,
+          productName: item.product.name,
+        })),
+      );
 
-        if (product.quantity < 0) {
-          throw new BadRequestException(`"${item.product.name}" went out of stock during checkout`);
-        }
+      // Stock dropped — recompute Product.status so the storefront stops
+      // listing products that just hit zero (auto-flip to OUT_OF_STOCK).
+      for (const productId of touchedProductIds) {
+        await recomputeProductStatus(tx, productId);
       }
 
       const createdOrder = await tx.order.create({
@@ -363,6 +506,10 @@ export class OrdersService {
           orderNumber,
           userId: userId || null,
           status: 'PENDING',
+          // Stock was just decremented above — record it so the confirmation
+          // safety-net doesn't double-decrement, and so cancellation knows
+          // there's stock to restore.
+          stockCommitted: true,
           subtotal: validation.subtotal,
           discountAmount: validation.discount,
           shippingCost: validation.shippingCost,
@@ -404,6 +551,26 @@ export class OrdersService {
         },
       });
 
+      // Persist OrderShipping so the admin has a row to attach tracking /
+      // carrier info to once the parcel is dispatched. The shippingMethodId
+      // FK is nullable because runtime checkout uses hardcoded codes
+      // ('standard', 'express') that may not map to a shipping_methods
+      // row — we keep the code in methodCode for display.
+      if (dto.shippingMethodId) {
+        const dbMethod = await tx.shippingMethod.findFirst({
+          where: { id: dto.shippingMethodId },
+          select: { id: true },
+        });
+        await tx.orderShipping.create({
+          data: {
+            orderId: createdOrder.id,
+            shippingMethodId: dbMethod?.id,
+            methodCode: dto.shippingMethodId,
+            cost: validation.shippingCost,
+          },
+        });
+      }
+
       await tx.cartItem.deleteMany({ where: { cartId: cart.id } });
       await tx.cart.update({
         where: { id: cart.id },
@@ -411,10 +578,25 @@ export class OrdersService {
       });
 
       if (dto.couponCode) {
-        await tx.coupon.update({
-          where: { code: dto.couponCode.toUpperCase() },
-          data: { usageCount: { increment: 1 } },
-        });
+        // Atomic limit-check + increment: the SQL predicate combines the
+        // check with the update so two concurrent orders can't both pass a
+        // usageLimit boundary. Prisma's typed updateMany can't compare
+        // column-to-column, so drop to $executeRaw. `result` is the number
+        // of rows updated — 0 means the coupon hit its limit between
+        // validation and commit.
+        const code = dto.couponCode.toUpperCase();
+        const result = await tx.$executeRaw`
+          UPDATE "coupons"
+          SET "usageCount" = "usageCount" + 1
+          WHERE "code" = ${code}
+            AND "isActive" = true
+            AND ("usageLimit" IS NULL OR "usageCount" < "usageLimit")
+        `;
+        if (result === 0) {
+          throw new BadRequestException(
+            'Coupon usage limit was reached while placing your order. Please remove the coupon and try again.',
+          );
+        }
       }
 
       return createdOrder;
@@ -449,9 +631,9 @@ export class OrdersService {
         'FRONTEND_URL',
         this.configService.get<string>('WEB_URL', 'http://localhost:3000'),
       );
-      const trackingUrl = isGuest
-        ? `${publicUrl}/orders/track?orderNumber=${orderNumber}&email=${encodeURIComponent(customerEmail)}`
-        : `${publicUrl}/account/orders/${orderNumber}`;
+      // Tracker is order-number-only now; keep customerEmail referenced below
+      // for the email subject/body context but don't include it in the URL.
+      const trackingUrl = `${publicUrl}/orders/track?orderNumber=${encodeURIComponent(orderNumber)}`;
 
       this.eventEmitter.emit('order.confirmed', {
         orderId: order.id,
@@ -980,22 +1162,36 @@ export class OrdersService {
   /**
    * Look up a guest order by order number + email verification.
    */
-  async findGuestOrder(orderNumber: string, email: string) {
-    if (!orderNumber || !email) {
-      throw new BadRequestException('Order number and email are required');
+  async findGuestOrder(orderNumber: string) {
+    if (!orderNumber) {
+      throw new BadRequestException('Order number is required');
     }
 
     // Accept "#ORD-...", " ORD-... ", or "ord-..." — confirmation pages and
     // emails sometimes show the # prefix and customers paste it back in.
     const cleaned = orderNumber.trim().replace(/^#+/, '').toUpperCase();
 
+    // Public tracker is intentionally order-number-only (the prior email
+    // gate locked out guests who checked out without an email). The
+    // response below is minimal — everything not displayed on the tracker
+    // page is omitted so we don't leak PII (userId, address, contact info).
     const order = await this.prisma.order.findUnique({
       where: { orderNumber: cleaned },
       include: {
-        items: true,
-        shippingAddress: true,
-        payments: { orderBy: { createdAt: 'desc' }, take: 1 },
-        user: { select: { email: true } },
+        items: {
+          select: {
+            id: true,
+            productName: true,
+            productImage: true,
+            quantity: true,
+            unitPrice: true,
+          },
+        },
+        payments: {
+          orderBy: { createdAt: 'desc' },
+          take: 1,
+          select: { method: true },
+        },
       },
     });
 
@@ -1003,46 +1199,23 @@ export class OrdersService {
       throw new NotFoundException(`Order ${cleaned} not found`);
     }
 
-    // Match against guestEmail OR the owning user's email. Lets a customer
-    // who later created an account (or pasted their own order number into
-    // the public tracker) still look up that order, as long as they can
-    // prove the email it was placed with.
-    const lookup = email.toLowerCase();
-    const matchesGuest = order.guestEmail?.toLowerCase() === lookup;
-    const matchesUser = order.user?.email?.toLowerCase() === lookup;
-    if (!matchesGuest && !matchesUser) {
-      throw new NotFoundException(`Order ${cleaned} not found`);
-    }
-
     const payment = order.payments[0];
 
     return {
-      id: order.id,
       orderNumber: order.orderNumber,
       status: order.status,
+      createdAt: order.createdAt,
       paymentMethod: payment?.method ?? null,
-      paymentStatus: payment?.status ?? null,
-      guestFullName: order.guestFullName,
-      guestEmail: order.guestEmail,
-      guestPhone: order.guestPhone,
       subtotal: Number(order.subtotal),
       shippingCost: Number(order.shippingCost),
-      taxAmount: Number(order.taxAmount),
-      discountAmount: Number(order.discountAmount),
       total: Number(order.totalAmount),
-      couponCode: order.couponCode,
       items: order.items.map((item) => ({
         id: item.id,
         productName: item.productName,
-        productSlug: item.productSlug,
-        sku: item.sku,
+        image: item.productImage ?? null,
         quantity: item.quantity,
         price: Number(item.unitPrice),
-        image: item.productImage ?? null,
       })),
-      shippingAddress: order.shippingAddress,
-      createdAt: order.createdAt,
-      updatedAt: order.updatedAt,
     };
   }
 
@@ -1074,6 +1247,7 @@ export class OrdersService {
       deliveredAt?: Date;
       cancelledAt?: Date;
       notes?: string;
+      stockCommitted?: boolean;
     } = {
       status: dto.status,
     };
@@ -1096,6 +1270,36 @@ export class OrdersService {
     }
 
     const updatedOrder = await this.prisma.$transaction(async (tx) => {
+      // Safety-net stock decrement: if this is the PENDING → CONFIRMED
+      // transition and the order was created before the placement-time
+      // decrement was wired up (or that decrement never ran for any other
+      // reason), commit the stock now. The stockCommitted flag is the
+      // idempotency guard — orders that already decremented at placement
+      // skip this branch entirely.
+      if (
+        order.status === OrderStatus.PENDING &&
+        dto.status === OrderStatus.CONFIRMED &&
+        !order.stockCommitted
+      ) {
+        const items = await tx.orderItem.findMany({
+          where: { orderId },
+          select: {
+            productId: true,
+            variantId: true,
+            quantity: true,
+            productName: true,
+          },
+        });
+        const touchedProductIds = await this.commitOrderStock(tx, items);
+        for (const productId of touchedProductIds) {
+          await recomputeProductStatus(tx, productId);
+        }
+        updateData.stockCommitted = true;
+        this.logger.log(
+          `Order ${order.orderNumber}: safety-net stock decrement fired at PENDING→CONFIRMED (legacy order or placement-decrement missed).`,
+        );
+      }
+
       const next = await tx.order.update({
         where: { id: orderId },
         data: updateData,
@@ -1122,7 +1326,10 @@ export class OrdersService {
 
     this.logger.log(`Order ${order.orderNumber} status updated: ${order.status} → ${dto.status}`);
 
-    if (dto.notifyCustomer) {
+    // Default to notifying the customer on every status change. Admins can
+    // explicitly suppress with `notifyCustomer: false` (e.g. backfills,
+    // internal corrections that don't need an email blast).
+    if (dto.notifyCustomer !== false) {
       await this.deliverStatusChangeEmail(orderId, dto.status, dto.note);
     }
 
@@ -1293,12 +1500,24 @@ export class OrdersService {
     cancelledBy: 'customer' | 'admin',
   ) {
     const cancelledOrder = await this.prisma.$transaction(async (tx) => {
-      // 1. Restore inventory for each item
-      for (const item of order.items) {
-        await tx.product.update({
-          where: { id: item.productId },
-          data: { quantity: { increment: item.quantity } },
-        });
+      // 1. Restore inventory — but only if this order actually had its
+      //    stock decremented. Legacy orders or never-confirmed orders that
+      //    pre-date the stockCommitted flag have it false and must NOT
+      //    receive a phantom restore (would create stock from nothing).
+      if (order.stockCommitted) {
+        const touchedProductIds = await this.restoreOrderStock(tx, order.items);
+
+        // Stock came back — flip status from OUT_OF_STOCK to ACTIVE if needed.
+        for (const productId of touchedProductIds) {
+          await recomputeProductStatus(tx, productId);
+        }
+        this.logger.log(
+          `Order ${order.orderNumber}: stock restored on cancel (${order.items.length} items).`,
+        );
+      } else {
+        this.logger.log(
+          `Order ${order.orderNumber}: skipping stock restore on cancel — stockCommitted=false (never decremented).`,
+        );
       }
 
       // 2. Restore coupon usage count if a coupon was applied
@@ -1327,6 +1546,10 @@ export class OrdersService {
           status: OrderStatus.CANCELLED,
           cancelledAt: new Date(),
           notes: order.notes ? `${order.notes}\n${cancellationNote}` : cancellationNote,
+          // If we restored stock above, the order no longer owns those
+          // units. Flip the flag so a future re-cancel attempt (or audit)
+          // doesn't try to restore them a second time.
+          ...(order.stockCommitted ? { stockCommitted: false } : {}),
         },
         include: { items: true },
       });
@@ -1335,11 +1558,20 @@ export class OrdersService {
       //    Already-PAID payments stay PAID until admin issues an
       //    explicit refund (which flips them to REFUNDED) — there is
       //    no REFUND_PENDING status in the schema.
+      //
+      //    Stripe PENDING payments are left alone: the webhook may still
+      //    arrive and flip them to COMPLETED, and we want the refund flow
+      //    to remain available. COD / manual PENDING payments are safe
+      //    to mark CANCELLED here since no async confirmation is pending.
       if (latestPayment && !needsRefund) {
-        await tx.payment.update({
-          where: { id: latestPayment.id },
-          data: { status: 'CANCELLED' },
-        });
+        const isStripePending =
+          latestPayment.method === 'STRIPE' && latestPayment.status === 'PENDING';
+        if (!isStripePending) {
+          await tx.payment.update({
+            where: { id: latestPayment.id },
+            data: { status: 'CANCELLED' },
+          });
+        }
       }
 
       return updated;

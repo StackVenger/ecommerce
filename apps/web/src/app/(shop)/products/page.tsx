@@ -42,6 +42,7 @@ interface Product {
   isFeatured?: boolean;
   shortDescription?: string;
   stock: number;
+  defaultVariantId?: string;
 }
 
 interface Pagination {
@@ -53,40 +54,49 @@ interface Pagination {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function normalizeProduct(raw: any): Product {
-  // When the product has a default variant with images, surface that
-  // image as the cover so listing cards mirror the storefront PDP's
-  // "default variant wins" rule. The API already filters `variants` to
-  // just the default + active one when serving lists.
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const defaultVariant = Array.isArray(raw.variants)
+    ? (raw.variants.find((v: any) => v.isDefault === true) ?? raw.variants[0] ?? null)
+    : null;
+
   const defaultVariantImage: string | null = (() => {
-    const v = Array.isArray(raw.variants) ? raw.variants[0] : null;
-    const img = v?.images?.[0];
+    const img = defaultVariant?.images?.[0];
     if (!img) {
       return null;
     }
     return typeof img === 'string' ? img : (img.url ?? null);
   })();
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const rawImages: string[] = Array.isArray(raw.images)
     ? raw.images.map((img: any) => (typeof img === 'string' ? img : img.url))
     : [];
+
+  const price = defaultVariant ? Number(defaultVariant.price) : Number(raw.price);
+  const compareAtPrice = defaultVariant
+    ? defaultVariant.compareAtPrice
+      ? Number(defaultVariant.compareAtPrice)
+      : undefined
+    : raw.compareAtPrice
+      ? Number(raw.compareAtPrice)
+      : undefined;
+  const stock = defaultVariant ? (defaultVariant.quantity ?? 0) : (raw.quantity ?? 0);
+  const defaultVariantId = defaultVariant ? defaultVariant.id : undefined;
 
   return {
     id: raw.id,
     name: raw.name,
     slug: raw.slug,
-    price: Number(raw.price),
-    compareAtPrice: raw.compareAtPrice ? Number(raw.compareAtPrice) : undefined,
-    salePrice: raw.compareAtPrice ? Number(raw.price) : null,
+    price,
+    compareAtPrice,
+    salePrice: compareAtPrice ? price : null,
     images: defaultVariantImage ? [defaultVariantImage, ...rawImages] : rawImages,
     averageRating: Number(raw.averageRating ?? 0),
-    reviewCount: raw._count?.reviews ?? raw.totalReviews ?? 0,
+    reviewCount: raw.totalReviews ?? raw._count?.reviews ?? 0,
     categoryName: raw.category?.name ?? raw.categoryName ?? null,
     brandName: raw.brand?.name ?? raw.brandName ?? null,
     isFeatured: raw.isFeatured ?? false,
     shortDescription: raw.shortDescription ?? null,
-    stock: raw.quantity ?? 0,
+    stock,
+    defaultVariantId,
   };
 }
 
@@ -120,7 +130,7 @@ const SORT_OPTIONS = [
 ];
 
 export default function ProductsPage() {
-  const { addItem, isUpdating } = useCart();
+  const { cart, addItem, isUpdating } = useCart();
 
   const [products, setProducts] = useState<Product[]>([]);
   const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
@@ -248,7 +258,14 @@ export default function ProductsPage() {
     if (product.stock <= 0) {
       return;
     }
-    addItem({ productId: product.id, quantity: 1 });
+    addItem(
+      {
+        productId: product.id,
+        variantId: product.defaultVariantId,
+        quantity: 1,
+      },
+      { openDrawer: false },
+    );
   };
 
   const formatPrice = (price: number) => `৳${price.toLocaleString('en-BD')}`;
@@ -455,6 +472,7 @@ export default function ProductsPage() {
   );
 
   const renderProductCard = (product: Product, isFeaturedCard = false) => {
+    const isAlreadyInCart = cart?.items?.some((item) => item.productId === product.id);
     const effectivePrice = product.salePrice ?? product.price;
     const hasDiscount = product.salePrice && product.salePrice < product.price;
     const discountPercent = hasDiscount
@@ -486,6 +504,7 @@ export default function ProductsPage() {
         originalPrice={hasDiscount ? product.price : null}
         formatPrice={formatPrice}
         badges={badges}
+        inCart={isAlreadyInCart}
         outOfStock={product.stock <= 0}
         onAddToCart={(e) => handleQuickAdd(e, product)}
         addDisabled={isUpdating}
