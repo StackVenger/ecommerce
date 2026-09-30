@@ -19,6 +19,7 @@
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
     "db:seed": "tsx prisma/seed.ts",
+    "seed:watches": "tsx prisma/seed-watches.ts",
     "studio": "prisma studio",
     "reset": "prisma migrate reset",
     "lint": "eslint \"src/**/*.ts\"",
