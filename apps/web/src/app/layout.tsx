@@ -1,4 +1,4 @@
-import { Inter, Noto_Sans_Bengali } from 'next/font/google';
+import { IBM_Plex_Sans, Inter, Montserrat, Noto_Sans_Bengali } from 'next/font/google';
 import NextTopLoader from 'nextjs-toploader';
 
 import type { Metadata, Viewport } from 'next';
@@ -15,6 +15,23 @@ const inter = Inter({
   subsets: ['latin'],
   display: 'swap',
   variable: '--font-inter',
+});
+
+// Watch theme type pair: Montserrat for headings / navigation, IBM Plex
+// Sans for body copy. Self-hosted so the theme renders without the admin
+// Google Fonts link (the admin can still switch families).
+const montserrat = Montserrat({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-montserrat',
+  weight: ['400', '500', '600', '700'],
+});
+
+const plexSans = IBM_Plex_Sans({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-plex',
+  weight: ['300', '400', '500', '600', '700'],
 });
 
 const notoSansBengali = Noto_Sans_Bengali({
@@ -94,8 +111,8 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export const viewport: Viewport = {
   themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#fbf9f6' },
-    { media: '(prefers-color-scheme: dark)', color: '#141210' },
+    { media: '(prefers-color-scheme: light)', color: '#ffffff' },
+    { media: '(prefers-color-scheme: dark)', color: '#141414' },
   ],
   width: 'device-width',
   initialScale: 1,
@@ -119,7 +136,7 @@ export default async function RootLayout({
   return (
     <html
       lang={settings.general.default_language || 'en'}
-      className={`${inter.variable} ${notoSansBengali.variable}`}
+      className={`${inter.variable} ${montserrat.variable} ${plexSans.variable} ${notoSansBengali.variable}`}
       suppressHydrationWarning
     >
       <head>
@@ -192,7 +209,7 @@ export default async function RootLayout({
           is driven by the admin typography tokens defined in
           globals.css (which read `--font-body`). */}
       <body className="min-h-screen bg-background antialiased">
-        <NextTopLoader color="#f46e54" height={3} showSpinner={false} />
+        <NextTopLoader color="#f9706a" height={3} showSpinner={false} />
         <Providers>{children}</Providers>
       </body>
     </html>

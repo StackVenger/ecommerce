@@ -60,13 +60,12 @@ export function AnnouncementBar({
 
   return (
     <div
-      className="relative w-full bg-ink px-10 py-2.5 text-center text-xs font-bold text-white"
+      className="relative w-full bg-ink px-10 py-2 text-center text-[13px] text-white"
       role="banner"
       aria-label="Announcement"
     >
       <div className="container mx-auto flex items-center justify-center gap-2">
         <span className="relative flex h-2 w-2 flex-shrink-0">
-          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75" />
           <span className="relative inline-flex h-2 w-2 rounded-full bg-primary" />
         </span>
 
@@ -87,7 +86,7 @@ export function AnnouncementBar({
           <button
             type="button"
             onClick={() => setLocale(locale === 'en' ? 'bn' : 'en')}
-            className="ml-2 rounded-lg bg-white/10 px-2 py-0.5 text-[10px] font-black opacity-80 transition-opacity hover:opacity-100"
+            className="ml-2 border border-white/30 px-2 py-0.5 text-[11px] font-semibold opacity-80 transition-opacity hover:opacity-100"
             aria-label="Toggle language"
           >
             {locale === 'en' ? 'বাং' : 'EN'}

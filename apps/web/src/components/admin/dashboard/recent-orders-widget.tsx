@@ -30,17 +30,17 @@ export function RecentOrdersWidget({ data, loading, className }: RecentOrdersWid
   const orders = activity?.recentOrders ?? [];
 
   return (
-    <div className={cn('bento-card flex flex-col p-6 sm:p-8', className)}>
+    <div className={cn('bento-card flex flex-col p-5 sm:p-6', className)}>
       <SectionHeader
         title="Recent Orders"
         caption="Latest customer orders"
         action={
           <Link
             href="/admin/orders"
-            className="btn-icon h-10 w-10 rounded-xl bg-ink text-white shadow-lg shadow-black/10 hover:bg-ink-soft"
+            className="btn-icon h-10 w-10 border border-gray-200 text-gray-700 hover:border-primary hover:text-primary"
             aria-label="View all orders"
           >
-            <ArrowRight className="h-5 w-5" strokeWidth={2.25} />
+            <ArrowRight className="h-5 w-5" strokeWidth={2} />
           </Link>
         }
       />
@@ -48,7 +48,7 @@ export function RecentOrdersWidget({ data, loading, className }: RecentOrdersWid
       {isLoading ? (
         <div className="space-y-3">
           {Array.from({ length: 5 }).map((_, i) => (
-            <div key={i} className="h-14 animate-pulse rounded-2xl bg-gray-50" />
+            <div key={i} className="h-14 animate-pulse bg-gray-50" />
           ))}
         </div>
       ) : orders.length === 0 ? (
@@ -60,7 +60,7 @@ export function RecentOrdersWidget({ data, loading, className }: RecentOrdersWid
           className="py-8"
         />
       ) : (
-        <div className="-mx-3 overflow-x-auto">
+        <div className="overflow-x-auto border border-gray-200">
           <table className="bento-table min-w-[560px]">
             <thead>
               <tr>
@@ -78,10 +78,10 @@ export function RecentOrdersWidget({ data, loading, className }: RecentOrdersWid
                       href={`/admin/orders/${order.id}`}
                       className="flex flex-col transition-colors group-hover:text-primary"
                     >
-                      <span className="text-sm font-black leading-none text-gray-900 group-hover:text-primary">
+                      <span className="text-sm font-semibold leading-none text-gray-900 group-hover:text-primary">
                         #{order.orderNumber}
                       </span>
-                      <span className="mt-1 text-[10px] font-bold tracking-wider text-gray-400">
+                      <span className="mt-1 text-xs text-gray-500">
                         {new Date(order.createdAt).toLocaleDateString('en-US', {
                           month: 'short',
                           day: 'numeric',
@@ -92,10 +92,10 @@ export function RecentOrdersWidget({ data, loading, className }: RecentOrdersWid
                     </Link>
                   </td>
                   <td>
-                    <span className="block max-w-[180px] truncate text-sm font-bold text-gray-800">
+                    <span className="block max-w-[180px] truncate text-sm font-medium text-gray-800">
                       {order.customerName}
                     </span>
-                    <span className="text-[10px] font-bold text-gray-400">
+                    <span className="text-xs text-gray-500">
                       {order.itemCount} item{order.itemCount !== 1 ? 's' : ''}
                     </span>
                   </td>
@@ -103,7 +103,7 @@ export function RecentOrdersWidget({ data, loading, className }: RecentOrdersWid
                     <OrderStatusPill status={order.status} />
                   </td>
                   <td className="text-right">
-                    <span className="text-sm font-black tabular-nums tracking-tight text-gray-900">
+                    <span className="text-sm font-bold tabular-nums text-gray-900">
                       {formatBDT(order.totalAmount)}
                     </span>
                   </td>

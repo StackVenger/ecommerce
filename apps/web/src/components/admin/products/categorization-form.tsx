@@ -188,7 +188,7 @@ export function CategorizationForm({
       <div className="bento-card p-6 sm:p-8">
         <div className="mb-4 flex items-center gap-2">
           <FolderTree className="h-5 w-5 text-gray-400" />
-          <h2 className="text-lg font-black text-gray-900 tracking-tight">Category</h2>
+          <h2 className="font-heading text-lg font-semibold text-gray-900">Category</h2>
         </div>
 
         {/* Search */}
@@ -204,7 +204,7 @@ export function CategorizationForm({
         </div>
 
         {/* Category Tree */}
-        <div className="scrollbar-thin max-h-64 overflow-y-auto rounded-[1.25rem] border border-foreground/[0.06] bg-card p-1.5">
+        <div className="scrollbar-thin max-h-64 overflow-y-auto border border-gray-200 bg-card p-1.5">
           {isLoadingCategories ? (
             <div className="p-4 text-center text-sm text-gray-500">Loading categories...</div>
           ) : categories.length === 0 ? (
@@ -227,7 +227,7 @@ export function CategorizationForm({
       <div className="bento-card p-6 sm:p-8">
         <div className="mb-4 flex items-center gap-2">
           <Building2 className="h-5 w-5 text-gray-400" />
-          <h2 className="text-lg font-black text-gray-900 tracking-tight">Brand</h2>
+          <h2 className="font-heading text-lg font-semibold text-gray-900">Brand</h2>
         </div>
 
         <div className="relative mb-3">
@@ -241,7 +241,7 @@ export function CategorizationForm({
           />
         </div>
 
-        <div className="scrollbar-thin max-h-48 overflow-y-auto rounded-[1.25rem] border border-foreground/[0.06] bg-card p-1.5">
+        <div className="scrollbar-thin max-h-48 overflow-y-auto border border-gray-200 bg-card p-1.5">
           {isLoadingBrands ? (
             <div className="p-4 text-center text-sm text-gray-500">Loading brands...</div>
           ) : (
@@ -279,7 +279,7 @@ export function CategorizationForm({
       <div className="bento-card p-6 sm:p-8">
         <div className="mb-4 flex items-center gap-2">
           <Tag className="h-5 w-5 text-gray-400" />
-          <h2 className="text-lg font-black text-gray-900 tracking-tight">Tags</h2>
+          <h2 className="font-heading text-lg font-semibold text-gray-900">Tags</h2>
         </div>
 
         <div className="mb-3 flex flex-wrap gap-2">

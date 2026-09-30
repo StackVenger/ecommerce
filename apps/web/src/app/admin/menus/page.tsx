@@ -77,7 +77,7 @@ function MenuItemNode({
         onDragStart={() => onDragStart(item.id)}
         onDragOver={(e) => onDragOver(e, item.id)}
         onDrop={(e) => onDrop(e, item.id)}
-        className={`mb-2 flex cursor-grab items-center gap-3 rounded-2xl border border-foreground/[0.05] bg-card px-4 py-3 shadow-sm transition-all hover:shadow-bento-hover active:cursor-grabbing ${
+        className={`mb-2 flex cursor-grab items-center gap-3 rounded-2xl border border-gray-200 bg-card px-4 py-3 transition-all hover:shadow-bento-hover active:cursor-grabbing ${
           draggedId === item.id ? 'opacity-50' : ''
         } ${!item.isVisible ? 'opacity-60' : ''}`}
       >
@@ -353,7 +353,7 @@ export default function AdminMenusPage() {
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         {/* Menu List */}
         <div className="bento-card p-4">
-          <h2 className="text-sm font-black text-gray-900 mb-3 tracking-tight">Menus</h2>
+          <h2 className="text-sm font-heading font-semibold text-gray-900 mb-3">Menus</h2>
           {loading ? (
             <p className="text-sm text-gray-500">Loading...</p>
           ) : menus.length === 0 ? (
@@ -384,7 +384,7 @@ export default function AdminMenusPage() {
             <>
               <div className="flex items-center justify-between">
                 <div>
-                  <h2 className="text-lg font-black text-gray-900 tracking-tight">
+                  <h2 className="text-lg font-heading font-semibold text-gray-900">
                     {activeMenu.name}
                   </h2>
                   <p className="text-sm text-gray-500 capitalize">
@@ -399,7 +399,7 @@ export default function AdminMenusPage() {
               {/* Menu Tree */}
               <div className="space-y-0">
                 {activeMenu.items.length === 0 ? (
-                  <div className="rounded-[2rem] border-2 border-dashed border-gray-300 bg-card p-12 text-center">
+                  <div className="rounded-2xl border-2 border-dashed border-gray-300 bg-card p-12 text-center">
                     <p className="text-gray-500">No menu items yet. Add your first item!</p>
                   </div>
                 ) : (
@@ -435,9 +435,9 @@ export default function AdminMenusPage() {
       {showItemForm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div className="absolute inset-0 bg-black/50" onClick={() => setShowItemForm(false)} />
-          <div className="relative bg-card rounded-[2rem] shadow-2xl w-full max-w-md mx-4">
-            <div className="px-6 py-4 border-b border-foreground/[0.04]">
-              <h2 className="text-lg font-black text-gray-900 tracking-tight">
+          <div className="relative bg-card border border-gray-200 shadow-bento-hover w-full max-w-md mx-4">
+            <div className="px-6 py-4 border-b border-gray-200">
+              <h2 className="text-lg font-heading font-semibold text-gray-900">
                 {editingItem ? 'Edit Menu Item' : 'Add Menu Item'}
               </h2>
             </div>
@@ -522,7 +522,7 @@ export default function AdminMenusPage() {
                 <span className="text-sm text-gray-700">Visible</span>
               </label>
 
-              <div className="flex gap-3 justify-end pt-4 border-t border-foreground/[0.04]">
+              <div className="flex gap-3 justify-end pt-4 border-t border-gray-200">
                 <button
                   type="button"
                   onClick={() => setShowItemForm(false)}

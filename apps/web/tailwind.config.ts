@@ -21,7 +21,8 @@ const config: Config = {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['var(--font-inter)', 'Inter', 'system-ui', 'sans-serif'],
+        sans: ['var(--font-plex)', 'IBM Plex Sans', 'system-ui', 'sans-serif'],
+        heading: ['var(--font-montserrat)', 'Montserrat', 'system-ui', 'sans-serif'],
         bengali: ['var(--font-noto-sans-bengali)', 'Noto Sans Bengali', 'sans-serif'],
       },
       maxWidth: {

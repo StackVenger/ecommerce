@@ -1,14 +1,17 @@
-import { Loader2, type LucideIcon } from 'lucide-react';
+import { ChevronRight, Loader2, type LucideIcon } from 'lucide-react';
+import Link from 'next/link';
 
 import { cn } from '@/lib/utils';
 
 // ──────────────────────────────────────────────────────────
-// Bento design-system primitives
+// Design-system primitives (watch theme)
 //
-// Thin wrappers over the `.bento-*` / `.eyebrow` / `.pill` classes in
-// app/globals.css so pages compose the same surfaces, headings and
-// states instead of re-typing long class strings. All are plain
-// (server-safe) components.
+// Thin wrappers over the `.bento-*` / `.shop-heading` / `.eyebrow` /
+// `.pill` classes in app/globals.css so pages compose the same surfaces,
+// headings and states instead of re-typing long class strings. The
+// `bento` names are kept for compatibility; the look is the flat,
+// square, hairline watch theme (see docs/design/watch-theme.md). All are
+// plain (server-safe) components.
 // ──────────────────────────────────────────────────────────
 
 type Tone =
@@ -78,28 +81,8 @@ export function BentoCard({
       )}
       {...props}
     >
-      {(variant === 'primary' || variant === 'dark') && <BentoGlow variant={variant} />}
-      {variant === 'primary' || variant === 'dark' ? (
-        <div className="relative z-10 h-full">{children}</div>
-      ) : (
-        children
-      )}
+      {children}
     </Comp>
-  );
-}
-
-/** Decorative blurred blobs used behind coral / ink tiles. */
-export function BentoGlow({ variant = 'primary' }: { variant?: 'primary' | 'dark' }) {
-  return variant === 'dark' ? (
-    <>
-      <div className="bento-glow -right-10 -top-10 h-64 w-64 bg-primary/20" aria-hidden />
-      <div className="bento-glow -bottom-10 -left-10 h-48 w-48 bg-blue-500/10" aria-hidden />
-    </>
-  ) : (
-    <>
-      <div className="bento-glow -right-12 -top-12 h-48 w-48 bg-white/10" aria-hidden />
-      <div className="bento-glow -bottom-12 -left-12 h-48 w-48 bg-black/10" aria-hidden />
-    </>
   );
 }
 
@@ -119,7 +102,7 @@ interface PageHeaderProps {
   className?: string;
 }
 
-/** Page-level heading block: heavy tight title + muted bold subtitle + actions. */
+/** Page-level heading block: Montserrat title + muted subtitle + actions. */
 export function PageHeader({ title, description, actions, eyebrow, className }: PageHeaderProps) {
   return (
     <div
@@ -148,7 +131,7 @@ interface SectionHeaderProps {
   as?: 'h2' | 'h3';
 }
 
-/** Card-level heading: `text-xl font-black` title + eyebrow caption + trailing action. */
+/** Card-level heading: Montserrat title + eyebrow caption + trailing action. */
 export function SectionHeader({
   title,
   caption,
@@ -161,8 +144,8 @@ export function SectionHeader({
     <div className={cn('mb-6 flex items-start justify-between gap-4', className)}>
       <div className="flex min-w-0 items-center gap-3">
         {Icon && (
-          <div className="icon-tile h-10 w-10 rounded-xl bg-brand-50 text-brand-600">
-            <Icon className="h-5 w-5" strokeWidth={2.25} />
+          <div className="icon-tile h-10 w-10 bg-brand-50 text-brand-600">
+            <Icon className="h-5 w-5" strokeWidth={1.75} />
           </div>
         )}
         <div className="flex min-w-0 flex-col gap-1">
@@ -172,6 +155,77 @@ export function SectionHeader({
       </div>
       {action && <div className="flex shrink-0 items-center gap-2">{action}</div>}
     </div>
+  );
+}
+
+interface ShopSectionHeadingProps {
+  title: React.ReactNode;
+  /** Optional line under the heading. */
+  caption?: React.ReactNode;
+  /** Trailing link / controls (e.g. "View all"). */
+  action?: React.ReactNode;
+  className?: string;
+  as?: 'h1' | 'h2' | 'h3';
+}
+
+/** Storefront section heading: Montserrat title with the short coral rule. */
+export function ShopSectionHeading({
+  title,
+  caption,
+  action,
+  className,
+  as: Heading = 'h2',
+}: ShopSectionHeadingProps) {
+  return (
+    <div className={cn('mb-7 flex items-end justify-between gap-4', className)}>
+      <div className="min-w-0">
+        <Heading className="shop-heading">{title}</Heading>
+        {caption && <p className="mt-3 text-sm text-gray-500">{caption}</p>}
+      </div>
+      {action && <div className="flex shrink-0 items-center gap-2">{action}</div>}
+    </div>
+  );
+}
+
+export interface BreadcrumbItem {
+  label: React.ReactNode;
+  /** Omit on the current (last) item. */
+  href?: string;
+}
+
+/**
+ * Full-width breadcrumb strip ("Home › Current") that sits under the
+ * header on inner storefront pages. The current page renders in coral.
+ */
+export function Breadcrumbs({ items, className }: { items: BreadcrumbItem[]; className?: string }) {
+  return (
+    <nav aria-label="Breadcrumb" className={cn('breadcrumb-bar', className)}>
+      <ol className="site-container flex min-w-0 items-center gap-2 overflow-x-auto px-4 py-3 text-[13px] scrollbar-none sm:px-6 lg:px-8">
+        {items.map((item, i) => {
+          const last = i === items.length - 1;
+          return (
+            <li key={i} className="flex shrink-0 items-center gap-2">
+              {item.href && !last ? (
+                <Link
+                  href={item.href}
+                  className="text-gray-800 transition-colors hover:text-primary"
+                >
+                  {item.label}
+                </Link>
+              ) : (
+                <span
+                  className={cn('max-w-[16rem] truncate', last ? 'text-primary' : 'text-gray-800')}
+                  aria-current={last ? 'page' : undefined}
+                >
+                  {item.label}
+                </span>
+              )}
+              {!last && <ChevronRight className="h-3.5 w-3.5 text-gray-500" aria-hidden />}
+            </li>
+          );
+        })}
+      </ol>
+    </nav>
   );
 }
 
@@ -189,7 +243,7 @@ export function IconTile({ icon: Icon, tone = 'brand', size = 'md', className }:
     <div
       className={cn(
         'icon-tile',
-        size === 'sm' && 'h-10 w-10 rounded-xl',
+        size === 'sm' && 'h-10 w-10',
         size === 'lg' && 'h-16 w-16',
         TONE_CLASSES[tone],
         className,
@@ -197,7 +251,7 @@ export function IconTile({ icon: Icon, tone = 'brand', size = 'md', className }:
     >
       <Icon
         className={cn(size === 'sm' ? 'h-5 w-5' : size === 'lg' ? 'h-8 w-8' : 'h-6 w-6')}
-        strokeWidth={2.25}
+        strokeWidth={1.75}
       />
     </div>
   );
@@ -268,7 +322,7 @@ export function TrendPill({ value, className }: { value: number; className?: str
   return (
     <span
       className={cn(
-        'inline-flex items-center gap-1 rounded-xl px-2.5 py-1 text-[10px] font-black tabular-nums',
+        'inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-semibold tabular-nums',
         up ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600',
         className,
       )}
@@ -332,14 +386,12 @@ export function EmptyState({
       )}
     >
       {Icon && (
-        <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-brand-50 text-brand-600">
-          <Icon className="h-8 w-8" strokeWidth={2.25} />
+        <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-gray-100 text-primary">
+          <Icon className="h-7 w-7" strokeWidth={1.5} />
         </div>
       )}
-      <h3 className="text-lg font-black tracking-tight text-gray-900">{title}</h3>
-      {description && (
-        <p className="mt-2 max-w-sm text-sm font-medium text-gray-500">{description}</p>
-      )}
+      <h3 className="font-heading text-xl font-semibold text-gray-900">{title}</h3>
+      {description && <p className="mt-2 max-w-sm text-sm text-gray-500">{description}</p>}
       {action && <div className="mt-6">{action}</div>}
     </div>
   );
@@ -357,13 +409,13 @@ export function LoadingState({
       className={cn('flex flex-col items-center justify-center gap-3 py-16', className)}
       role="status"
     >
-      <Loader2 className="h-8 w-8 animate-spin text-primary" strokeWidth={2.5} />
+      <Loader2 className="h-8 w-8 animate-spin text-primary" strokeWidth={2} />
       <p className="eyebrow">{label}</p>
     </div>
   );
 }
 
-/** Rounded shimmer block for skeleton layouts. */
+/** Shimmer block for skeleton layouts. */
 export function SkeletonBlock({ className }: { className?: string }) {
-  return <div className={cn('animate-pulse rounded-2xl bg-gray-100', className)} />;
+  return <div className={cn('animate-pulse rounded-lg bg-gray-100', className)} />;
 }

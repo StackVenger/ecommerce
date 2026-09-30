@@ -66,9 +66,9 @@ export function ColorPicker({ value, onChange, label, id }: ColorPickerProps) {
   };
 
   return (
-    <label htmlFor={id} className="block text-xs font-bold text-gray-700">
+    <label htmlFor={id} className="block text-sm font-medium text-gray-800">
       {label && <span className="mb-1.5 block">{label}</span>}
-      <div className="bento-card flex items-center gap-2 border-foreground/[0.06] p-1.5 transition-all focus-within:border-brand-300 focus-within:ring-4 focus-within:ring-brand-500/10">
+      <div className="bento-card flex items-center gap-2 border-gray-200 p-1.5 transition-all focus-within:border-primary focus-within:ring-1 focus-within:ring-primary">
         <input
           id={id}
           type="color"
@@ -78,7 +78,7 @@ export function ColorPicker({ value, onChange, label, id }: ColorPickerProps) {
             onChange(e.target.value);
             lastPropValue.current = e.target.value;
           }}
-          className="h-8 w-10 cursor-pointer rounded-xl border-0 bg-transparent p-0"
+          className="h-8 w-10 cursor-pointer border-0 bg-transparent p-0"
           aria-label={label ? `${label} color picker` : 'Color picker'}
         />
         <input

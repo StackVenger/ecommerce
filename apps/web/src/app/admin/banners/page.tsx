@@ -329,12 +329,12 @@ export default function AdminBannersPage() {
 
               {/* Banner Info */}
               <div className="p-4">
-                <h3 className="text-lg font-black tracking-tight text-gray-900">{banner.title}</h3>
+                <h3 className="text-lg font-heading font-semibold text-gray-900">{banner.title}</h3>
                 {banner.titleBn && <p className="text-xs text-gray-500 mt-0.5">{banner.titleBn}</p>}
                 {banner.link && (
                   <p className="text-xs text-brand-600 mt-1 truncate">{banner.link}</p>
                 )}
-                <div className="flex items-center justify-between mt-3 pt-3 border-t border-foreground/[0.04]">
+                <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-200">
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => handleEdit(banner)}
@@ -379,9 +379,9 @@ export default function AdminBannersPage() {
       {showForm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div className="absolute inset-0 bg-black/50" onClick={() => setShowForm(false)} />
-          <div className="relative bg-card rounded-[2rem] shadow-2xl w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
-            <div className="px-6 py-4 border-b border-foreground/[0.04] flex items-center justify-between">
-              <h2 className="text-lg font-black text-gray-900 tracking-tight">
+          <div className="relative bg-card border border-gray-200 shadow-bento-hover w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+              <h2 className="text-lg font-heading font-semibold text-gray-900">
                 {editingId ? 'Edit Banner' : 'Create Banner'}
               </h2>
               <button
@@ -667,7 +667,7 @@ export default function AdminBannersPage() {
                 <span className="text-sm text-gray-700">Active</span>
               </label>
 
-              <div className="flex gap-3 justify-end pt-4 border-t border-foreground/[0.04]">
+              <div className="flex gap-3 justify-end pt-4 border-t border-gray-200">
                 <button
                   type="button"
                   onClick={() => setShowForm(false)}

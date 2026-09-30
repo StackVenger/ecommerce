@@ -115,26 +115,26 @@ export function AddressForm({ address, onSubmit, onCancel, isLoading = false }: 
 
   return (
     <div className="bento-card">
-      <div className="flex items-center justify-between gap-4 border-b border-foreground/[0.04] px-6 py-5 sm:px-8">
+      <div className="flex items-center justify-between gap-4 border-b border-gray-200 px-5 py-4 sm:px-6">
         <div className="flex items-center gap-3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-brand-50 text-brand-600">
-            <MapPin className="h-5 w-5" strokeWidth={2.25} />
+          <div className="flex h-10 w-10 items-center justify-center bg-brand-50 text-primary">
+            <MapPin className="h-5 w-5" strokeWidth={1.75} />
           </div>
           <div>
             <h3 className="section-title">{address ? 'Edit Address' : 'Add New Address'}</h3>
-            <p className="eyebrow mt-0.5">Delivery details</p>
+            <p className="mt-0.5 text-sm text-gray-500">Delivery details</p>
           </div>
         </div>
         <button
           onClick={onCancel}
-          className="btn-icon h-10 w-10 rounded-xl text-gray-400 hover:bg-gray-100 hover:text-gray-900"
+          className="btn-icon h-10 w-10 text-gray-500 hover:bg-gray-100 hover:text-primary"
           aria-label="Close address form"
         >
-          <X className="h-5 w-5" strokeWidth={2.25} />
+          <X className="h-5 w-5" strokeWidth={1.75} />
         </button>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-5 p-6 sm:p-8">
+      <form onSubmit={handleSubmit} className="space-y-5 p-5 sm:p-6">
         {/* Label Selection */}
         <div>
           <label className="field-label mb-2">Address Label</label>
@@ -144,7 +144,7 @@ export function AddressForm({ address, onSubmit, onCancel, isLoading = false }: 
                 key={label}
                 type="button"
                 onClick={() => updateField('label', label)}
-                className={`chip ${formData.label === label ? 'chip-active' : 'bg-gray-50'}`}
+                className={`chip ${formData.label === label ? 'chip-active' : ''}`}
                 aria-pressed={formData.label === label}
               >
                 {label}
@@ -290,19 +290,19 @@ export function AddressForm({ address, onSubmit, onCancel, isLoading = false }: 
         </div>
 
         {/* Default Address */}
-        <label className="flex w-fit cursor-pointer items-center gap-3 rounded-2xl bg-gray-50 px-4 py-3">
+        <label className="flex w-fit cursor-pointer items-center gap-3 border border-gray-200 bg-gray-50 px-4 py-3">
           <input
             type="checkbox"
             checked={formData.isDefault}
             onChange={(e) => updateField('isDefault', e.target.checked)}
-            className="h-4 w-4 rounded border-gray-300 text-brand-600 focus:ring-brand-500"
+            className="h-4 w-4 border-gray-300 accent-primary"
           />
-          <span className="text-sm font-bold text-gray-700">Set as default address</span>
+          <span className="text-sm text-gray-700">Set as default address</span>
         </label>
 
         {/* Action Buttons */}
-        <div className="flex flex-col-reverse gap-2 border-t border-foreground/[0.04] pt-6 sm:flex-row sm:justify-end">
-          <button type="button" onClick={onCancel} className="btn btn-soft">
+        <div className="flex flex-col-reverse gap-2 border-t border-gray-200 pt-5 sm:flex-row sm:justify-end">
+          <button type="button" onClick={onCancel} className="btn btn-secondary">
             Cancel
           </button>
           <button type="submit" disabled={isLoading} className="btn btn-primary">

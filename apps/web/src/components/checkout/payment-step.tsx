@@ -129,12 +129,12 @@ function PaymentOptionCard({ option, isSelected, onSelect }: PaymentOptionCardPr
       type="button"
       onClick={onSelect}
       disabled={option.disabled}
-      className={`w-full text-left rounded-[1.5rem] border-2 p-5 transition-colors ${
+      className={`w-full text-left border p-5 transition-colors ${
         option.disabled
-          ? 'border-gray-100 bg-gray-50 cursor-not-allowed opacity-60'
+          ? 'border-gray-200 bg-gray-50 cursor-not-allowed opacity-60'
           : isSelected
-            ? 'border-primary bg-brand-50'
-            : 'border-gray-200 hover:border-gray-300 bg-card'
+            ? 'border-primary bg-brand-50/40 ring-1 ring-primary'
+            : 'border-gray-200 hover:border-gray-400 bg-card'
       }`}
     >
       <div className="flex items-center gap-4">
@@ -188,7 +188,7 @@ function PaymentOptionCard({ option, isSelected, onSelect }: PaymentOptionCardPr
 
 function CardPaymentForm() {
   return (
-    <div className="mt-6 rounded-xl bg-gray-50 border border-gray-200 p-6">
+    <div className="mt-6 bg-gray-50 border border-gray-200 p-6">
       <h3 className="text-sm font-semibold text-gray-900 mb-4">Card Details</h3>
 
       <div className="space-y-4">
@@ -250,7 +250,7 @@ function CardPaymentForm() {
 
 function CodInfo() {
   return (
-    <div className="mt-6 rounded-xl bg-amber-50 border border-amber-200 p-4 text-sm text-amber-800">
+    <div className="mt-6 bg-amber-50 border border-amber-200 p-4 text-sm text-amber-800">
       <p className="font-medium mb-1">Cash on Delivery</p>
       <ul className="list-disc list-inside space-y-1 text-xs">
         <li>Pay the delivery person when you receive your order</li>
@@ -302,8 +302,8 @@ export default function PaymentStep({
       {selectedMethod === 'COD' && <CodInfo />}
 
       {/* Navigation buttons */}
-      <div className="flex justify-between pt-6 mt-6 border-t border-gray-100">
-        <button type="button" onClick={onBack} className="btn btn-soft">
+      <div className="flex justify-between pt-6 mt-6 border-t border-gray-200">
+        <button type="button" onClick={onBack} className="btn btn-secondary">
           Back to Shipping
         </button>
         <button

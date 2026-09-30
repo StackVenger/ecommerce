@@ -47,23 +47,23 @@ export function AdminTopbar({ sidebarCollapsed, onMenuToggle, onDesktopToggle }:
   }, []);
 
   return (
-    <header className="header-blur sticky top-0 z-30 flex h-20 items-center justify-between gap-3 px-4 sm:px-6 lg:px-8">
+    <header className="sticky top-0 z-30 flex h-16 items-center justify-between gap-3 border-b border-gray-200 bg-card px-4 sm:px-6 lg:px-8">
       {/* Left side */}
       <div className="flex items-center gap-3">
         {/* Mobile menu toggle */}
         <button
           onClick={onMenuToggle}
-          className="btn-icon border border-foreground/[0.05] bg-card text-gray-700 shadow-sm hover:bg-gray-50 lg:hidden"
+          className="btn-icon border border-gray-200 bg-card text-gray-700 hover:border-primary hover:text-primary lg:hidden"
           aria-label="Toggle menu"
         >
-          <Menu className="h-5 w-5" strokeWidth={2.25} />
+          <Menu className="h-5 w-5" strokeWidth={1.75} />
         </button>
 
         {/* Desktop sidebar collapse toggle */}
         {onDesktopToggle && (
           <button
             onClick={onDesktopToggle}
-            className="btn-icon hidden text-gray-500 hover:bg-card hover:text-gray-900 hover:shadow-sm lg:inline-flex"
+            className="btn-icon hidden text-gray-500 hover:text-primary lg:inline-flex"
             aria-label={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
           >
             {sidebarCollapsed ? (
@@ -77,15 +77,15 @@ export function AdminTopbar({ sidebarCollapsed, onMenuToggle, onDesktopToggle }:
         {/* Search */}
         <div className="group/search relative hidden md:block">
           <Search
-            className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400 transition-colors group-focus-within/search:text-gray-900"
-            strokeWidth={2.5}
+            className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400 transition-colors group-focus-within/search:text-primary"
+            strokeWidth={2}
           />
           <input
             type="text"
             placeholder="Search orders, products, customers..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-64 rounded-2xl border border-foreground/[0.04] bg-card py-3 pl-11 pr-4 text-sm font-medium text-gray-900 shadow-sm outline-none transition-all placeholder:text-gray-400 focus:ring-4 focus:ring-brand-500/10 lg:w-80"
+            className="h-10 w-64 border border-gray-300 bg-card pl-11 pr-4 text-sm text-gray-900 outline-none transition-colors placeholder:text-gray-400 focus:border-primary focus:ring-1 focus:ring-primary lg:w-80"
           />
         </div>
       </div>
@@ -93,8 +93,8 @@ export function AdminTopbar({ sidebarCollapsed, onMenuToggle, onDesktopToggle }:
       {/* Right side */}
       <div className="flex items-center gap-2 sm:gap-3">
         {/* Visit store link */}
-        <Link href="/" target="_blank" className="btn btn-secondary hidden sm:inline-flex">
-          <Store className="h-4 w-4" strokeWidth={2.5} />
+        <Link href="/" target="_blank" className="btn btn-secondary btn-sm hidden sm:inline-flex">
+          <Store className="h-4 w-4" strokeWidth={2} />
           View Store
         </Link>
 
@@ -102,27 +102,27 @@ export function AdminTopbar({ sidebarCollapsed, onMenuToggle, onDesktopToggle }:
 
         {/* Notifications */}
         <button
-          className="btn-icon relative border border-foreground/[0.05] bg-card text-gray-700 shadow-sm hover:bg-gray-50"
+          className="btn-icon relative border border-gray-200 bg-card text-gray-700 hover:border-primary hover:text-primary"
           aria-label="Notifications"
         >
-          <Bell className="h-5 w-5" strokeWidth={2.25} />
-          <span className="absolute right-2.5 top-2.5 h-2 w-2 rounded-full bg-primary ring-2 ring-card" />
+          <Bell className="h-5 w-5" strokeWidth={1.75} />
+          <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-primary ring-2 ring-card" />
         </button>
 
         {/* User menu */}
         <div className="relative" ref={menuRef}>
           <button
             onClick={() => setShowUserMenu(!showUserMenu)}
-            className="flex items-center gap-3 rounded-2xl p-1 pr-2 transition-all hover:bg-card hover:shadow-sm"
+            className="flex items-center gap-3 p-1 pr-2 transition-colors hover:bg-gray-50"
           >
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-ink text-sm font-black text-white">
+            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary font-heading text-sm font-semibold text-white">
               {user?.fullName?.charAt(0)?.toUpperCase() ?? 'A'}
             </div>
             <div className="hidden text-left md:block">
-              <p className="text-sm font-black leading-tight text-gray-900">
+              <p className="font-heading text-sm font-semibold leading-tight text-gray-900">
                 {user?.fullName ?? 'Admin'}
               </p>
-              <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">
+              <p className="text-xs text-gray-500">
                 {user?.role === 'SUPER_ADMIN' ? 'Super Admin' : 'Administrator'}
               </p>
             </div>
@@ -136,32 +136,32 @@ export function AdminTopbar({ sidebarCollapsed, onMenuToggle, onDesktopToggle }:
 
           {/* Dropdown */}
           {showUserMenu && (
-            <div className="absolute right-0 top-full mt-2 w-56 rounded-3xl border border-foreground/[0.04] bg-card p-2 shadow-bento-hover">
+            <div className="absolute right-0 top-full mt-2 w-56 border border-gray-200 bg-card py-1 shadow-bento-hover">
               <Link
                 href="/admin/settings"
-                className="flex items-center gap-3 rounded-2xl px-3 py-2.5 text-sm font-bold text-gray-700 transition-colors hover:bg-gray-50 hover:text-gray-900"
+                className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 transition-colors hover:bg-gray-50 hover:text-primary"
                 onClick={() => setShowUserMenu(false)}
               >
-                <Settings className="h-4 w-4" strokeWidth={2.25} />
+                <Settings className="h-4 w-4" strokeWidth={1.75} />
                 Settings
               </Link>
               <Link
                 href="/account"
-                className="flex items-center gap-3 rounded-2xl px-3 py-2.5 text-sm font-bold text-gray-700 transition-colors hover:bg-gray-50 hover:text-gray-900"
+                className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 transition-colors hover:bg-gray-50 hover:text-primary"
                 onClick={() => setShowUserMenu(false)}
               >
-                <User className="h-4 w-4" strokeWidth={2.25} />
+                <User className="h-4 w-4" strokeWidth={1.75} />
                 My Account
               </Link>
-              <hr className="mx-2 my-1.5 border-foreground/[0.05]" />
+              <hr className="my-1 border-gray-200" />
               <button
                 onClick={() => {
                   setShowUserMenu(false);
                   logout();
                 }}
-                className="flex w-full items-center gap-3 rounded-2xl px-3 py-2.5 text-sm font-bold text-rose-600 transition-colors hover:bg-rose-50"
+                className="flex w-full items-center gap-3 px-4 py-2.5 text-sm text-rose-600 transition-colors hover:bg-rose-50"
               >
-                <LogOut className="h-4 w-4" strokeWidth={2.25} />
+                <LogOut className="h-4 w-4" strokeWidth={1.75} />
                 Sign Out
               </button>
             </div>

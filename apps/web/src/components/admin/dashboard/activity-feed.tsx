@@ -116,11 +116,11 @@ export function ActivityFeed({ data, loading, limit = 15, className }: ActivityF
   const activities = activity ? mergeAndSortActivities(activity).slice(0, limit) : [];
 
   return (
-    <div className={cn('bento-card bento-card-hover flex flex-col p-6 sm:p-8', className)}>
+    <div className={cn('bento-card flex flex-col p-5 sm:p-6', className)}>
       {/* Header */}
       <div className="mb-6 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
+          <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-500" />
           <h3 className="section-title">Pulse</h3>
         </div>
         <span className="eyebrow">Live activity</span>
@@ -131,15 +131,15 @@ export function ActivityFeed({ data, loading, limit = 15, className }: ActivityF
         {isLoading ? (
           Array.from({ length: 5 }).map((_, i) => (
             <div key={i} className="flex gap-4">
-              <div className="h-12 w-12 shrink-0 animate-pulse rounded-2xl bg-gray-100" />
+              <div className="h-11 w-11 shrink-0 animate-pulse bg-gray-100" />
               <div className="flex-1 space-y-2 pt-1">
-                <div className="h-3 w-2/3 animate-pulse rounded-full bg-gray-100" />
-                <div className="h-2.5 w-full animate-pulse rounded-full bg-gray-50" />
+                <div className="h-3 w-2/3 animate-pulse bg-gray-100" />
+                <div className="h-2.5 w-full animate-pulse bg-gray-50" />
               </div>
             </div>
           ))
         ) : activities.length === 0 ? (
-          <div className="flex flex-1 items-center justify-center py-8 text-sm font-bold text-gray-400">
+          <div className="flex flex-1 items-center justify-center py-8 text-sm text-gray-500">
             No recent activity.
           </div>
         ) : (
@@ -147,31 +147,24 @@ export function ActivityFeed({ data, loading, limit = 15, className }: ActivityF
             const body = (
               <>
                 <div className="relative shrink-0">
-                  <div
-                    className={cn(
-                      'flex h-12 w-12 items-center justify-center rounded-2xl transition-transform duration-500 group-hover/item:scale-110',
-                      item.iconClass,
-                    )}
-                  >
-                    <item.icon className="h-5 w-5" strokeWidth={2.25} />
+                  <div className={cn('flex h-11 w-11 items-center justify-center', item.iconClass)}>
+                    <item.icon className="h-5 w-5" strokeWidth={2} />
                   </div>
                   <span
                     className={cn(
-                      'absolute -bottom-1 -right-1 h-4 w-4 rounded-full border-2 border-card',
+                      'absolute -bottom-1 -right-1 h-3 w-3 rounded-full border-2 border-card',
                       i === 0 ? 'bg-emerald-500' : 'bg-gray-300',
                     )}
                   />
                 </div>
                 <div className="flex min-w-0 flex-col justify-center">
-                  <p className="mb-0.5 truncate text-xs font-black text-gray-900 transition-colors group-hover/item:text-primary">
+                  <p className="mb-0.5 truncate text-sm font-medium text-gray-900 transition-colors group-hover/item:text-primary">
                     {item.title}
                   </p>
-                  <p className="line-clamp-2 text-[11px] font-bold leading-tight text-gray-500">
+                  <p className="line-clamp-2 text-xs leading-snug text-gray-500">
                     {item.description}
                   </p>
-                  <p className="mt-1.5 text-[9px] font-black uppercase tracking-wider text-gray-400">
-                    {timeAgo(item.time)}
-                  </p>
+                  <p className="mt-1 text-xs text-gray-400">{timeAgo(item.time)}</p>
                 </div>
               </>
             );
@@ -188,13 +181,10 @@ export function ActivityFeed({ data, loading, limit = 15, className }: ActivityF
         )}
       </div>
 
-      <div className="mt-6 border-t border-foreground/[0.04] pt-5">
-        <Link
-          href="/admin/orders"
-          className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gray-50 py-3.5 text-[10px] font-black uppercase tracking-widest text-gray-500 transition-all hover:bg-primary hover:text-white"
-        >
+      <div className="mt-6 border-t border-gray-200 pt-5">
+        <Link href="/admin/orders" className="btn btn-secondary btn-sm w-full">
           Open order log
-          <ArrowUpRight className="h-3.5 w-3.5" strokeWidth={2.5} />
+          <ArrowUpRight className="h-3.5 w-3.5" strokeWidth={2} />
         </Link>
       </div>
     </div>

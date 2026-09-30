@@ -18,7 +18,7 @@ const STARTER_QUESTIONS = [
 function TypingIndicator() {
   return (
     <div className="flex justify-start">
-      <div className="bg-gray-100 rounded-2xl rounded-bl-md px-4 py-3">
+      <div className="bg-gray-100 px-4 py-3">
         <div className="flex gap-1">
           <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce [animation-delay:0ms]" />
           <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce [animation-delay:150ms]" />
@@ -69,27 +69,26 @@ export function ChatWidget() {
     <>
       {/* Chat panel */}
       {isOpen && (
-        <div className="fixed bottom-20 right-4 z-[65] flex h-[32rem] w-[calc(100%-2rem)] max-w-[22rem] flex-col overflow-hidden rounded-[2rem] border border-foreground/[0.04] bg-card shadow-2xl shadow-black/10 sm:right-6 sm:max-w-96">
+        <div className="fixed bottom-20 right-4 z-[65] flex h-[32rem] w-[calc(100%-2rem)] max-w-[22rem] flex-col overflow-hidden border border-gray-200 bg-card shadow-bento-hover sm:right-6 sm:max-w-96">
           {/* Header */}
-          <div className="relative flex items-center justify-between overflow-hidden bg-ink px-5 py-4">
-            <div className="bento-glow -right-8 -top-8 h-28 w-28 bg-primary/30" aria-hidden />
-            <div className="relative flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary shadow-brand-glow">
+          <div className="flex items-center justify-between bg-primary px-5 py-4">
+            <div className="flex items-center gap-3">
+              <div className="flex h-9 w-9 items-center justify-center border border-white/40">
                 <MessageCircle className="w-4 h-4 text-white" />
               </div>
               <div>
-                <h3 className="text-sm font-black tracking-tight text-white">Shopping Assistant</h3>
-                <p className="text-[10px] font-black uppercase tracking-widest text-white/40">
-                  Ask about our products
-                </p>
+                <h3 className="font-heading text-sm font-semibold text-white">
+                  Shopping Assistant
+                </h3>
+                <p className="text-xs text-white/80">Ask about our products</p>
               </div>
             </div>
-            <div className="relative flex items-center gap-1">
+            <div className="flex items-center gap-1">
               {messages.length > 0 && (
                 <button
                   onClick={clearMessages}
                   title="Clear chat"
-                  className="rounded-lg p-1.5 text-white/70 hover:bg-white/10 hover:text-white transition-colors"
+                  className="p-1.5 text-white/80 transition-colors hover:bg-white/15 hover:text-white"
                 >
                   <Trash2 className="w-4 h-4" />
                 </button>
@@ -97,7 +96,7 @@ export function ChatWidget() {
               <button
                 onClick={closeChat}
                 title="Close"
-                className="rounded-lg p-1.5 text-white/70 hover:bg-white/10 hover:text-white transition-colors"
+                className="p-1.5 text-white/80 transition-colors hover:bg-white/15 hover:text-white"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -108,13 +107,13 @@ export function ChatWidget() {
           <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3">
             {messages.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full text-center px-4">
-                <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-50">
-                  <MessageCircle className="w-6 h-6 text-primary" />
+                <div className="mb-4 flex h-14 w-14 items-center justify-center">
+                  <MessageCircle className="h-10 w-10 text-primary" strokeWidth={1.5} />
                 </div>
-                <h4 className="mb-1 text-base font-black tracking-tight text-gray-900">
+                <h4 className="mb-1 font-heading text-base font-semibold text-gray-900">
                   Hi there!
                 </h4>
-                <p className="mb-4 text-xs font-medium text-gray-500">
+                <p className="mb-4 text-xs text-gray-500">
                   I can help you find products, compare prices, and answer questions about our
                   store.
                 </p>
@@ -123,7 +122,7 @@ export function ChatWidget() {
                     <button
                       key={q}
                       onClick={() => handleSuggestedQuestion(q)}
-                      className="rounded-2xl bg-gray-50 px-4 py-2.5 text-left text-xs font-bold text-gray-700 transition-colors hover:bg-brand-50 hover:text-brand-700"
+                      className="border border-gray-200 bg-card px-4 py-2.5 text-left text-xs text-gray-700 transition-colors hover:border-primary hover:text-primary"
                     >
                       {q}
                     </button>
@@ -155,21 +154,21 @@ export function ChatWidget() {
           </div>
 
           {/* Input area */}
-          <form onSubmit={handleSubmit} className="border-t border-foreground/[0.05] p-3">
+          <form onSubmit={handleSubmit} className="border-t border-gray-200 p-3">
             <div className="flex gap-2">
               <input
                 ref={inputRef}
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 placeholder="Ask about products..."
-                className="min-w-0 flex-1 rounded-2xl border border-foreground/[0.06] bg-gray-50 px-4 py-2.5 text-sm font-medium outline-none transition-all placeholder:text-gray-400 focus:bg-card focus:ring-4 focus:ring-primary/10"
+                className="field-input h-10 min-w-0 flex-1"
                 disabled={isLoading}
                 maxLength={500}
               />
               <button
                 type="submit"
                 disabled={!input.trim() || isLoading}
-                className="btn-icon bg-primary text-white shadow-brand-glow hover:bg-brand-700"
+                className="btn-icon bg-primary text-white hover:bg-brand-700"
               >
                 <Send className="w-4 h-4" />
               </button>
@@ -181,7 +180,7 @@ export function ChatWidget() {
       {/* Floating trigger button */}
       <button
         onClick={toggleChat}
-        className="fixed bottom-4 right-4 z-[65] flex h-14 w-14 items-center justify-center rounded-2xl bg-primary text-white shadow-brand-glow transition-all hover:scale-105 hover:bg-brand-700 active:scale-95 sm:right-6"
+        className="fixed bottom-4 right-4 z-[65] flex h-12 w-12 items-center justify-center bg-primary text-white shadow-bento-hover transition-colors hover:bg-ink sm:right-6"
         aria-label={isOpen ? 'Close chat' : 'Open chat assistant'}
       >
         {isOpen ? <X className="w-6 h-6" /> : <MessageCircle className="w-6 h-6" />}

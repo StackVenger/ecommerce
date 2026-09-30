@@ -315,7 +315,7 @@ export default function AdminOrdersPage() {
       />
 
       {/* Search and Filters */}
-      <div className="mb-6 rounded-[1.75rem] border border-foreground/[0.04] bg-card p-3 shadow-bento">
+      <div className="mb-6 rounded-2xl border border-gray-200 bg-card p-3 shadow-bento">
         <div className="flex flex-col gap-2 lg:flex-row lg:items-center">
           <div className="group/search relative flex-1">
             <Search
@@ -379,7 +379,7 @@ export default function AdminOrdersPage() {
 
         {/* Advanced Filters */}
         {showFilters && (
-          <div className="mt-3 grid grid-cols-1 gap-4 border-t border-foreground/[0.04] px-1 pb-1 pt-4 sm:grid-cols-2 md:grid-cols-4">
+          <div className="mt-3 grid grid-cols-1 gap-4 border-t border-gray-200 px-1 pb-1 pt-4 sm:grid-cols-2 md:grid-cols-4">
             <div>
               <label className="field-label" htmlFor="orders-date-from">
                 Date From
@@ -498,32 +498,32 @@ export default function AdminOrdersPage() {
                     <td>
                       <a
                         href={`/admin/orders/${order.id}`}
-                        className="whitespace-nowrap text-sm font-black text-gray-900 transition-colors hover:text-primary"
+                        className="whitespace-nowrap text-sm font-semibold text-gray-900 transition-colors hover:text-primary"
                       >
                         #{order.orderNumber}
                       </a>
                     </td>
                     <td>
                       <div className="flex items-center gap-3">
-                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[14px] bg-brand-50 text-xs font-black text-brand-700">
+                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-brand-50 text-xs font-semibold text-brand-700">
                           {(order.customer.name || '?').charAt(0).toUpperCase()}
                         </div>
                         <div className="min-w-0">
-                          <div className="max-w-[200px] truncate text-sm font-black leading-tight text-gray-900">
+                          <div className="max-w-[200px] truncate text-sm font-semibold leading-tight text-gray-900">
                             {order.customer.name}
                           </div>
-                          <div className="max-w-[200px] truncate text-[11px] font-bold text-gray-400">
+                          <div className="max-w-[200px] truncate text-xs text-gray-500">
                             {order.customer.email}
                           </div>
                         </div>
                       </div>
                     </td>
                     <td>
-                      <span className="whitespace-nowrap rounded-xl bg-gray-100 px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-gray-600">
+                      <span className="whitespace-nowrap bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-600">
                         {order.items} item{order.items !== 1 ? 's' : ''}
                       </span>
                     </td>
-                    <td className="whitespace-nowrap text-right text-sm font-black tabular-nums tracking-tight text-gray-900">
+                    <td className="whitespace-nowrap text-right text-sm font-semibold tabular-nums text-gray-900">
                       {formatBDT(order.totalAmount)}
                     </td>
                     <td className="text-center">
@@ -532,7 +532,7 @@ export default function AdminOrdersPage() {
                     <td className="text-center">
                       <PaymentStatusPill status={order.paymentStatus} />
                     </td>
-                    <td className="whitespace-nowrap text-xs font-bold text-gray-500">
+                    <td className="whitespace-nowrap text-xs text-gray-500">
                       {new Date(order.createdAt).toLocaleDateString('en-BD', {
                         day: 'numeric',
                         month: 'short',
@@ -563,10 +563,8 @@ export default function AdminOrdersPage() {
 
       {/* Bulk Actions */}
       {selectedOrders.size > 0 && (
-        <div className="fixed bottom-4 left-1/2 z-40 flex w-[calc(100%-2rem)] max-w-max -translate-x-1/2 flex-wrap items-center justify-center gap-2 rounded-[1.75rem] bg-ink px-4 py-3 text-white shadow-2xl shadow-black/20 sm:bottom-6 sm:gap-3 sm:px-6">
-          <span className="text-xs font-black uppercase tracking-widest text-white/70">
-            {selectedOrders.size} selected
-          </span>
+        <div className="fixed bottom-4 left-1/2 z-40 flex w-[calc(100%-2rem)] max-w-max -translate-x-1/2 flex-wrap items-center justify-center gap-2 bg-ink px-4 py-3 text-white shadow-bento-hover sm:bottom-6 sm:gap-3 sm:px-6">
+          <span className="text-sm font-medium text-white/80">{selectedOrders.size} selected</span>
           <button
             type="button"
             onClick={() => setBulkStatusOpen(true)}
@@ -594,7 +592,7 @@ export default function AdminOrdersPage() {
       {/* Bulk status modal */}
       {bulkStatusOpen && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
           role="dialog"
           aria-modal="true"
         >
@@ -604,8 +602,8 @@ export default function AdminOrdersPage() {
             onClick={() => !bulkStatusBusy && setBulkStatusOpen(false)}
             className="absolute inset-0 h-full w-full cursor-default bg-transparent"
           />
-          <div className="relative z-10 w-full max-w-md rounded-[2rem] bg-card p-6 shadow-2xl sm:p-8">
-            <h3 className="text-xl font-black tracking-tight text-gray-900">
+          <div className="relative z-10 w-full max-w-md border border-gray-200 bg-card p-6 shadow-bento-hover sm:p-8">
+            <h3 className="text-xl font-heading font-semibold text-gray-900">
               Update status for {selectedOrders.size} order(s)
             </h3>
             <p className="mt-1 text-sm font-medium text-gray-500">

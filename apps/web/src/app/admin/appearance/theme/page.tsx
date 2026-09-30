@@ -278,7 +278,7 @@ export default function AdminThemePage() {
       {/* Tabs */}
       <div>
         <nav
-          className="flex w-fit max-w-full gap-1 overflow-x-auto rounded-[1.5rem] border border-foreground/[0.04] bg-card p-2 shadow-bento scrollbar-none"
+          className="flex w-fit max-w-full gap-1 overflow-x-auto rounded-xl border border-gray-200 bg-card p-2 shadow-bento scrollbar-none"
           aria-label="Theme sections"
         >
           {tabs.map((tab) => (
@@ -296,7 +296,7 @@ export default function AdminThemePage() {
       {/* Colors Tab */}
       {activeTab === 'colors' && (
         <div className="bento-card p-6 sm:p-8">
-          <h2 className="text-lg font-black text-gray-900 mb-4 tracking-tight">Color Palette</h2>
+          <h2 className="text-lg font-heading font-semibold text-gray-900 mb-4">Color Palette</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {(Object.entries(COLOR_LABELS) as [keyof ThemeColors, string][]).map(([key, label]) => (
               <div key={key}>
@@ -321,37 +321,37 @@ export default function AdminThemePage() {
 
           {/* Preview */}
           <div
-            className="mt-6 p-4 rounded-[1.5rem] border border-foreground/[0.05]"
+            className="mt-6 p-4 rounded-xl border border-gray-200"
             style={{ backgroundColor: theme.colors.surface }}
           >
-            <h3 className="text-lg font-black tracking-tight text-gray-900 mb-3">Preview</h3>
+            <h3 className="text-lg font-heading font-semibold text-gray-900 mb-3">Preview</h3>
             <div className="flex flex-wrap items-center gap-3">
               <button
-                className="rounded-2xl px-4 py-2 text-sm font-black text-white"
+                className="rounded-2xl px-4 py-2 text-sm font-semibold text-white"
                 style={{ backgroundColor: theme.colors.primary }}
               >
                 Primary Button
               </button>
               <button
-                className="rounded-2xl px-4 py-2 text-sm font-black text-white"
-                style={{ backgroundColor: theme.colors.secondary }}
+                className="rounded-2xl px-4 py-2 text-sm font-semibold text-white"
+                style={{ backgroundColor: theme.colors.secondary, color: theme.colors.text }}
               >
                 Secondary
               </button>
               <button
-                className="rounded-2xl px-4 py-2 text-sm font-black text-white"
-                style={{ backgroundColor: theme.colors.accent }}
+                className="rounded-2xl px-4 py-2 text-sm font-semibold text-white"
+                style={{ backgroundColor: theme.colors.accent, color: theme.colors.text }}
               >
                 Accent
               </button>
               <span
-                className="rounded-xl px-3 py-1 text-[10px] font-black uppercase tracking-widest text-white"
+                className="rounded-xl px-3 py-1 text-xs font-medium text-white"
                 style={{ backgroundColor: theme.colors.success }}
               >
                 Success
               </span>
               <span
-                className="rounded-xl px-3 py-1 text-[10px] font-black uppercase tracking-widest text-white"
+                className="rounded-xl px-3 py-1 text-xs font-medium text-white"
                 style={{ backgroundColor: theme.colors.error }}
               >
                 Error
@@ -364,7 +364,7 @@ export default function AdminThemePage() {
       {/* Typography Tab */}
       {activeTab === 'typography' && (
         <div className="bento-card p-6 sm:p-8">
-          <h2 className="text-lg font-black text-gray-900 mb-4 tracking-tight">Typography</h2>
+          <h2 className="text-lg font-heading font-semibold text-gray-900 mb-4">Typography</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label className="field-label">Heading Font</label>
@@ -453,8 +453,8 @@ export default function AdminThemePage() {
           </div>
 
           {/* Typography Preview */}
-          <div className="mt-6 p-4 rounded-[1.5rem] border border-foreground/[0.05]">
-            <h3 className="text-lg font-black tracking-tight text-gray-900 mb-3">Preview</h3>
+          <div className="mt-6 p-4 rounded-xl border border-gray-200">
+            <h3 className="text-lg font-heading font-semibold text-gray-900 mb-3">Preview</h3>
             <h2
               style={{
                 fontFamily: theme.typography.headingFont,
@@ -491,7 +491,9 @@ export default function AdminThemePage() {
       {/* Borders Tab */}
       {activeTab === 'borders' && (
         <div className="bento-card p-6 sm:p-8">
-          <h2 className="text-lg font-black text-gray-900 mb-4 tracking-tight">Borders & Radius</h2>
+          <h2 className="text-lg font-heading font-semibold text-gray-900 mb-4">
+            Borders & Radius
+          </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {(
               [
@@ -553,7 +555,7 @@ export default function AdminThemePage() {
       {/* Layout Tab */}
       {activeTab === 'layout' && (
         <div className="bento-card p-6 sm:p-8">
-          <h2 className="text-lg font-black text-gray-900 mb-4 tracking-tight">Layout Options</h2>
+          <h2 className="text-lg font-heading font-semibold text-gray-900 mb-4">Layout Options</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label className="field-label">Container Max Width</label>
@@ -578,7 +580,7 @@ export default function AdminThemePage() {
         <div className="space-y-6">
           {/* Logo & Favicon */}
           <div className="bento-card p-6 sm:p-8">
-            <h2 className="text-lg font-black text-gray-900 mb-4 tracking-tight">Branding</h2>
+            <h2 className="text-lg font-heading font-semibold text-gray-900 mb-4">Branding</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Logo uploader */}
               <div>
@@ -684,13 +686,13 @@ export default function AdminThemePage() {
 
           {/* Custom CSS */}
           <div className="bento-card p-6 sm:p-8">
-            <h2 className="text-lg font-black text-gray-900 mb-4 tracking-tight">Custom CSS</h2>
+            <h2 className="text-lg font-heading font-semibold text-gray-900 mb-4">Custom CSS</h2>
             <textarea
               value={theme.customCSS}
               onChange={(e) => setTheme({ ...theme, customCSS: e.target.value })}
               rows={12}
               placeholder="/* Add your custom CSS here */&#10;.my-class {&#10;  color: red;&#10;}"
-              className="field-input w-full font-mono rounded-[1.25rem]"
+              className="field-input w-full font-mono rounded-xl"
             />
             <p className="text-xs text-gray-500 mt-2">
               Custom CSS will be injected into every storefront page. Use with caution.

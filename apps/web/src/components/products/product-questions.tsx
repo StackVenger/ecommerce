@@ -122,20 +122,20 @@ export function ProductQuestions({ productId, productSlug }: Props) {
   }, [page, pages]);
 
   return (
-    <section className="bento-card overflow-hidden">
-      <header className="flex items-center gap-3 px-5 pt-6 sm:px-8 sm:pt-8">
-        <div className="icon-tile h-10 w-10 rounded-xl bg-brand-50 text-brand-600">
-          <MessageCircle className="h-5 w-5" strokeWidth={2.25} />
-        </div>
+    <section className="border border-gray-200 bg-card">
+      <header className="flex items-center gap-3 px-5 pt-6 sm:px-6">
+        <MessageCircle className="h-7 w-7 shrink-0 text-primary" strokeWidth={1.25} />
         <div className="min-w-0">
-          <h2 className="section-title">Questions about this product ({total})</h2>
-          <p className="eyebrow mt-1">Ask the store · community answers</p>
+          <h2 className="font-heading text-lg font-semibold text-gray-900">
+            Questions about this product ({total})
+          </h2>
+          <p className="mt-0.5 text-[13px] text-gray-500">Ask the store · community answers</p>
         </div>
       </header>
 
-      <div className="px-5 py-5 sm:px-8">
+      <div className="px-5 py-5 sm:px-6">
         {isAuthenticated ? (
-          <form onSubmit={handleSubmit} className="bento-tile space-y-3 p-3 sm:p-4">
+          <form onSubmit={handleSubmit} className="space-y-3 bg-gray-50 p-3 sm:p-4">
             <textarea
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
@@ -143,12 +143,10 @@ export function ProductQuestions({ productId, productSlug }: Props) {
               rows={3}
               maxLength={1000}
               disabled={submitting}
-              className="field-input resize-none rounded-[1.25rem]"
+              className="field-input h-auto resize-none py-2.5"
             />
             <div className="flex items-center justify-between gap-3">
-              <span className="text-[11px] font-bold tabular-nums text-gray-400">
-                {draft.length}/1000
-              </span>
+              <span className="text-xs tabular-nums text-gray-400">{draft.length}/1000</span>
               <button
                 type="submit"
                 disabled={submitting || draft.trim().length < 5}
@@ -159,17 +157,17 @@ export function ProductQuestions({ productId, productSlug }: Props) {
             </div>
           </form>
         ) : (
-          <p className="bento-tile px-5 py-4 text-sm font-bold text-gray-600">
+          <p className="bg-gray-50 px-5 py-4 text-sm text-gray-600">
             <Link
               href={`/login?redirect=/products/${productSlug ?? ''}`}
-              className="font-black text-brand-700 hover:underline"
+              className="font-medium text-primary hover:underline"
             >
               Login
             </Link>{' '}
             or{' '}
             <Link
               href={`/register?redirect=/products/${productSlug ?? ''}`}
-              className="font-black text-brand-700 hover:underline"
+              className="font-medium text-primary hover:underline"
             >
               Register
             </Link>{' '}
@@ -179,63 +177,60 @@ export function ProductQuestions({ productId, productSlug }: Props) {
       </div>
 
       {answeredCount > 0 && (
-        <p className="eyebrow border-t border-foreground/[0.04] px-5 py-4 sm:px-8">
+        <p className="border-t border-gray-200 px-5 py-4 text-sm font-medium text-gray-700 sm:px-6">
           Other questions answered by the store ({answeredCount})
         </p>
       )}
 
-      <div className="divide-y divide-foreground/[0.04] border-t border-foreground/[0.04]">
+      <div className="divide-y divide-gray-200 border-t border-gray-200">
         {loading ? (
           <>
             {[1, 2].map((i) => (
-              <div key={i} className="px-5 py-4 sm:px-8">
-                <div className="h-16 animate-pulse rounded-2xl bg-gray-100" />
+              <div key={i} className="px-5 py-4 sm:px-6">
+                <div className="h-16 animate-pulse bg-gray-100" />
               </div>
             ))}
           </>
         ) : questions.length === 0 ? (
-          <p className="px-5 py-10 text-center text-sm font-bold text-gray-400">
+          <p className="px-5 py-10 text-center text-sm text-gray-400">
             No questions yet — be the first to ask!
           </p>
         ) : (
           questions.map((q) => (
-            <article
-              key={q.id}
-              className="space-y-3 px-5 py-5 text-sm transition-colors hover:bg-gray-50/60 sm:px-8"
-            >
+            <article key={q.id} className="space-y-3 px-5 py-5 text-sm sm:px-6">
               <div className="flex gap-3">
                 <span
-                  className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-xl bg-primary text-xs font-black text-white shadow-brand-glow"
+                  className="flex h-8 w-8 flex-shrink-0 items-center justify-center bg-primary text-xs font-semibold text-white"
                   aria-label="Question"
                 >
                   Q
                 </span>
                 <div className="min-w-0">
-                  <p className="whitespace-pre-line font-bold text-gray-900">{q.question}</p>
-                  <p className="mt-1 text-[11px] font-bold text-gray-400">
+                  <p className="whitespace-pre-line font-medium text-gray-900">{q.question}</p>
+                  <p className="mt-1 text-xs text-gray-400">
                     {displayName(q.user)} · {formatDate(q.createdAt)}
                   </p>
                 </div>
               </div>
 
               {q.answer ? (
-                <div className="bento-tile ml-4 flex gap-3 p-4 sm:ml-11">
+                <div className="ml-4 flex gap-3 bg-gray-50 p-4 sm:ml-11">
                   <span
-                    className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-xl bg-ink text-xs font-black text-white"
+                    className="flex h-8 w-8 flex-shrink-0 items-center justify-center bg-gray-900 text-xs font-semibold text-background"
                     aria-label="Answer"
                   >
                     A
                   </span>
                   <div className="min-w-0">
-                    <p className="whitespace-pre-line font-medium text-gray-800">{q.answer}</p>
-                    <p className="mt-1 text-[11px] font-bold text-gray-400">
+                    <p className="whitespace-pre-line text-gray-700">{q.answer}</p>
+                    <p className="mt-1 text-xs text-gray-400">
                       {displayName(q.answerer)} ·{' '}
                       {q.answeredAt ? relativeDays(q.createdAt, q.answeredAt) : 'Answered'}
                     </p>
                   </div>
                 </div>
               ) : (
-                <p className="pl-11 text-[11px] font-bold italic text-gray-400">
+                <p className="pl-11 text-xs italic text-gray-400">
                   <MessageCircle className="mr-1 inline h-3.5 w-3.5" />
                   Awaiting reply from the store
                 </p>
@@ -246,19 +241,19 @@ export function ProductQuestions({ productId, productSlug }: Props) {
       </div>
 
       {pages > 1 && (
-        <div className="flex flex-wrap items-center justify-end gap-1.5 border-t border-foreground/[0.04] px-5 py-4 sm:px-8">
+        <div className="flex flex-wrap items-center justify-end gap-1.5 border-t border-gray-200 px-5 py-4 sm:px-6">
           <button
             type="button"
             onClick={() => setPage((p) => Math.max(1, p - 1))}
             disabled={page === 1}
-            className="btn-icon h-9 w-9 rounded-xl bg-gray-100 text-gray-600 hover:bg-gray-200"
+            className="btn-icon h-9 w-9 border border-gray-200 text-gray-600 hover:text-primary"
             aria-label="Previous page"
           >
             <ChevronLeft className="h-4 w-4" />
           </button>
           {pageNumbers.map((p, idx) =>
             p === '...' ? (
-              <span key={`gap-${idx}`} className="px-2 text-sm font-bold text-gray-400">
+              <span key={`gap-${idx}`} className="px-2 text-sm text-gray-400">
                 …
               </span>
             ) : (
@@ -267,10 +262,10 @@ export function ProductQuestions({ productId, productSlug }: Props) {
                 type="button"
                 onClick={() => setPage(p)}
                 aria-current={p === page ? 'page' : undefined}
-                className={`h-9 min-w-[2.25rem] rounded-xl px-2 text-xs font-black tabular-nums transition-all ${
+                className={`h-9 min-w-[2.25rem] border px-2 text-sm tabular-nums transition-colors ${
                   p === page
-                    ? 'bg-ink text-white shadow-lg shadow-black/10'
-                    : 'text-gray-600 hover:bg-gray-100'
+                    ? 'border-primary bg-primary text-white'
+                    : 'border-gray-200 text-gray-700 hover:text-primary'
                 }`}
               >
                 {p}
@@ -281,7 +276,7 @@ export function ProductQuestions({ productId, productSlug }: Props) {
             type="button"
             onClick={() => setPage((p) => Math.min(pages, p + 1))}
             disabled={page === pages}
-            className="btn-icon h-9 w-9 rounded-xl bg-gray-100 text-gray-600 hover:bg-gray-200"
+            className="btn-icon h-9 w-9 border border-gray-200 text-gray-600 hover:text-primary"
             aria-label="Next page"
           >
             <ChevronRight className="h-4 w-4" />

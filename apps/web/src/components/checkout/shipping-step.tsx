@@ -50,10 +50,10 @@ function ShippingMethodCard({ method, isSelected, onSelect }: ShippingMethodCard
     <button
       type="button"
       onClick={onSelect}
-      className={`w-full text-left rounded-[1.5rem] border-2 p-5 transition-colors ${
+      className={`w-full text-left border p-5 transition-colors ${
         isSelected
-          ? 'border-primary bg-brand-50/60 shadow-brand-glow'
-          : 'border-foreground/[0.04] bg-card hover:border-foreground/[0.1]'
+          ? 'border-primary bg-brand-50/40 ring-1 ring-primary'
+          : 'border-gray-200 bg-card hover:border-gray-400'
       }`}
     >
       <div className="flex items-center justify-between">
@@ -71,11 +71,7 @@ function ShippingMethodCard({ method, isSelected, onSelect }: ShippingMethodCard
             {/* Method name */}
             <div className="flex items-center gap-2">
               <span className="font-medium text-gray-900">{method.name}</span>
-              {method.isFree && (
-                <span className="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-semibold text-green-700">
-                  FREE
-                </span>
-              )}
+              {method.isFree && <span className="pill pill-success">FREE</span>}
             </div>
 
             {/* Delivery estimate */}
@@ -119,7 +115,7 @@ function ZoneInfo({ zone }: { zone: 'INSIDE_DHAKA' | 'OUTSIDE_DHAKA' }) {
 
   return (
     <div
-      className={`rounded-lg px-4 py-3 text-sm mb-6 ${
+      className={`px-4 py-3 text-sm mb-6 ${
         isInsideDhaka
           ? 'bg-brand-50 text-brand-800 border border-brand-200'
           : 'bg-amber-50 text-amber-800 border border-amber-200'
@@ -241,7 +237,7 @@ export default function ShippingStep({
       </div>
 
       {/* Delivery info */}
-      <div className="mt-6 rounded-lg bg-gray-50 p-4 text-xs text-gray-500">
+      <div className="mt-6 bg-gray-50 p-4 text-xs text-gray-500">
         <p className="font-medium text-gray-700 mb-1">Delivery Information</p>
         <ul className="list-disc list-inside space-y-1">
           <li>Inside Dhaka: Standard ৳60, Express ৳120</li>
@@ -252,8 +248,8 @@ export default function ShippingStep({
       </div>
 
       {/* Navigation buttons */}
-      <div className="flex justify-between pt-6 mt-6 border-t border-gray-100">
-        <button type="button" onClick={onBack} className="btn btn-soft">
+      <div className="flex justify-between pt-6 mt-6 border-t border-gray-200">
+        <button type="button" onClick={onBack} className="btn btn-secondary">
           Back to Address
         </button>
         <button

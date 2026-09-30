@@ -11,8 +11,13 @@ export default async function AccountLayout({ children }: { children: React.Reac
   const g = config.settings.general;
 
   return (
-    <div className="flex min-h-screen flex-col bg-gray-50">
-      <Header siteName={g.site_name} logoUrl={config.theme.logoUrl} menu={config.menus.header} />
+    <div className="flex min-h-screen flex-col bg-background">
+      <Header
+        siteName={g.site_name}
+        logoUrl={config.theme.logoUrl}
+        menu={config.menus.header}
+        social={config.settings.social}
+      />
       <AccountShell>{children}</AccountShell>
       <Footer
         siteName={g.site_name}

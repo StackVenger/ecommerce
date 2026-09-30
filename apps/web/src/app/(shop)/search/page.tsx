@@ -1,12 +1,12 @@
 'use client';
 
-import { ChevronRight, Search } from 'lucide-react';
+import { Search } from 'lucide-react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 
 import { ProductCard, ProductCardSkeleton, ProductGrid } from '@/components/products/product-card';
-import { EmptyState } from '@/components/ui/bento';
+import { Breadcrumbs, EmptyState } from '@/components/ui/bento';
 import { useCart } from '@/hooks/use-cart';
 import { useWishlist } from '@/hooks/use-wishlist';
 import { apiClient } from '@/lib/api/client';
@@ -156,67 +156,67 @@ export default function SearchPage() {
     );
   };
 
+  const pageButtonClass =
+    'flex h-9 min-w-[36px] items-center justify-center border border-gray-200 bg-card px-2.5 text-sm tabular-nums text-gray-700 transition-colors hover:text-primary disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:text-gray-700';
+
   if (!q) {
     return (
-      <div className="site-container px-4 py-10 sm:py-16">
-        <EmptyState
-          icon={Search}
-          title={<span className="text-2xl">Search Products</span>}
-          description="Enter a search term in the search bar above to find products."
-          action={
-            <Link href="/products" className="btn btn-primary">
-              Browse All Products
-            </Link>
-          }
-        />
+      <div className="min-h-screen bg-background">
+        <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'Search' }]} />
+        <div className="site-container px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
+          <EmptyState
+            icon={Search}
+            title="Search Products"
+            description="Enter a search term in the search bar above to find products."
+            action={
+              <Link href="/products" className="btn btn-primary">
+                Browse All Products
+              </Link>
+            }
+          />
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="site-container px-4 py-6 sm:py-8">
-        <nav className="mb-4 flex items-center gap-2 text-xs font-bold text-gray-400">
-          <Link href="/" className="transition-colors hover:text-gray-900">
-            Home
-          </Link>
-          <ChevronRight className="h-3.5 w-3.5" />
-          <span className="text-gray-900">Search</span>
-        </nav>
+    <div className="min-h-screen bg-background">
+      <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'Search' }]} />
 
+      <div className="site-container px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
         {/* Header */}
-        <div className="bento-card mb-6 flex flex-col gap-4 p-6 sm:mb-8 sm:flex-row sm:items-center sm:justify-between sm:p-8">
-          <div className="flex min-w-0 items-center gap-4">
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-brand-50 text-brand-600">
-              <Search className="h-6 w-6" strokeWidth={2.25} />
-            </div>
-            <div className="min-w-0">
-              <p className="eyebrow mb-1">Search results</p>
-              <h1 className="truncate text-2xl font-black tracking-tighter text-gray-900 sm:text-3xl">
-                &ldquo;{q}&rdquo;
-              </h1>
-              {pagination && (
-                <p className="mt-0.5 text-sm font-bold text-gray-500">
-                  {pagination.total} product{pagination.total !== 1 ? 's' : ''} found
-                </p>
-              )}
-            </div>
+        <div className="mb-6">
+          <p className="mb-2 text-sm text-gray-500">Search results</p>
+          <h1 className="shop-heading truncate">&ldquo;{q}&rdquo;</h1>
+        </div>
+
+        {/* Toolbar */}
+        <div className="mb-7 flex flex-col gap-3 border border-gray-200 px-3 py-2.5 sm:flex-row sm:items-center sm:justify-between sm:px-4 sm:py-3">
+          <p className="text-[13px] text-gray-500">
+            {pagination && (
+              <>
+                {pagination.total} product{pagination.total !== 1 ? 's' : ''} found
+              </>
+            )}
+          </p>
+          <div className="flex items-center gap-2">
+            <span className="text-[13px] text-gray-700">Sort by:</span>
+            <select
+              value={sortBy}
+              onChange={(e) => {
+                setSortBy(e.target.value);
+                setPage(1);
+              }}
+              aria-label="Sort results"
+              className="h-9 flex-1 cursor-pointer border-0 bg-gray-100 px-3 pr-8 text-sm text-gray-700 outline-none focus:ring-1 focus:ring-primary sm:flex-none"
+            >
+              {SORT_OPTIONS.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
           </div>
-          <select
-            value={sortBy}
-            onChange={(e) => {
-              setSortBy(e.target.value);
-              setPage(1);
-            }}
-            aria-label="Sort results"
-            className="field-input w-full cursor-pointer py-2.5 pr-9 text-xs font-bold sm:w-auto"
-          >
-            {SORT_OPTIONS.map((opt) => (
-              <option key={opt.value} value={opt.value}>
-                {opt.label}
-              </option>
-            ))}
-          </select>
         </div>
 
         {/* Results */}
@@ -279,11 +279,11 @@ export default function SearchPage() {
 
         {/* Pagination */}
         {pagination && pagination.pages > 1 && (
-          <div className="mt-10 flex flex-wrap items-center justify-center gap-1.5">
+          <div className="mt-10 flex flex-wrap items-center justify-center gap-1.5 border border-gray-200 px-3 py-3 sm:justify-start sm:px-4">
             <button
               onClick={() => setPage((p) => Math.max(1, p - 1))}
               disabled={page === 1}
-              className="btn btn-soft btn-sm"
+              className={pageButtonClass}
             >
               Previous
             </button>
@@ -303,10 +303,8 @@ export default function SearchPage() {
                   key={pageNum}
                   onClick={() => setPage(pageNum)}
                   aria-current={pageNum === page ? 'page' : undefined}
-                  className={`h-10 min-w-[40px] rounded-xl px-3 text-xs font-black tabular-nums transition-all ${
-                    pageNum === page
-                      ? 'bg-ink text-white shadow-lg shadow-black/10'
-                      : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900'
+                  className={`${pageButtonClass} ${
+                    pageNum === page ? 'border-primary bg-primary text-white hover:text-white' : ''
                   }`}
                 >
                   {pageNum}
@@ -316,7 +314,7 @@ export default function SearchPage() {
             <button
               onClick={() => setPage((p) => Math.min(pagination.pages, p + 1))}
               disabled={page === pagination.pages}
-              className="btn btn-dark btn-sm"
+              className={pageButtonClass}
             >
               Next
             </button>

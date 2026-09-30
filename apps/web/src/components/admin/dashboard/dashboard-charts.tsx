@@ -43,9 +43,9 @@ ChartJS.register(
 );
 
 // Bento chart palette — coral primary with indigo / emerald secondaries.
-export const CHART_CORAL = '#f46e54';
-export const CHART_CORAL_SOFT = 'rgba(244, 110, 84, 0.16)';
-export const CHART_CORAL_HOVER = 'rgba(244, 110, 84, 0.35)';
+export const CHART_CORAL = '#f9706a';
+export const CHART_CORAL_SOFT = 'rgba(249, 112, 106, 0.22)';
+export const CHART_CORAL_HOVER = 'rgba(249, 112, 106, 0.45)';
 export const CHART_INDIGO = '#4f46e5';
 export const CHART_EMERALD = '#10b981';
 export const CHART_TICK = '#a8a49e';
@@ -118,7 +118,7 @@ export function DashboardCharts({ dateRange }: DashboardChartsProps) {
 
   if (!isLoading && (error || !data)) {
     return (
-      <div className="bento-card p-6 text-center text-sm font-bold text-rose-600">
+      <div className="bento-card p-6 text-center text-sm font-medium text-rose-600">
         {error ?? 'No chart data available'}
       </div>
     );
@@ -216,7 +216,7 @@ export function SalesFlowCard({
               hoverBackgroundColor: points.map((_, i) =>
                 i === peakIndex ? CHART_CORAL : CHART_CORAL_HOVER,
               ),
-              borderRadius: 999,
+              borderRadius: 0,
               borderSkipped: false,
               maxBarThickness: 28,
               categoryPercentage: 0.8,
@@ -258,9 +258,9 @@ export function SalesFlowCard({
       tooltip: {
         backgroundColor: neutral.tooltipBg,
         padding: 12,
-        cornerRadius: 14,
-        titleFont: { weight: 'bold' },
-        bodyFont: { weight: 'bold' },
+        cornerRadius: 0,
+        titleFont: { weight: 'normal' },
+        bodyFont: { weight: 'normal' },
         callbacks: {
           label: (ctx) => {
             const label = ctx.dataset.label ?? '';
@@ -278,7 +278,7 @@ export function SalesFlowCard({
         border: { display: false },
         ticks: {
           color: neutral.tick,
-          font: { size: 10, weight: 'bold' },
+          font: { size: 10, weight: 'normal' },
           maxRotation: 0,
           autoSkipPadding: 12,
         },
@@ -292,7 +292,7 @@ export function SalesFlowCard({
         beginAtZero: true,
         ticks: {
           color: neutral.tick,
-          font: { size: 10, weight: 'bold' },
+          font: { size: 10, weight: 'normal' },
           callback: (value) => `৳${(Number(value) / 1000).toFixed(0)}k`,
         },
       },
@@ -303,23 +303,19 @@ export function SalesFlowCard({
         beginAtZero: true,
         grid: { drawOnChartArea: false },
         border: { display: false },
-        ticks: { color: neutral.tick, font: { size: 10, weight: 'bold' }, precision: 0 },
+        ticks: { color: neutral.tick, font: { size: 10, weight: 'normal' }, precision: 0 },
       },
     },
   };
 
   return (
-    <div className={cn('bento-card relative flex flex-col overflow-hidden p-6 sm:p-8', className)}>
-      <div
-        className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(244,110,84,0.05)_0%,transparent_55%)]"
-        aria-hidden
-      />
-      <div className="relative z-10 flex flex-1 flex-col">
+    <div className={cn('bento-card flex flex-col p-5 sm:p-6', className)}>
+      <div className="flex flex-1 flex-col">
         <SectionHeader
           title="Sales Flow"
           caption="Daily revenue & orders"
           action={
-            <div className="flex items-center gap-1 rounded-2xl bg-gray-50 p-1">
+            <div className="flex items-center gap-1">
               {(['both', 'revenue', 'orders'] as const).map((v) => (
                 <button
                   key={v}
@@ -342,20 +338,20 @@ export function SalesFlowCard({
             {loading ? (
               <SkeletonBlock className="h-10 w-40" />
             ) : (
-              <p className="stat-value text-4xl sm:text-5xl">{formatBDT(totalRevenue)}</p>
+              <p className="stat-value text-3xl sm:text-4xl">{formatBDT(totalRevenue)}</p>
             )}
           </div>
           <div className="flex items-center gap-2 pb-1.5">
             {growth !== undefined && <TrendPill value={growth} />}
-            <span className="text-[11px] font-bold text-gray-400">
+            <span className="text-sm text-gray-500">
               {totalOrders.toLocaleString()} orders in range
             </span>
           </div>
           <div className="ml-auto flex items-center gap-4 pb-1.5">
-            <span className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-gray-500">
+            <span className="flex items-center gap-1.5 text-sm text-gray-500">
               <span className="h-2.5 w-2.5 rounded-full bg-primary" /> Revenue
             </span>
-            <span className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-gray-500">
+            <span className="flex items-center gap-1.5 text-sm text-gray-500">
               <span className="h-2.5 w-2.5 rounded-full bg-indigo-600 dark:bg-[#4f46e5]" /> Orders
             </span>
           </div>
@@ -363,7 +359,7 @@ export function SalesFlowCard({
 
         <div className="h-64 min-h-[16rem] flex-1 sm:h-72">
           {loading ? (
-            <SkeletonBlock className="h-full w-full rounded-[1.5rem]" />
+            <SkeletonBlock className="h-full w-full" />
           ) : points.length === 0 ? (
             <EmptyChart />
           ) : (
@@ -406,44 +402,40 @@ export function CategoryRevenueCard({
   const sorted = [...data].sort((a, b) => b.revenue - a.revenue).slice(0, 6);
 
   return (
-    <div className={cn('bento-dark group flex flex-col p-6 sm:p-8', className)}>
-      <div className="bento-glow -right-10 -top-10 h-40 w-40 bg-primary/20" aria-hidden />
-      <div className="bento-glow -bottom-10 -left-10 h-32 w-32 bg-blue-500/10" aria-hidden />
-      <div className="relative z-10 flex flex-1 flex-col">
-        <div className="mb-8 flex items-center gap-3 text-white/50">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/10 backdrop-blur-md">
-            <PieChart className="h-5 w-5" strokeWidth={2.25} />
+    <div className={cn('bento-card flex flex-col p-5 sm:p-6', className)}>
+      <div className="flex flex-1 flex-col">
+        <div className="mb-5 flex items-center gap-3 text-gray-500">
+          <div className="flex h-10 w-10 items-center justify-center bg-brand-50 text-primary">
+            <PieChart className="h-5 w-5" strokeWidth={2} />
           </div>
-          <span className="text-[10px] font-black uppercase tracking-widest">Revenue segments</span>
+          <span className="eyebrow">Revenue segments</span>
         </div>
-        <h3 className="mb-6 text-xl font-black tracking-tight text-white">Revenue by Category</h3>
+        <h3 className="mb-6 font-heading text-lg font-semibold text-gray-900">
+          Revenue by Category
+        </h3>
 
         {loading ? (
           <div className="flex flex-col gap-5">
             {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="h-8 animate-pulse rounded-xl bg-white/5" />
+              <div key={i} className="h-8 animate-pulse bg-gray-100" />
             ))}
           </div>
         ) : sorted.length === 0 ? (
-          <p className="my-auto py-8 text-center text-sm font-bold text-white/40">
-            No data for this range
-          </p>
+          <p className="my-auto py-8 text-center text-sm text-gray-500">No data for this range</p>
         ) : (
           <div className="flex flex-col gap-5">
             {sorted.map((row, i) => (
               <div key={row.category}>
                 <div className="mb-2.5 flex items-center justify-between gap-3">
-                  <span className="truncate text-xs font-black uppercase tracking-widest text-white/90">
-                    {row.category}
-                  </span>
-                  <span className="shrink-0 text-[10px] font-black tabular-nums text-white/40">
+                  <span className="truncate text-sm font-medium text-gray-800">{row.category}</span>
+                  <span className="shrink-0 text-xs tabular-nums text-gray-500">
                     {formatBDT(row.revenue)} · {row.percentage}%
                   </span>
                 </div>
-                <div className="h-2.5 w-full overflow-hidden rounded-full bg-white/5">
+                <div className="h-2 w-full overflow-hidden bg-gray-100">
                   <div
                     className={cn(
-                      'h-full rounded-full transition-all duration-1000',
+                      'h-full transition-all duration-1000',
                       SEGMENT_COLORS[i % SEGMENT_COLORS.length],
                     )}
                     style={{ width: `${Math.max(Math.min(row.percentage, 100), 2)}%` }}
@@ -482,13 +474,13 @@ export function TopProductsCard({
   const max = sorted[0]?.revenue || 1;
 
   return (
-    <div className={cn('bento-card bento-card-hover flex flex-col p-6 sm:p-8', className)}>
+    <div className={cn('bento-card flex flex-col p-5 sm:p-6', className)}>
       <SectionHeader
         title="Top Performance"
         caption="Best sellers by revenue"
         action={
-          <div className="icon-tile h-10 w-10 rounded-xl bg-orange-50 text-orange-500">
-            <Trophy className="h-5 w-5" strokeWidth={2.25} />
+          <div className="icon-tile h-10 w-10 bg-brand-50 text-primary">
+            <Trophy className="h-5 w-5" strokeWidth={2} />
           </div>
         }
       />
@@ -512,31 +504,29 @@ export function TopProductsCard({
             <li key={p.id} className="group/item flex items-center gap-4">
               <span
                 className={cn(
-                  'flex h-10 w-10 shrink-0 items-center justify-center rounded-[14px] text-xs font-black tabular-nums transition-transform group-hover/item:scale-105',
-                  i === 0 ? 'bg-primary text-white shadow-brand-glow' : 'bg-gray-100 text-gray-600',
+                  'flex h-10 w-10 shrink-0 items-center justify-center font-heading text-sm font-semibold tabular-nums',
+                  i === 0 ? 'bg-primary text-white' : 'bg-gray-100 text-gray-600',
                 )}
               >
                 {i + 1}
               </span>
               <div className="min-w-0 flex-1">
                 <div className="mb-1.5 flex items-baseline justify-between gap-3">
-                  <p className="truncate text-sm font-black text-gray-900 transition-colors group-hover/item:text-primary">
+                  <p className="truncate text-sm font-medium text-gray-900 transition-colors group-hover/item:text-primary">
                     {p.name}
                   </p>
-                  <p className="shrink-0 text-xs font-black tabular-nums tracking-tight text-primary">
+                  <p className="shrink-0 text-sm font-bold tabular-nums text-primary">
                     {formatBDT(p.revenue)}
                   </p>
                 </div>
                 <div className="flex items-center gap-3">
-                  <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-gray-100">
+                  <div className="h-1.5 flex-1 overflow-hidden bg-gray-100">
                     <div
-                      className="h-full rounded-full bg-primary/70"
+                      className="h-full bg-primary/70"
                       style={{ width: `${Math.max((p.revenue / max) * 100, 3)}%` }}
                     />
                   </div>
-                  <span className="shrink-0 text-[10px] font-black uppercase tracking-wider text-gray-400">
-                    {p.totalSold} sold
-                  </span>
+                  <span className="shrink-0 text-xs text-gray-500">{p.totalSold} sold</span>
                 </div>
               </div>
             </li>
@@ -549,8 +539,8 @@ export function TopProductsCard({
 
 function EmptyChart() {
   return (
-    <div className="flex h-full flex-col items-center justify-center gap-2 rounded-[1.5rem] bg-gray-50/70">
-      <BarChart3 className="h-8 w-8 text-gray-300" strokeWidth={2.25} />
+    <div className="flex h-full flex-col items-center justify-center gap-2 bg-gray-50">
+      <BarChart3 className="h-8 w-8 text-gray-300" strokeWidth={2} />
       <p className="eyebrow">No data for this range</p>
     </div>
   );

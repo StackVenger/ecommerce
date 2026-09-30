@@ -24,6 +24,7 @@ export default async function ShopLayout({ children }: ShopLayoutProps) {
         siteName={config.settings.general.site_name}
         logoUrl={config.theme.logoUrl}
         menu={config.menus.header}
+        social={config.settings.social}
       />
       <main className="flex-1">{children}</main>
       <FooterBanners banners={config.banners.footer} />

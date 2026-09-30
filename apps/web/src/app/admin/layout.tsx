@@ -39,12 +39,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   // Show loading state
   if (isLoading) {
     return (
-      <div className="flex h-screen items-center justify-center bg-gray-50">
+      <div className="flex h-screen items-center justify-center bg-background">
         <div className="flex flex-col items-center text-center">
-          <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-card shadow-bento">
-            <div className="h-7 w-7 animate-spin rounded-full border-[3px] border-primary border-t-transparent" />
-          </div>
-          <p className="eyebrow">Loading admin panel</p>
+          <div className="mb-4 h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+          <p className="text-sm text-gray-500">Loading admin panel</p>
         </div>
       </div>
     );
@@ -57,13 +55,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       {/* Mobile backdrop */}
       {mobileSidebarOpen && (
-        <div
-          className="fixed inset-0 z-40 bg-black/30 backdrop-blur-sm lg:hidden"
-          onClick={closeMobileSidebar}
-        />
+        <div className="fixed inset-0 z-40 bg-black/40 lg:hidden" onClick={closeMobileSidebar} />
       )}
 
       {/* Sidebar */}
@@ -77,8 +72,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       {/* Main content area */}
       <div
         className={cn(
-          'flex min-h-screen flex-col transition-all duration-300',
-          sidebarCollapsed ? 'lg:ml-20' : 'lg:ml-72',
+          'flex min-h-screen flex-col border-gray-200 transition-all duration-300 lg:border-l',
+          sidebarCollapsed ? 'lg:ml-20' : 'lg:ml-64',
         )}
       >
         {/* Top bar */}
@@ -89,7 +84,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         />
 
         {/* Page content */}
-        <main className="min-w-0 flex-1 px-4 pb-10 pt-2 sm:px-6 lg:px-8">{children}</main>
+        <main className="min-w-0 flex-1 px-4 pb-10 pt-6 sm:px-6 lg:px-8">{children}</main>
       </div>
     </div>
   );

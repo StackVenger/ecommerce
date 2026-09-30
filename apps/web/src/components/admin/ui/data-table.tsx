@@ -156,7 +156,7 @@ export function DataTable<Row>({
   };
 
   return (
-    <div className="bento-card overflow-hidden p-2 sm:p-4">
+    <div className="bento-card overflow-hidden">
       <div className="overflow-x-auto">
         <table className="bento-table border-collapse">
           <thead>
@@ -186,7 +186,7 @@ export function DataTable<Row>({
                       <button
                         type="button"
                         onClick={() => toggleSort(col.id)}
-                        className="inline-flex items-center gap-1 uppercase tracking-[0.2em] transition-colors hover:text-gray-900"
+                        className="inline-flex items-center gap-1 transition-colors hover:text-gray-900"
                       >
                         {col.header}
                         {isSorted && dir === 'asc' ? (
@@ -225,7 +225,7 @@ export function DataTable<Row>({
               <tr>
                 <td
                   colSpan={columns.length + (enableSelection ? 1 : 0)}
-                  className="py-14 text-center text-sm font-bold text-gray-500"
+                  className="py-14 text-center text-sm text-gray-500"
                 >
                   {empty ?? 'No rows to display.'}
                 </td>

@@ -82,7 +82,7 @@ export function ConfirmDialog({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
       role="dialog"
       aria-modal="true"
       aria-labelledby="confirm-title"
@@ -95,11 +95,11 @@ export function ConfirmDialog({
         onClick={onCancel}
         className="absolute inset-0 h-full w-full cursor-default bg-transparent"
       />
-      <div className="relative z-10 w-[calc(100%-2rem)] max-w-md rounded-[2rem] border border-foreground/[0.04] bg-card p-6 shadow-2xl sm:p-8">
+      <div className="relative z-10 w-[calc(100%-2rem)] max-w-md border border-gray-200 bg-card p-6 sm:p-8">
         <button
           type="button"
           onClick={onCancel}
-          className="absolute right-5 top-5 rounded-xl p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-all"
+          className="absolute right-5 top-5 p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-all"
           aria-label="Close"
         >
           <X className="h-4 w-4" />
@@ -107,17 +107,15 @@ export function ConfirmDialog({
 
         <div className="flex items-start gap-3">
           {tone === 'danger' && (
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-rose-50 text-rose-500">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center bg-rose-50 text-rose-500">
               <AlertTriangle className="h-6 w-6" strokeWidth={2.25} />
             </div>
           )}
           <div className="flex-1 pr-6">
-            <h2 id="confirm-title" className="text-xl font-black tracking-tight text-gray-900">
+            <h2 id="confirm-title" className="font-heading text-xl font-semibold text-gray-900">
               {title}
             </h2>
-            {description && (
-              <p className="mt-1.5 text-sm font-medium text-gray-500">{description}</p>
-            )}
+            {description && <p className="mt-1.5 text-sm text-gray-500">{description}</p>}
           </div>
         </div>
 

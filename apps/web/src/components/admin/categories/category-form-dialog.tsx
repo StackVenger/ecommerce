@@ -243,15 +243,15 @@ export function CategoryFormDialog({
       <div className="absolute inset-0 bg-black/50" onClick={onClose} />
 
       {/* Dialog */}
-      <div className="relative w-full max-w-lg rounded-[2rem] bg-card p-6 shadow-xl">
+      <div className="relative max-h-[90vh] w-[calc(100%-2rem)] max-w-lg overflow-y-auto border border-gray-200 bg-card p-6">
         {/* Header */}
         <div className="mb-6 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-100">
+            <div className="flex h-10 w-10 items-center justify-center bg-brand-100">
               <FolderTree className="h-5 w-5 text-brand-600" />
             </div>
             <div>
-              <h2 className="text-lg font-black text-gray-900 tracking-tight">
+              <h2 className="font-heading text-lg font-semibold text-gray-900">
                 {isEditing ? 'Edit Category' : 'Create Category'}
               </h2>
               <p className="text-sm text-gray-500">
@@ -261,7 +261,7 @@ export function CategoryFormDialog({
           </div>
           <button
             onClick={onClose}
-            className="rounded-xl p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-all"
+            className="p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-all"
           >
             <X className="h-5 w-5" />
           </button>
@@ -407,7 +407,7 @@ export function CategoryFormDialog({
         </div>
 
         {/* Footer */}
-        <div className="mt-6 flex items-center justify-end gap-3 border-t border-foreground/[0.04] pt-4">
+        <div className="mt-6 flex items-center justify-end gap-3 border-t border-gray-200 pt-4">
           <button onClick={onClose} className="btn btn-secondary">
             Cancel
           </button>

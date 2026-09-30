@@ -20,16 +20,16 @@ export default async function CheckoutLayout({ children }: { children: React.Rea
   const siteName = settings.general.site_name;
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Minimal header */}
-      <header className="site-container px-4 pt-4 sm:px-6 sm:pt-6 lg:px-8">
-        <div className="flex h-14 items-center justify-between gap-3 rounded-[1.5rem] border border-foreground/[0.04] bg-card px-4 shadow-bento sm:h-16 sm:px-6">
-          <a href="/" className="truncate text-lg font-black tracking-tighter text-gray-900">
+    <div className="min-h-screen bg-background">
+      {/* Secure-checkout strip */}
+      <header className="border-b border-gray-200 bg-gray-50">
+        <div className="site-container flex h-12 items-center justify-between gap-3 px-4 sm:px-6 lg:px-8">
+          <a href="/" className="truncate font-heading text-base font-semibold text-gray-900">
             {siteName}
           </a>
 
-          <div className="flex shrink-0 items-center gap-2 rounded-xl bg-emerald-50 px-3 py-1.5 text-[10px] font-black uppercase tracking-widest text-emerald-600">
-            <Lock className="h-3.5 w-3.5" strokeWidth={2.5} />
+          <div className="flex shrink-0 items-center gap-2 text-[13px] font-medium text-emerald-600">
+            <Lock className="h-3.5 w-3.5" strokeWidth={2} />
             <span>Secure Checkout</span>
           </div>
         </div>

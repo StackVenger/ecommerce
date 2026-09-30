@@ -1,27 +1,23 @@
 'use client';
 
 import {
-  ChevronLeft,
-  ChevronRight,
   ChevronsLeft,
   ChevronsRight,
-  Filter,
   Grid3X3,
   List,
   ShoppingCart,
   SlidersHorizontal,
-  Star,
   X,
 } from 'lucide-react';
-import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import {
   ProductCard,
   ProductCardSkeleton,
+  ProductGrid,
   type ProductCardBadge,
 } from '@/components/products/product-card';
-import { BentoGlow, EmptyState, PageHeader } from '@/components/ui/bento';
+import { Breadcrumbs, EmptyState, ShopSectionHeading } from '@/components/ui/bento';
 import { useCart } from '@/hooks/use-cart';
 import { useWishlist } from '@/hooks/use-wishlist';
 import { apiClient } from '@/lib/api/client';
@@ -305,22 +301,22 @@ export default function ProductsPage() {
 
   // Filter sidebar content (shared between desktop and mobile)
   const filterOptionClass = (active: boolean, sub = false) =>
-    `flex w-full items-center justify-between gap-2 rounded-xl px-3 text-left text-sm transition-all ${
-      sub ? 'py-1.5' : 'py-2'
-    } ${
+    `flex w-full items-center justify-between gap-2 py-1.5 text-left text-sm transition-colors ${
       active
-        ? 'bg-brand-50 font-black text-brand-700'
+        ? 'font-medium text-primary'
         : sub
-          ? 'font-medium text-gray-500 hover:bg-gray-50 hover:text-gray-900'
-          : 'font-bold text-gray-700 hover:bg-gray-50 hover:text-gray-900'
+          ? 'text-gray-500 hover:text-primary'
+          : 'text-gray-700 hover:text-primary'
     }`;
 
+  const widgetTitleClass = 'mb-4 font-heading text-base font-semibold text-gray-900';
+
   const filterContent = (
-    <div className="space-y-7">
+    <div>
       {/* Category filter */}
       <div>
-        <h3 className="eyebrow mb-3">Category</h3>
-        <ul className="space-y-0.5">
+        <h3 className={widgetTitleClass}>Category</h3>
+        <ul>
           <li>
             <button
               onClick={() => {
@@ -359,15 +355,15 @@ export default function ProductsPage() {
                 >
                   <span className="truncate">{cat.name}</span>
                   {totalCount > 0 && (
-                    <span className="shrink-0 text-[11px] font-bold tabular-nums text-gray-400">
-                      {totalCount}
+                    <span className="shrink-0 text-[13px] tabular-nums text-gray-500">
+                      ({totalCount})
                     </span>
                   )}
                 </button>
 
                 {/* Subcategories */}
                 {hasChildren && (
-                  <ul className="my-1 ml-4 space-y-0.5 border-l border-foreground/[0.06] pl-2">
+                  <ul className="mb-1 ml-1 border-l border-gray-200 pl-3">
                     {cat.children!.map((sub) => {
                       const subCount = sub.productCount ?? sub._count?.products ?? 0;
                       if (subCount === 0) {
@@ -383,8 +379,8 @@ export default function ProductsPage() {
                             className={filterOptionClass(selectedCategory === sub.slug, true)}
                           >
                             <span className="truncate">{sub.name}</span>
-                            <span className="shrink-0 text-[11px] font-bold tabular-nums text-gray-400">
-                              {subCount}
+                            <span className="shrink-0 text-[13px] tabular-nums text-gray-500">
+                              ({subCount})
                             </span>
                           </button>
                         </li>
@@ -399,8 +395,8 @@ export default function ProductsPage() {
       </div>
 
       {/* Price range */}
-      <div>
-        <h3 className="eyebrow mb-3">Price Range</h3>
+      <div className="mt-5 border-t border-gray-200 pt-5">
+        <h3 className={widgetTitleClass}>Price Range</h3>
         <div className="flex items-center gap-2">
           <input
             type="number"
@@ -411,9 +407,9 @@ export default function ProductsPage() {
               setMinPrice(e.target.value);
               setPage(1);
             }}
-            className="field-input px-3 py-2.5"
+            className="field-input h-10 px-3"
           />
-          <span className="font-bold text-gray-300">—</span>
+          <span className="text-gray-400">–</span>
           <input
             type="number"
             placeholder="Max"
@@ -423,16 +419,16 @@ export default function ProductsPage() {
               setMaxPrice(e.target.value);
               setPage(1);
             }}
-            className="field-input px-3 py-2.5"
+            className="field-input h-10 px-3"
           />
         </div>
       </div>
 
       {/* Brand filter */}
       {brands.length > 0 && (
-        <div>
-          <h3 className="eyebrow mb-3">Brand</h3>
-          <ul className="space-y-0.5">
+        <div className="mt-5 border-t border-gray-200 pt-5">
+          <h3 className={widgetTitleClass}>Brand</h3>
+          <ul>
             <li>
               <button
                 onClick={() => {
@@ -463,10 +459,12 @@ export default function ProductsPage() {
 
       {/* Clear all */}
       {hasActiveFilters && (
-        <button onClick={clearFilters} className="btn btn-soft w-full">
-          <X className="h-4 w-4" strokeWidth={2.5} />
-          Clear All Filters
-        </button>
+        <div className="mt-5 border-t border-gray-200 pt-5">
+          <button onClick={clearFilters} className="btn btn-secondary btn-sm w-full">
+            <X className="h-4 w-4" strokeWidth={2} />
+            Clear All Filters
+          </button>
+        </div>
       )}
     </div>
   );
@@ -526,7 +524,7 @@ export default function ProductsPage() {
         setPage(1);
       }}
       aria-label="Sort products"
-      className="field-input w-auto cursor-pointer py-2.5 pr-9 text-xs font-bold"
+      className="h-9 cursor-pointer border-0 bg-gray-100 px-3 pr-8 text-sm text-gray-700 outline-none focus:ring-1 focus:ring-primary"
     >
       {SORT_OPTIONS.map((opt) => (
         <option key={opt.value} value={opt.value}>
@@ -537,52 +535,44 @@ export default function ProductsPage() {
   );
 
   const pageButtonClass =
-    'flex h-10 w-10 items-center justify-center rounded-xl border border-foreground/[0.05] bg-card text-gray-600 shadow-sm transition-all hover:bg-gray-50 hover:text-gray-900 disabled:cursor-not-allowed disabled:opacity-30';
+    'flex h-9 min-w-[36px] items-center justify-center border border-gray-200 bg-card px-2.5 text-sm text-gray-700 transition-colors hover:text-primary disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:text-gray-700';
+
+  const viewButtonClass = (active: boolean) =>
+    `flex h-9 w-9 items-center justify-center transition-colors ${
+      active ? 'text-primary' : 'text-gray-400 hover:text-gray-900'
+    }`;
+
+  const rangeText = pagination ? (
+    <>
+      Showing {Math.min((pagination.page - 1) * pagination.limit + 1, pagination.total)}–
+      {Math.min(pagination.page * pagination.limit, pagination.total)} of {pagination.total}{' '}
+      products
+    </>
+  ) : null;
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Sticky mobile filter bar */}
-      <div className="sticky top-20 z-20 border-b border-foreground/[0.04] bg-gray-50/90 backdrop-blur-lg lg:hidden">
-        <div className="site-container flex items-center justify-between gap-3 px-4 py-3">
-          <button
-            onClick={() => setMobileFilterOpen(true)}
-            className="btn btn-secondary btn-sm relative"
-          >
-            <SlidersHorizontal className="h-4 w-4" strokeWidth={2.5} />
-            Filters
-            {activeFilterCount > 0 && (
-              <span className="flex h-5 w-5 items-center justify-center rounded-lg bg-primary text-[10px] font-black text-white">
-                {activeFilterCount}
-              </span>
-            )}
-          </button>
-
-          <div className="flex items-center gap-2">{sortSelect}</div>
-        </div>
-      </div>
+    <div className="min-h-screen bg-background">
+      <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'Products' }]} />
 
       {/* Mobile filter sheet */}
       {mobileFilterOpen && (
         <div className="fixed inset-0 z-50 lg:hidden">
-          <div
-            className="absolute inset-0 bg-ink/40 backdrop-blur-sm"
-            onClick={() => setMobileFilterOpen(false)}
-          />
-          <div className="absolute inset-x-0 bottom-0 max-h-[85vh] overflow-y-auto rounded-t-[2rem] bg-card p-6 shadow-2xl animate-in slide-in-from-bottom">
-            <div className="mb-6 flex items-center justify-between">
+          <div className="absolute inset-0 bg-ink/40" onClick={() => setMobileFilterOpen(false)} />
+          <div className="absolute inset-x-0 bottom-0 max-h-[85vh] overflow-y-auto border-t border-gray-200 bg-card p-5 animate-in slide-in-from-bottom">
+            <div className="mb-5 flex items-center justify-between border-b border-gray-200 pb-4">
               <h2 className="section-title">Filters</h2>
               <button
                 onClick={() => setMobileFilterOpen(false)}
                 aria-label="Close filters"
-                className="btn-icon h-10 w-10 bg-gray-100 text-gray-600 hover:bg-gray-200"
+                className="btn-icon h-9 w-9 border border-gray-200 text-gray-600 hover:text-primary"
               >
-                <X className="h-5 w-5" strokeWidth={2.5} />
+                <X className="h-5 w-5" strokeWidth={2} />
               </button>
             </div>
-            {filterContent}
+            <div className="bg-gray-50 p-5">{filterContent}</div>
             <button
               onClick={() => setMobileFilterOpen(false)}
-              className="btn btn-primary btn-lg mt-6 w-full"
+              className="btn btn-primary btn-lg mt-5 w-full"
             >
               Show Results
             </button>
@@ -590,117 +580,93 @@ export default function ProductsPage() {
         </div>
       )}
 
-      <div className="site-container px-4 py-6 sm:py-8">
-        {/* Breadcrumb */}
-        <nav className="mb-4 flex items-center gap-2 text-xs font-bold text-gray-400">
-          <Link href="/" className="transition-colors hover:text-gray-900">
-            Home
-          </Link>
-          <ChevronRight className="h-3.5 w-3.5" />
-          <span className="text-gray-900">Products</span>
-        </nav>
-
-        {/* Header */}
-        <PageHeader
-          title="All Products"
-          description={
-            pagination ? (
-              <>
-                Showing {Math.min((pagination.page - 1) * pagination.limit + 1, pagination.total)}–
-                {Math.min(pagination.page * pagination.limit, pagination.total)} of{' '}
-                {pagination.total} products
-              </>
-            ) : undefined
-          }
-          actions={
-            <div className="hidden items-center gap-3 lg:flex">
-              {sortSelect}
-
-              {/* View toggle */}
-              <div className="flex rounded-2xl border border-foreground/[0.04] bg-card p-1 shadow-sm">
-                <button
-                  onClick={() => setViewMode('grid')}
-                  aria-label="Grid view"
-                  aria-pressed={viewMode === 'grid'}
-                  className={`flex h-9 w-9 items-center justify-center rounded-xl transition-all ${
-                    viewMode === 'grid'
-                      ? 'bg-primary text-white shadow-sm'
-                      : 'text-gray-500 hover:text-gray-900'
-                  }`}
-                >
-                  <Grid3X3 className="h-4 w-4" strokeWidth={2.5} />
-                </button>
-                <button
-                  onClick={() => setViewMode('list')}
-                  aria-label="List view"
-                  aria-pressed={viewMode === 'list'}
-                  className={`flex h-9 w-9 items-center justify-center rounded-xl transition-all ${
-                    viewMode === 'list'
-                      ? 'bg-primary text-white shadow-sm'
-                      : 'text-gray-500 hover:text-gray-900'
-                  }`}
-                >
-                  <List className="h-4 w-4" strokeWidth={2.5} />
-                </button>
-              </div>
-            </div>
-          }
-        />
-
-        <div className="flex gap-6 lg:gap-8">
+      <div className="site-container px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
+        <div className="flex gap-8">
           {/* Desktop sidebar */}
-          <aside className="hidden w-64 flex-shrink-0 lg:block">
-            <div className="bento-card sticky top-24 p-6">
-              <div className="mb-6 flex items-center gap-3">
-                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-50 text-brand-600">
-                  <Filter className="h-4 w-4" strokeWidth={2.5} />
-                </div>
-                <h2 className="text-lg font-black tracking-tight text-gray-900">Filters</h2>
-              </div>
-              {filterContent}
-            </div>
+          <aside className="hidden w-[270px] flex-shrink-0 lg:block">
+            <div className="bg-gray-50 p-5">{filterContent}</div>
           </aside>
 
           {/* Main content */}
           <div className="min-w-0 flex-1">
+            <ShopSectionHeading as="h1" title="All Products" className="mb-6" />
+
+            {/* Toolbar */}
+            <div className="mb-7 flex items-center justify-between gap-3 border border-gray-200 px-3 py-2.5 sm:px-4 sm:py-3">
+              <div className="flex min-w-0 items-center gap-3">
+                <button
+                  onClick={() => setMobileFilterOpen(true)}
+                  className="btn btn-secondary btn-sm relative h-9 lg:hidden"
+                >
+                  <SlidersHorizontal className="h-4 w-4" strokeWidth={2} />
+                  Filters
+                  {activeFilterCount > 0 && (
+                    <span className="flex h-5 min-w-[20px] items-center justify-center bg-primary px-1 text-[11px] font-semibold text-white">
+                      {activeFilterCount}
+                    </span>
+                  )}
+                </button>
+
+                {/* View toggle */}
+                <div className="hidden items-center sm:flex">
+                  <button
+                    onClick={() => setViewMode('grid')}
+                    aria-label="Grid view"
+                    aria-pressed={viewMode === 'grid'}
+                    className={viewButtonClass(viewMode === 'grid')}
+                  >
+                    <Grid3X3 className="h-[18px] w-[18px]" strokeWidth={2} />
+                  </button>
+                  <button
+                    onClick={() => setViewMode('list')}
+                    aria-label="List view"
+                    aria-pressed={viewMode === 'list'}
+                    className={viewButtonClass(viewMode === 'list')}
+                  >
+                    <List className="h-[18px] w-[18px]" strokeWidth={2} />
+                  </button>
+                </div>
+
+                {rangeText && (
+                  <p className="hidden truncate text-[13px] text-gray-500 md:block">{rangeText}</p>
+                )}
+              </div>
+
+              <div className="flex shrink-0 items-center gap-2">
+                <span className="hidden text-[13px] text-gray-700 sm:inline">Sort by:</span>
+                {sortSelect}
+              </div>
+            </div>
+
+            {rangeText && (
+              <p className="-mt-4 mb-5 text-[13px] text-gray-500 md:hidden">{rangeText}</p>
+            )}
+
             {/* Featured products */}
             {showFeatured && (
-              <div className="bento-primary mb-6 p-5 sm:mb-8 sm:p-8">
-                <BentoGlow />
-                <div className="relative z-10">
-                  <div className="mb-5 flex items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/20 backdrop-blur-md">
-                      <Star className="h-5 w-5 fill-white text-white" />
-                    </div>
-                    <div>
-                      <h2 className="text-xl font-black tracking-tight">Featured Products</h2>
-                      <p className="text-[10px] font-black uppercase tracking-widest text-white/70">
-                        Most viewed picks
-                      </p>
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-2 gap-3 text-gray-900 sm:gap-4 md:grid-cols-4">
-                    {featuredProducts
-                      .slice(0, 4)
-                      .map((product) => renderProductCard(product, true))}
-                  </div>
-                </div>
-              </div>
+              <section className="mb-10 border-b border-gray-200 pb-10">
+                <ShopSectionHeading as="h2" title="Featured Products" caption="Most viewed picks" />
+                <ProductGrid className="md:grid-cols-4 xl:grid-cols-4">
+                  {featuredProducts.slice(0, 4).map((product) => renderProductCard(product, true))}
+                </ProductGrid>
+              </section>
             )}
 
             {/* Product grid/list */}
             {loading ? (
-              <div
-                className={
-                  viewMode === 'grid'
-                    ? 'grid grid-cols-2 gap-3 sm:gap-5 md:grid-cols-3'
-                    : 'flex flex-col gap-4'
-                }
-              >
-                {Array.from({ length: 12 }).map((_, i) => (
-                  <ProductCardSkeleton key={i} layout={viewMode} />
-                ))}
-              </div>
+              viewMode === 'grid' ? (
+                <ProductGrid columns={3}>
+                  {Array.from({ length: 12 }).map((_, i) => (
+                    <ProductCardSkeleton key={i} layout="grid" />
+                  ))}
+                </ProductGrid>
+              ) : (
+                <div className="flex flex-col gap-5">
+                  {Array.from({ length: 12 }).map((_, i) => (
+                    <ProductCardSkeleton key={i} layout="list" />
+                  ))}
+                </div>
+              )
             ) : products.length === 0 ? (
               <EmptyState
                 icon={ShoppingCart}
@@ -714,30 +680,19 @@ export default function ProductsPage() {
                   ) : undefined
                 }
               />
+            ) : viewMode === 'grid' ? (
+              <ProductGrid columns={3}>
+                {products.map((product) => renderProductCard(product))}
+              </ProductGrid>
             ) : (
-              <div
-                className={
-                  viewMode === 'grid'
-                    ? 'grid grid-cols-2 gap-3 sm:gap-5 md:grid-cols-3'
-                    : 'flex flex-col gap-4'
-                }
-              >
+              <div className="flex flex-col gap-5">
                 {products.map((product) => renderProductCard(product))}
               </div>
             )}
 
-            {/* Smart Pagination */}
+            {/* Pagination */}
             {pagination && pagination.pages > 1 && (
-              <div className="bento-card mt-8 flex flex-col items-center gap-4 p-4 sm:flex-row sm:justify-between sm:px-6">
-                <p className="text-[11px] font-bold text-gray-500">
-                  Showing{' '}
-                  <span className="text-gray-900">
-                    {Math.min((pagination.page - 1) * pagination.limit + 1, pagination.total)}–
-                    {Math.min(pagination.page * pagination.limit, pagination.total)}
-                  </span>{' '}
-                  of <span className="text-gray-900">{pagination.total}</span> products
-                </p>
-
+              <div className="mt-10 flex flex-col items-center gap-4 border border-gray-200 px-3 py-3 sm:flex-row sm:justify-between sm:px-4">
                 <div className="flex flex-wrap items-center justify-center gap-1.5">
                   {/* First */}
                   <button
@@ -747,7 +702,7 @@ export default function ProductsPage() {
                     title="First page"
                     aria-label="First page"
                   >
-                    <ChevronsLeft className="h-4 w-4" strokeWidth={2.5} />
+                    <ChevronsLeft className="h-4 w-4" strokeWidth={2} />
                   </button>
                   {/* Previous */}
                   <button
@@ -757,12 +712,12 @@ export default function ProductsPage() {
                     title="Previous page"
                     aria-label="Previous page"
                   >
-                    <ChevronLeft className="h-4 w-4" strokeWidth={2.5} />
+                    Prev
                   </button>
 
                   {paginationRange.map((item, idx) =>
                     item === 'ellipsis' ? (
-                      <span key={`ellipsis-${idx}`} className="px-1 font-black text-gray-300">
+                      <span key={`ellipsis-${idx}`} className="px-1 text-gray-400">
                         …
                       </span>
                     ) : (
@@ -770,10 +725,10 @@ export default function ProductsPage() {
                         key={item}
                         onClick={() => setPage(item)}
                         aria-current={item === page ? 'page' : undefined}
-                        className={`h-10 min-w-[40px] rounded-xl px-3 text-xs font-black tabular-nums transition-all ${
+                        className={`${pageButtonClass} tabular-nums ${
                           item === page
-                            ? 'bg-ink text-white shadow-lg shadow-black/10'
-                            : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900'
+                            ? 'border-primary bg-primary text-white hover:text-white'
+                            : ''
                         }`}
                       >
                         {item}
@@ -789,7 +744,7 @@ export default function ProductsPage() {
                     title="Next page"
                     aria-label="Next page"
                   >
-                    <ChevronRight className="h-4 w-4" strokeWidth={2.5} />
+                    Next
                   </button>
                   {/* Last */}
                   <button
@@ -799,9 +754,11 @@ export default function ProductsPage() {
                     title="Last page"
                     aria-label="Last page"
                   >
-                    <ChevronsRight className="h-4 w-4" strokeWidth={2.5} />
+                    <ChevronsRight className="h-4 w-4" strokeWidth={2} />
                   </button>
                 </div>
+
+                <p className="text-[13px] text-gray-500">{rangeText}</p>
               </div>
             )}
           </div>

@@ -294,7 +294,7 @@ function VariantImagePicker({ value, productImages, onChange }: VariantImagePick
           <div
             ref={popoverRef}
             style={{ position: 'fixed', top: coords.top, left: coords.left, width: 288 }}
-            className="z-50 rounded-[2rem] border border-foreground/[0.05] bg-card p-3 shadow-xl"
+            className="z-50 border border-gray-200 bg-card p-3"
           >
             <div className="mb-2 flex items-center justify-between">
               <span className="text-xs font-medium text-gray-700">
@@ -332,7 +332,7 @@ function VariantImagePicker({ value, productImages, onChange }: VariantImagePick
                     }}
                     className={cn(
                       'group relative aspect-square overflow-hidden rounded-md border bg-gray-50 transition-all cursor-move',
-                      dragOverIndex === i ? 'border-brand-400 scale-105' : 'border-gray-200',
+                      dragOverIndex === i ? 'border-primary' : 'border-gray-200',
                       draggedIndex === i && 'opacity-50',
                     )}
                   >
@@ -390,9 +390,7 @@ function VariantImagePicker({ value, productImages, onChange }: VariantImagePick
 
             {productImages.length > 0 && (
               <>
-                <p className="mb-1 text-[11px] font-medium uppercase tracking-wide text-gray-500">
-                  Or toggle from product images
-                </p>
+                <p className="eyebrow mb-1">Or toggle from product images</p>
                 <div className="grid max-h-40 grid-cols-3 gap-2 overflow-y-auto">
                   {productImages.map((url) => {
                     const picked = value.includes(url);
@@ -428,7 +426,7 @@ function VariantImagePicker({ value, productImages, onChange }: VariantImagePick
             ? `${value.length} image${value.length !== 1 ? 's' : ''} — click to manage`
             : 'Assign images to this variant'
         }
-        className="relative flex h-10 w-10 items-center justify-center overflow-hidden rounded-[12px] border border-foreground/[0.04] bg-gray-50 hover:border-brand-400"
+        className="relative flex h-10 w-10 items-center justify-center overflow-hidden rounded-lg border border-gray-200 bg-gray-50 hover:border-brand-400"
       >
         {previewUrl ? (
           <>
@@ -501,7 +499,7 @@ function OptionTypeEditor({ option, onChange, onRemove, index }: OptionTypeEdito
   };
 
   return (
-    <div className="rounded-[1.5rem] border border-foreground/[0.05] bg-gray-50 p-4">
+    <div className="border border-gray-200 bg-gray-50 p-4">
       <div className="mb-3 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <GripVertical className="h-4 w-4 cursor-grab text-gray-400" />
@@ -509,7 +507,7 @@ function OptionTypeEditor({ option, onChange, onRemove, index }: OptionTypeEdito
         </div>
         <button
           onClick={onRemove}
-          className="rounded-xl p-1 text-gray-400 hover:bg-gray-200 hover:text-red-500 transition-all"
+          className="p-1 text-gray-400 hover:bg-gray-200 hover:text-red-500 transition-all"
         >
           <Trash2 className="h-4 w-4" />
         </button>
@@ -546,8 +544,8 @@ function OptionTypeEditor({ option, onChange, onRemove, index }: OptionTypeEdito
                 setDragOverValueIndex(null);
               }}
               className={cn(
-                'inline-flex cursor-move items-center gap-1 rounded-full border border-transparent bg-brand-50 px-3 py-1 text-sm font-bold text-brand-600 transition-all',
-                dragOverValueIndex === valueIndex && 'scale-105 border-brand-400 bg-brand-100',
+                'inline-flex cursor-move items-center gap-1 border border-brand-200 bg-brand-50 px-3 py-1 text-sm font-medium text-brand-700 transition-colors',
+                dragOverValueIndex === valueIndex && 'border-primary bg-brand-100',
                 draggedValueIndex === valueIndex && 'opacity-50',
               )}
             >
@@ -732,7 +730,7 @@ export function VariantsForm({
         <div className="mb-6 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Layers className="h-5 w-5 text-gray-400" />
-            <h2 className="text-lg font-black text-gray-900 tracking-tight">
+            <h2 className="font-heading text-lg font-semibold text-gray-900">
               Step 1 — Define options
             </h2>
           </div>
@@ -799,8 +797,8 @@ export function VariantsForm({
       {/* Variant Matrix Table */}
       {showVariants && variants.length > 0 && (
         <div className="bento-card">
-          <div className="flex items-center justify-between border-b border-foreground/[0.04] px-6 py-4">
-            <h3 className="text-lg font-black text-gray-900 tracking-tight">
+          <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4">
+            <h3 className="font-heading text-lg font-semibold text-gray-900">
               Step 2 — Set price and stock ({variants.length})
             </h3>
             <button
@@ -817,10 +815,10 @@ export function VariantsForm({
 
           <div className="overflow-x-auto">
             <table className="min-w-full">
-              <thead className="border-b border-foreground/[0.04]">
+              <thead className="border-b border-gray-200 bg-gray-50">
                 <tr>
                   {colorOptionName && (
-                    <th className="w-14 px-4 py-4 text-left text-[10px] font-black uppercase tracking-[0.2em] text-gray-500">
+                    <th className="w-14 px-4 py-3 text-left font-heading text-xs font-semibold text-gray-700">
                       Image
                     </th>
                   )}
@@ -829,35 +827,35 @@ export function VariantsForm({
                     .map((option) => (
                       <th
                         key={option.id}
-                        className="px-4 py-4 text-left text-[10px] font-black uppercase tracking-[0.2em] text-gray-500"
+                        className="px-4 py-3 text-left font-heading text-xs font-semibold text-gray-700"
                       >
                         {option.name}
                       </th>
                     ))}
-                  <th className="px-4 py-4 text-left text-[10px] font-black uppercase tracking-[0.2em] text-gray-500">
+                  <th className="px-4 py-3 text-left font-heading text-xs font-semibold text-gray-700">
                     Price (৳)
                   </th>
-                  <th className="px-4 py-4 text-left text-[10px] font-black uppercase tracking-[0.2em] text-gray-500">
+                  <th className="px-4 py-3 text-left font-heading text-xs font-semibold text-gray-700">
                     Compare At (৳)
                   </th>
-                  <th className="px-4 py-4 text-left text-[10px] font-black uppercase tracking-[0.2em] text-gray-500">
+                  <th className="px-4 py-3 text-left font-heading text-xs font-semibold text-gray-700">
                     Cost Price (৳)
                   </th>
-                  <th className="px-4 py-4 text-left text-[10px] font-black uppercase tracking-[0.2em] text-gray-500">
+                  <th className="px-4 py-3 text-left font-heading text-xs font-semibold text-gray-700">
                     Stock
                   </th>
-                  <th className="px-4 py-4 text-left text-[10px] font-black uppercase tracking-[0.2em] text-gray-500">
+                  <th className="px-4 py-3 text-left font-heading text-xs font-semibold text-gray-700">
                     Low stock at
                   </th>
-                  <th className="px-4 py-4 text-left text-[10px] font-black uppercase tracking-[0.2em] text-gray-500">
+                  <th className="px-4 py-3 text-left font-heading text-xs font-semibold text-gray-700">
                     SKU
                   </th>
-                  <th className="px-4 py-4 text-center text-[10px] font-black uppercase tracking-[0.2em] text-gray-500">
+                  <th className="px-4 py-3 text-center font-heading text-xs font-semibold text-gray-700">
                     Active
                   </th>
                   {showDefaultColumn && (
                     <th
-                      className="w-16 px-4 py-4 text-center text-[10px] font-black uppercase tracking-[0.2em] text-gray-500"
+                      className="w-16 px-4 py-3 text-center font-heading text-xs font-semibold text-gray-700"
                       title="Storefront shows this variant's image and price on initial load"
                     >
                       Default
@@ -866,7 +864,7 @@ export function VariantsForm({
                   <th className="w-10 px-2 py-3" />
                 </tr>
               </thead>
-              <tbody className="divide-y divide-foreground/[0.03]">
+              <tbody className="divide-y divide-gray-200">
                 {variants.map((variant, index) => {
                   const colorValue = colorOptionName ? variant.options[colorOptionName] : undefined;
                   const ownerIdx = colorValue ? colorOwnerIndex[colorValue] : undefined;
@@ -888,7 +886,7 @@ export function VariantsForm({
                             />
                           ) : inheritedUrls.length > 0 ? (
                             <div
-                              className="relative flex h-10 w-10 items-center justify-center overflow-hidden rounded-[12px] border border-foreground/[0.04] bg-gray-50 opacity-70"
+                              className="relative flex h-10 w-10 items-center justify-center overflow-hidden rounded-lg border border-gray-200 bg-gray-50 opacity-70"
                               title={`Images inherited from the ${colorValue} colour (${inheritedUrls.length})`}
                             >
                               <img
@@ -925,8 +923,8 @@ export function VariantsForm({
                           </td>
                         ))}
                       <td className="px-4 py-2">
-                        <div className="flex overflow-hidden rounded-xl border border-foreground/[0.06] bg-card shadow-sm transition-all focus-within:border-brand-300 focus-within:ring-4 focus-within:ring-brand-500/10">
-                          <span className="inline-flex items-center border-r border-foreground/[0.06] bg-gray-50 px-2.5 text-xs font-bold text-gray-500">
+                        <div className="flex overflow-hidden border border-gray-200 bg-card transition-colors focus-within:border-primary focus-within:ring-1 focus-within:ring-primary">
+                          <span className="inline-flex items-center border-r border-gray-200 bg-gray-50 px-2.5 text-xs font-bold text-gray-500">
                             ৳
                           </span>
                           <input
@@ -941,13 +939,13 @@ export function VariantsForm({
                                 e.target.value ? parseFloat(e.target.value) : null,
                               )
                             }
-                            className="w-24 bg-transparent px-2 py-1.5 text-sm font-bold focus:outline-none"
+                            className="w-24 bg-transparent px-2 py-1.5 text-sm font-medium focus:outline-none"
                           />
                         </div>
                       </td>
                       <td className="px-4 py-2">
-                        <div className="flex overflow-hidden rounded-xl border border-foreground/[0.06] bg-card shadow-sm transition-all focus-within:border-brand-300 focus-within:ring-4 focus-within:ring-brand-500/10">
-                          <span className="inline-flex items-center border-r border-foreground/[0.06] bg-gray-50 px-2.5 text-xs font-bold text-gray-500">
+                        <div className="flex overflow-hidden border border-gray-200 bg-card transition-colors focus-within:border-primary focus-within:ring-1 focus-within:ring-primary">
+                          <span className="inline-flex items-center border-r border-gray-200 bg-gray-50 px-2.5 text-xs font-bold text-gray-500">
                             ৳
                           </span>
                           <input
@@ -962,13 +960,13 @@ export function VariantsForm({
                                 e.target.value ? parseFloat(e.target.value) : null,
                               )
                             }
-                            className="w-24 bg-transparent px-2 py-1.5 text-sm font-bold focus:outline-none"
+                            className="w-24 bg-transparent px-2 py-1.5 text-sm font-medium focus:outline-none"
                           />
                         </div>
                       </td>
                       <td className="px-4 py-2">
-                        <div className="flex overflow-hidden rounded-xl border border-foreground/[0.06] bg-card shadow-sm transition-all focus-within:border-brand-300 focus-within:ring-4 focus-within:ring-brand-500/10">
-                          <span className="inline-flex items-center border-r border-foreground/[0.06] bg-gray-50 px-2.5 text-xs font-bold text-gray-500">
+                        <div className="flex overflow-hidden border border-gray-200 bg-card transition-colors focus-within:border-primary focus-within:ring-1 focus-within:ring-primary">
+                          <span className="inline-flex items-center border-r border-gray-200 bg-gray-50 px-2.5 text-xs font-bold text-gray-500">
                             ৳
                           </span>
                           <input
@@ -983,7 +981,7 @@ export function VariantsForm({
                                 e.target.value ? parseFloat(e.target.value) : null,
                               )
                             }
-                            className="w-24 bg-transparent px-2 py-1.5 text-sm font-bold focus:outline-none"
+                            className="w-24 bg-transparent px-2 py-1.5 text-sm font-medium focus:outline-none"
                           />
                         </div>
                       </td>
@@ -1044,7 +1042,7 @@ export function VariantsForm({
                       <td className="px-2 py-2 text-center">
                         <button
                           onClick={() => deleteVariant(index)}
-                          className="rounded-xl p-1 text-gray-400 hover:bg-red-50 hover:text-red-600 transition-all"
+                          className="p-1 text-gray-400 hover:bg-red-50 hover:text-red-600 transition-all"
                           title="Delete variant"
                           type="button"
                         >

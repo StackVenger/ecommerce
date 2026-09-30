@@ -127,7 +127,7 @@ export default function CustomCSSEditor({ value, onChange }: CustomCSSEditorProp
 
       {/* CSS Snippets */}
       <div>
-        <h3 className="text-sm font-black text-gray-900 mb-2 tracking-tight">Quick Snippets</h3>
+        <h3 className="font-heading text-base font-semibold text-gray-900 mb-2">Quick Snippets</h3>
         <div className="flex flex-wrap gap-2">
           {CSS_SNIPPETS.map((snippet) => (
             <button
@@ -169,7 +169,7 @@ export default function CustomCSSEditor({ value, onChange }: CustomCSSEditorProp
 
       {/* Available Variables Reference */}
       <div className="bg-gray-50 rounded-lg p-4">
-        <h3 className="text-sm font-black text-gray-900 mb-2 tracking-tight">
+        <h3 className="font-heading text-base font-semibold text-gray-900 mb-2">
           Available CSS Variables
         </h3>
         <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
@@ -208,7 +208,7 @@ export default function CustomCSSEditor({ value, onChange }: CustomCSSEditorProp
                   textarea.focus();
                 }
               }}
-              className="text-xs font-mono text-brand-600 hover:text-brand-800 text-left px-4 py-2 hover:bg-brand-50 rounded-xl font-bold transition-all"
+              className="text-xs font-mono text-brand-600 hover:text-brand-800 text-left px-4 py-2 hover:bg-brand-50 font-medium transition-colors"
             >
               {varName}
             </button>
@@ -219,8 +219,8 @@ export default function CustomCSSEditor({ value, onChange }: CustomCSSEditorProp
       {/* Preview */}
       {showPreview && (
         <div>
-          <h3 className="text-sm font-black text-gray-900 mb-2 tracking-tight">Live Preview</h3>
-          <div className="overflow-hidden rounded-[1.25rem] border border-foreground/[0.06]">
+          <h3 className="font-heading text-base font-semibold text-gray-900 mb-2">Live Preview</h3>
+          <div className="overflow-hidden border border-gray-200">
             <iframe
               srcDoc={`
                 <!DOCTYPE html>

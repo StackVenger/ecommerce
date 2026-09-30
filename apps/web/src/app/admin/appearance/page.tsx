@@ -148,7 +148,7 @@ export default function AdminAppearancePage() {
 
       {/* Tabs */}
       <div className="bento-card">
-        <div className="border-b border-foreground/[0.04]">
+        <div className="border-b border-gray-200">
           <nav className="flex gap-1 overflow-x-auto p-3 scrollbar-none">
             {Object.entries(TAB_LABELS).map(([key, label]) => (
               <button
@@ -202,7 +202,7 @@ export default function AdminAppearancePage() {
 
       {/* Store Identity */}
       <div className="bento-card p-6 sm:p-8 space-y-4">
-        <h2 className="text-lg font-black text-gray-900 tracking-tight">Store Identity</h2>
+        <h2 className="text-lg font-heading font-semibold text-gray-900">Store Identity</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="field-label">Logo URL</label>

@@ -78,18 +78,18 @@ function DistributionRow({
       type="button"
       onClick={onClick}
       aria-pressed={active}
-      className={`group grid w-full grid-cols-[auto_1fr_auto] items-center gap-3 rounded-xl px-2 py-1 text-left transition-colors ${
-        active ? 'bg-card shadow-sm' : 'hover:bg-card/70'
+      className={`group grid w-full grid-cols-[auto_1fr_auto] items-center gap-3 px-2 py-1 text-left transition-colors ${
+        active ? 'bg-card ring-1 ring-primary' : 'hover:bg-card'
       }`}
     >
       <Stars rating={rating} />
-      <div className="h-2 overflow-hidden rounded-full bg-gray-200/70">
+      <div className="h-2 overflow-hidden bg-gray-200">
         <div
-          className="h-full rounded-full bg-primary transition-all duration-1000"
+          className="h-full bg-primary transition-all duration-700"
           style={{ width: `${pct}%` }}
         />
       </div>
-      <span className="w-8 text-right text-xs font-black tabular-nums text-gray-600">{count}</span>
+      <span className="w-8 text-right text-xs tabular-nums text-gray-600">{count}</span>
     </button>
   );
 }
@@ -254,16 +254,18 @@ export function ReviewList({ productId }: Props) {
     <div className="space-y-4">
       {/* Stats Summary */}
       {stats && (
-        <div className="bento-tile grid grid-cols-1 gap-6 p-5 sm:p-6 md:grid-cols-[auto_1fr]">
-          <div className="flex flex-col items-center justify-center md:border-r md:border-foreground/[0.05] md:pr-8">
+        <div className="grid grid-cols-1 gap-6 bg-gray-50 p-5 sm:p-6 md:grid-cols-[auto_1fr]">
+          <div className="flex flex-col items-center justify-center md:border-r md:border-gray-200 md:pr-8">
             <div className="flex items-baseline gap-1">
-              <span className="stat-value text-5xl">{stats.averageRating.toFixed(1)}</span>
-              <span className="text-base font-black text-gray-400">/5</span>
+              <span className="font-heading text-5xl font-semibold text-gray-900">
+                {stats.averageRating.toFixed(1)}
+              </span>
+              <span className="text-base text-gray-400">/5</span>
             </div>
             <div className="mt-2">
               <Stars rating={Math.round(stats.averageRating)} size="lg" />
             </div>
-            <p className="eyebrow mt-2">{stats.totalReviews} Ratings</p>
+            <p className="mt-2 text-[13px] text-gray-500">{stats.totalReviews} Ratings</p>
           </div>
           <div className="space-y-1.5">
             {[5, 4, 3, 2, 1].map((rating) => (
@@ -285,7 +287,7 @@ export function ReviewList({ productId }: Props) {
 
       {/* Header bar */}
       <div className="flex flex-col gap-3 py-1 sm:flex-row sm:items-center sm:justify-between">
-        <h3 className="section-title">Product Reviews</h3>
+        <h3 className="font-heading text-lg font-semibold text-gray-900">Product Reviews</h3>
         <div className="flex flex-wrap items-center gap-2">
           {/* Sort */}
           <div className="relative">
@@ -295,14 +297,14 @@ export function ReviewList({ productId }: Props) {
                 setSortOpen((v) => !v);
                 setFilterOpen(false);
               }}
-              className="inline-flex items-center gap-1.5 rounded-xl border border-foreground/[0.05] bg-card px-4 py-2 text-xs font-bold text-gray-700 shadow-sm transition-all hover:bg-gray-50"
+              className="inline-flex h-9 items-center gap-1.5 bg-gray-100 px-3 text-[13px] text-gray-700 transition-colors hover:text-primary"
             >
               <span className="text-gray-400">Sort:</span>
-              <span className="font-black">{SORT_LABELS[sortBy]}</span>
+              <span className="font-medium text-gray-900">{SORT_LABELS[sortBy]}</span>
               <ChevronDown className="h-3.5 w-3.5 text-gray-400" />
             </button>
             {sortOpen && (
-              <div className="absolute right-0 z-10 mt-2 w-44 overflow-hidden rounded-2xl border border-foreground/[0.05] bg-card p-1.5 shadow-xl shadow-black/5">
+              <div className="absolute right-0 z-10 mt-2 w-44 overflow-hidden border border-gray-200 bg-card py-1 shadow-bento-hover">
                 {(Object.keys(SORT_LABELS) as SortKey[]).map((key) => (
                   <button
                     key={key}
@@ -312,8 +314,8 @@ export function ReviewList({ productId }: Props) {
                       setSortOpen(false);
                       setPage(1);
                     }}
-                    className={`block w-full rounded-xl px-3 py-2 text-left text-xs font-bold hover:bg-gray-50 ${
-                      sortBy === key ? 'bg-brand-50 text-brand-700' : 'text-gray-700'
+                    className={`block w-full px-3 py-2 text-left text-[13px] hover:bg-gray-50 ${
+                      sortBy === key ? 'text-primary' : 'text-gray-700'
                     }`}
                   >
                     {SORT_LABELS[key]}
@@ -330,16 +332,16 @@ export function ReviewList({ productId }: Props) {
                 setFilterOpen((v) => !v);
                 setSortOpen(false);
               }}
-              className="inline-flex items-center gap-1.5 rounded-xl border border-foreground/[0.05] bg-card px-4 py-2 text-xs font-bold text-gray-700 shadow-sm transition-all hover:bg-gray-50"
+              className="inline-flex h-9 items-center gap-1.5 bg-gray-100 px-3 text-[13px] text-gray-700 transition-colors hover:text-primary"
             >
               <span className="text-gray-400">Filter:</span>
-              <span className="font-black">
+              <span className="font-medium text-gray-900">
                 {ratingFilter ? `${ratingFilter} star` : 'All star'}
               </span>
               <ChevronDown className="h-3.5 w-3.5 text-gray-400" />
             </button>
             {filterOpen && (
-              <div className="absolute right-0 z-10 mt-2 w-36 overflow-hidden rounded-2xl border border-foreground/[0.05] bg-card p-1.5 shadow-xl shadow-black/5">
+              <div className="absolute right-0 z-10 mt-2 w-36 overflow-hidden border border-gray-200 bg-card py-1 shadow-bento-hover">
                 <button
                   type="button"
                   onClick={() => {
@@ -347,8 +349,8 @@ export function ReviewList({ productId }: Props) {
                     setFilterOpen(false);
                     setPage(1);
                   }}
-                  className={`block w-full rounded-xl px-3 py-2 text-left text-xs font-bold hover:bg-gray-50 ${
-                    !ratingFilter ? 'bg-brand-50 text-brand-700' : 'text-gray-700'
+                  className={`block w-full px-3 py-2 text-left text-[13px] hover:bg-gray-50 ${
+                    !ratingFilter ? 'text-primary' : 'text-gray-700'
                   }`}
                 >
                   All star
@@ -362,8 +364,8 @@ export function ReviewList({ productId }: Props) {
                       setFilterOpen(false);
                       setPage(1);
                     }}
-                    className={`block w-full rounded-xl px-3 py-2 text-left text-xs font-bold hover:bg-gray-50 ${
-                      ratingFilter === r ? 'bg-brand-50 text-brand-700' : 'text-gray-700'
+                    className={`block w-full px-3 py-2 text-left text-[13px] hover:bg-gray-50 ${
+                      ratingFilter === r ? 'text-primary' : 'text-gray-700'
                     }`}
                   >
                     {r} star
@@ -376,28 +378,28 @@ export function ReviewList({ productId }: Props) {
       </div>
 
       {/* Reviews list */}
-      <div className="overflow-hidden rounded-[1.5rem] border border-foreground/[0.04]">
+      <div className="border border-gray-200">
         {loading ? (
-          <div className="divide-y divide-foreground/[0.04]">
+          <div className="divide-y divide-gray-200">
             {[1, 2, 3].map((i) => (
               <div key={i} className="p-5">
-                <div className="h-20 animate-pulse rounded-2xl bg-gray-100" />
+                <div className="h-20 animate-pulse bg-gray-100" />
               </div>
             ))}
           </div>
         ) : reviews.length === 0 ? (
-          <p className="py-12 text-center text-sm font-bold text-gray-400">
+          <p className="py-12 text-center text-sm text-gray-400">
             No reviews match the current filter.
           </p>
         ) : (
-          <div className="divide-y divide-foreground/[0.04]">
+          <div className="divide-y divide-gray-200">
             {reviews.map((review) => (
-              <article key={review.id} className="px-5 py-5 transition-colors hover:bg-gray-50/60">
+              <article key={review.id} className="px-5 py-5">
                 <div className="flex items-start justify-between gap-4">
                   <div className="min-w-0">
                     <Stars rating={review.rating} />
                     <div className="mt-1.5 flex flex-wrap items-center gap-2 text-sm">
-                      <span className="font-black text-gray-900">{displayName(review.user)}</span>
+                      <span className="font-medium text-gray-900">{displayName(review.user)}</span>
                       {review.isVerified && (
                         <span className="pill pill-success">
                           <BadgeCheck className="h-3 w-3" strokeWidth={2.5} />
@@ -406,16 +408,18 @@ export function ReviewList({ productId }: Props) {
                       )}
                     </div>
                   </div>
-                  <span className="flex-shrink-0 text-[11px] font-bold text-gray-400">
+                  <span className="flex-shrink-0 text-xs text-gray-400">
                     {formatRelativeDate(review.createdAt)}
                   </span>
                 </div>
 
                 {review.title && (
-                  <h4 className="mt-3 font-black tracking-tight text-gray-900">{review.title}</h4>
+                  <h4 className="mt-3 font-heading text-base font-semibold text-gray-900">
+                    {review.title}
+                  </h4>
                 )}
                 {review.comment && (
-                  <p className="mt-2 whitespace-pre-line text-sm font-medium leading-relaxed text-gray-600">
+                  <p className="mt-2 whitespace-pre-line text-sm leading-relaxed text-gray-600">
                     {review.comment}
                   </p>
                 )}
@@ -427,23 +431,23 @@ export function ReviewList({ productId }: Props) {
                         key={idx}
                         src={img}
                         alt={`Review image ${idx + 1}`}
-                        className="h-16 w-16 rounded-[1rem] border border-foreground/[0.04] object-cover"
+                        className="h-16 w-16 border border-gray-200 object-cover"
                       />
                     ))}
                   </div>
                 )}
 
                 {review.adminReply && (
-                  <div className="mt-3 rounded-[1.25rem] bg-gray-50 p-4">
+                  <div className="mt-3 border-l-2 border-primary bg-gray-50 p-4">
                     <div className="flex items-center justify-between">
-                      <p className="eyebrow text-brand-700">Store Response</p>
+                      <p className="text-[13px] font-medium text-primary">Store Response</p>
                       {review.repliedAt && (
-                        <span className="text-[11px] font-bold text-gray-400">
+                        <span className="text-xs text-gray-400">
                           {formatRelativeDate(review.repliedAt)}
                         </span>
                       )}
                     </div>
-                    <p className="mt-1.5 text-sm font-medium text-gray-700">{review.adminReply}</p>
+                    <p className="mt-1.5 text-sm text-gray-700">{review.adminReply}</p>
                   </div>
                 )}
 
@@ -452,10 +456,10 @@ export function ReviewList({ productId }: Props) {
                     type="button"
                     onClick={() => toggleHelpful(review.id)}
                     disabled={helpfulBusy.has(review.id)}
-                    className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-black tabular-nums transition-colors disabled:opacity-50 ${
+                    className={`inline-flex items-center gap-1.5 border px-3 py-1.5 text-xs tabular-nums transition-colors disabled:opacity-50 ${
                       review.viewerHasMarkedHelpful
-                        ? 'bg-brand-50 text-brand-700'
-                        : 'bg-gray-100 text-gray-500 hover:bg-gray-200 hover:text-gray-700'
+                        ? 'border-primary text-primary'
+                        : 'border-gray-200 text-gray-500 hover:text-primary'
                     }`}
                     aria-pressed={review.viewerHasMarkedHelpful}
                     aria-label="Mark this review as helpful"
@@ -472,19 +476,19 @@ export function ReviewList({ productId }: Props) {
         )}
 
         {totalPages > 1 && (
-          <div className="flex flex-wrap items-center justify-end gap-1.5 border-t border-foreground/[0.04] px-4 py-3">
+          <div className="flex flex-wrap items-center justify-end gap-1.5 border-t border-gray-200 px-4 py-3">
             <button
               type="button"
               onClick={() => setPage((p) => Math.max(1, p - 1))}
               disabled={page === 1}
-              className="btn-icon h-9 w-9 rounded-xl bg-gray-100 text-gray-600 hover:bg-gray-200"
+              className="btn-icon h-9 w-9 border border-gray-200 text-gray-600 hover:text-primary"
               aria-label="Previous page"
             >
               <ChevronLeft className="h-4 w-4" />
             </button>
             {pageNumbers.map((p, idx) =>
               p === '...' ? (
-                <span key={`gap-${idx}`} className="px-2 text-sm font-bold text-gray-400">
+                <span key={`gap-${idx}`} className="px-2 text-sm text-gray-400">
                   …
                 </span>
               ) : (
@@ -493,10 +497,10 @@ export function ReviewList({ productId }: Props) {
                   type="button"
                   onClick={() => setPage(p)}
                   aria-current={p === page ? 'page' : undefined}
-                  className={`h-9 min-w-[2.25rem] rounded-xl px-2 text-xs font-black tabular-nums transition-all ${
+                  className={`h-9 min-w-[2.25rem] border px-2 text-sm tabular-nums transition-colors ${
                     p === page
-                      ? 'bg-ink text-white shadow-lg shadow-black/10'
-                      : 'text-gray-600 hover:bg-gray-100'
+                      ? 'border-primary bg-primary text-white'
+                      : 'border-gray-200 text-gray-700 hover:text-primary'
                   }`}
                 >
                   {p}
@@ -507,7 +511,7 @@ export function ReviewList({ productId }: Props) {
               type="button"
               onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
               disabled={page === totalPages}
-              className="btn-icon h-9 w-9 rounded-xl bg-gray-100 text-gray-600 hover:bg-gray-200"
+              className="btn-icon h-9 w-9 border border-gray-200 text-gray-600 hover:text-primary"
               aria-label="Next page"
             >
               <ChevronRight className="h-4 w-4" />

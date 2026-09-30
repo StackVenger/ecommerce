@@ -136,11 +136,11 @@ export default function ReviewStep({
       {/* ─── Items ─────────────────────────────────────────────── */}
       <div className="mb-6">
         <SectionHeader title="Items" />
-        <div className="rounded-xl border border-gray-200 divide-y divide-gray-100 overflow-hidden">
+        <div className="border border-gray-200 divide-y divide-gray-200 overflow-hidden">
           {items.map((item) => (
             <div key={item.id} className="flex items-center gap-4 p-4 bg-card">
               {/* Image */}
-              <div className="relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-lg bg-gray-100">
+              <div className="relative h-16 w-16 flex-shrink-0 overflow-hidden bg-gray-50">
                 <Image
                   src={item.imageUrl || '/placeholder-product.png'}
                   alt={item.name}
@@ -287,16 +287,16 @@ export default function ReviewStep({
       </div>
 
       {/* ─── Actions ───────────────────────────────────────────── */}
-      <div className="flex justify-between pt-6 border-t border-gray-100">
-        <button type="button" onClick={onBack} className="btn btn-soft">
+      <div className="flex justify-between pt-6 border-t border-gray-200">
+        <button type="button" onClick={onBack} className="btn btn-secondary">
           Back to Payment
         </button>
         <button
           type="button"
           onClick={onPlaceOrder}
           disabled={!canPlaceOrder}
-          className={`rounded-xl px-10 py-3.5 text-sm font-semibold text-white transition-colors ${
-            canPlaceOrder ? 'bg-green-600 hover:bg-green-700' : 'bg-gray-300 cursor-not-allowed'
+          className={`btn btn-lg ${
+            canPlaceOrder ? 'btn-primary' : 'bg-gray-200 text-gray-500 cursor-not-allowed'
           }`}
         >
           {isSubmitting ? (

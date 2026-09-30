@@ -1,7 +1,6 @@
 'use client';
 
 import {
-  Button,
   Checkbox,
   Input,
   Form,
@@ -57,6 +56,11 @@ const registerSchema = z
   });
 
 type RegisterFormValues = z.infer<typeof registerSchema>;
+
+// Watch-theme overrides for the shared form primitives: hairline, square inputs.
+const INPUT_CLASS =
+  'h-11 border-gray-300 font-normal shadow-none focus-visible:border-primary focus-visible:ring-1 focus-visible:ring-primary';
+const LABEL_CLASS = 'text-sm font-medium';
 
 // ──────────────────────────────────────────────────────────
 // Password strength helper
@@ -120,7 +124,7 @@ function PasswordRequirements({ password }: { password: string }) {
           <li
             key={rule.label}
             className={`flex items-center gap-1.5 text-xs transition-colors ${
-              passed ? 'font-bold text-emerald-600' : 'font-medium text-gray-500'
+              passed ? 'font-medium text-emerald-600' : 'text-gray-500'
             }`}
           >
             {passed ? (
@@ -196,220 +200,244 @@ function RegisterContent() {
   }
 
   return (
-    <div className="w-full max-w-md space-y-8">
+    <div className="w-full space-y-6">
       {/* Header */}
       <div className="text-center">
-        <p className="eyebrow mb-3">Get started</p>
-        <h1 className="text-3xl font-black tracking-tighter text-gray-900">Create your account</h1>
-        <p className="mt-2 text-sm font-bold text-gray-500">
+        <h1 className="font-heading text-2xl font-semibold text-gray-900 sm:text-[1.75rem]">
+          Create your account
+        </h1>
+        <p className="mt-1.5 text-sm text-gray-500">
           Join thousands of happy shoppers and get access to exclusive deals.
         </p>
       </div>
 
-      {/* Social login buttons */}
-      <SocialLoginButtons mode="register" />
+      <div className="border border-gray-200 bg-card p-5 sm:p-7">
+        {/* Social login buttons */}
+        <SocialLoginButtons mode="register" />
 
-      {/* Server error */}
-      {serverError && (
-        <div className="rounded-2xl border border-rose-100 bg-rose-50 px-4 py-3 text-sm font-bold text-rose-600">
-          {serverError}
-        </div>
-      )}
-
-      {/* Email/Password Form */}
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
-          {/* Name row */}
-          <div className="grid grid-cols-2 gap-4">
-            <FormField
-              control={form.control}
-              name="firstName"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>First name</FormLabel>
-                  <FormControl>
-                    <Input placeholder="John" autoComplete="given-name" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="lastName"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Last name</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Doe" autoComplete="family-name" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+        {/* Server error */}
+        {serverError && (
+          <div className="mb-5 border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-600">
+            {serverError}
           </div>
+        )}
 
-          {/* Email */}
-          <FormField
-            control={form.control}
-            name="email"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Email address</FormLabel>
-                <FormControl>
-                  <Input
-                    type="email"
-                    placeholder="you@example.com"
-                    autoComplete="email"
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          {/* Password */}
-          <FormField
-            control={form.control}
-            name="password"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Password</FormLabel>
-                <FormControl>
-                  <div className="relative">
-                    <Input
-                      type={showPassword ? 'text' : 'password'}
-                      placeholder="Create a strong password"
-                      autoComplete="new-password"
-                      className="pr-11"
-                      {...field}
-                    />
-                    <button
-                      type="button"
-                      className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 transition-colors hover:text-gray-900"
-                      onClick={() => setShowPassword(!showPassword)}
-                      tabIndex={-1}
-                      aria-label={showPassword ? 'Hide password' : 'Show password'}
-                    >
-                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                    </button>
-                  </div>
-                </FormControl>
-
-                {/* Password strength indicator */}
-                {watchedPassword && (
-                  <div className="space-y-1.5 pt-1">
-                    <div className="flex gap-1">
-                      {Array.from({ length: 6 }).map((_, i) => (
-                        <div
-                          key={i}
-                          className={`h-1.5 flex-1 rounded-full transition-colors ${
-                            i < passwordStrength.score ? passwordStrength.color : 'bg-gray-100'
-                          }`}
-                        />
-                      ))}
-                    </div>
-                    <p className="text-xs font-medium text-gray-500">
-                      Password strength:{' '}
-                      <span className="font-black text-gray-900">{passwordStrength.label}</span>
-                    </p>
-                  </div>
+        {/* Email/Password Form */}
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
+            {/* Name row */}
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 sm:gap-4">
+              <FormField
+                control={form.control}
+                name="firstName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className={LABEL_CLASS}>First name</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="John"
+                        autoComplete="given-name"
+                        className={INPUT_CLASS}
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
                 )}
+              />
 
-                {/* Live requirements checklist — always shown so users know
-                    what's expected before they start typing. */}
-                <PasswordRequirements password={watchedPassword || ''} />
+              <FormField
+                control={form.control}
+                name="lastName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className={LABEL_CLASS}>Last name</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="Doe"
+                        autoComplete="family-name"
+                        className={INPUT_CLASS}
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
 
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          {/* Confirm password */}
-          <FormField
-            control={form.control}
-            name="confirmPassword"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Confirm password</FormLabel>
-                <FormControl>
-                  <div className="relative">
+            {/* Email */}
+            <FormField
+              control={form.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className={LABEL_CLASS}>Email address</FormLabel>
+                  <FormControl>
                     <Input
-                      type={showConfirmPassword ? 'text' : 'password'}
-                      placeholder="Confirm your password"
-                      autoComplete="new-password"
-                      className="pr-11"
+                      type="email"
+                      placeholder="you@example.com"
+                      autoComplete="email"
+                      className={INPUT_CLASS}
                       {...field}
                     />
-                    <button
-                      type="button"
-                      className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 transition-colors hover:text-gray-900"
-                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                      tabIndex={-1}
-                      aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
-                    >
-                      {showConfirmPassword ? (
-                        <EyeOff className="h-4 w-4" />
-                      ) : (
-                        <Eye className="h-4 w-4" />
-                      )}
-                    </button>
-                  </div>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          {/* Terms checkbox */}
-          <FormField
-            control={form.control}
-            name="acceptTerms"
-            render={({ field }) => (
-              <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                <FormControl>
-                  <Checkbox checked={field.value} onCheckedChange={field.onChange} />
-                </FormControl>
-                <div className="space-y-1 leading-none">
-                  <FormLabel className="text-sm font-normal">
-                    I agree to the{' '}
-                    <Link href="/terms" className="font-black text-primary hover:underline">
-                      Terms of Service
-                    </Link>{' '}
-                    and{' '}
-                    <Link href="/privacy" className="font-black text-primary hover:underline">
-                      Privacy Policy
-                    </Link>
-                  </FormLabel>
+                  </FormControl>
                   <FormMessage />
-                </div>
-              </FormItem>
-            )}
-          />
+                </FormItem>
+              )}
+            />
 
-          {/* Submit */}
-          <Button type="submit" className="w-full" disabled={isSubmitting}>
-            {isSubmitting ? 'Creating account...' : 'Create account'}
-          </Button>
-        </form>
-      </Form>
+            {/* Password */}
+            <FormField
+              control={form.control}
+              name="password"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className={LABEL_CLASS}>Password</FormLabel>
+                  <FormControl>
+                    <div className="relative">
+                      <Input
+                        type={showPassword ? 'text' : 'password'}
+                        placeholder="Create a strong password"
+                        autoComplete="new-password"
+                        className={`${INPUT_CLASS} pr-11`}
+                        {...field}
+                      />
+                      <button
+                        type="button"
+                        className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 transition-colors hover:text-gray-900"
+                        onClick={() => setShowPassword(!showPassword)}
+                        tabIndex={-1}
+                        aria-label={showPassword ? 'Hide password' : 'Show password'}
+                      >
+                        {showPassword ? (
+                          <EyeOff className="h-4 w-4" />
+                        ) : (
+                          <Eye className="h-4 w-4" />
+                        )}
+                      </button>
+                    </div>
+                  </FormControl>
 
-      {/* Login link */}
-      <p className="text-center text-sm font-medium text-gray-500">
-        Already have an account?{' '}
-        <Link href="/login" className="font-black text-primary hover:underline">
-          Sign in
-        </Link>
-      </p>
+                  {/* Password strength indicator */}
+                  {watchedPassword && (
+                    <div className="space-y-1.5 pt-1">
+                      <div className="flex gap-1">
+                        {Array.from({ length: 6 }).map((_, i) => (
+                          <div
+                            key={i}
+                            className={`h-1 flex-1 transition-colors ${
+                              i < passwordStrength.score ? passwordStrength.color : 'bg-gray-200'
+                            }`}
+                          />
+                        ))}
+                      </div>
+                      <p className="text-xs text-gray-500">
+                        Password strength:{' '}
+                        <span className="font-semibold text-gray-900">
+                          {passwordStrength.label}
+                        </span>
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Live requirements checklist — always shown so users know
+                    what's expected before they start typing. */}
+                  <PasswordRequirements password={watchedPassword || ''} />
+
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Confirm password */}
+            <FormField
+              control={form.control}
+              name="confirmPassword"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className={LABEL_CLASS}>Confirm password</FormLabel>
+                  <FormControl>
+                    <div className="relative">
+                      <Input
+                        type={showConfirmPassword ? 'text' : 'password'}
+                        placeholder="Confirm your password"
+                        autoComplete="new-password"
+                        className={`${INPUT_CLASS} pr-11`}
+                        {...field}
+                      />
+                      <button
+                        type="button"
+                        className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 transition-colors hover:text-gray-900"
+                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        tabIndex={-1}
+                        aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
+                      >
+                        {showConfirmPassword ? (
+                          <EyeOff className="h-4 w-4" />
+                        ) : (
+                          <Eye className="h-4 w-4" />
+                        )}
+                      </button>
+                    </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Terms checkbox */}
+            <FormField
+              control={form.control}
+              name="acceptTerms"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                  <FormControl>
+                    <Checkbox
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                      className="rounded-none"
+                    />
+                  </FormControl>
+                  <div className="space-y-1 leading-none">
+                    <FormLabel className="text-sm font-normal text-gray-600">
+                      I agree to the{' '}
+                      <Link href="/terms" className="font-medium text-primary hover:underline">
+                        Terms of Service
+                      </Link>{' '}
+                      and{' '}
+                      <Link href="/privacy" className="font-medium text-primary hover:underline">
+                        Privacy Policy
+                      </Link>
+                    </FormLabel>
+                    <FormMessage />
+                  </div>
+                </FormItem>
+              )}
+            />
+
+            {/* Submit */}
+            <button type="submit" className="btn btn-dark btn-lg w-full" disabled={isSubmitting}>
+              {isSubmitting ? 'Creating account...' : 'Create account'}
+            </button>
+          </form>
+        </Form>
+
+        {/* Login link */}
+        <p className="mt-6 border-t border-gray-200 pt-5 text-sm text-gray-500">
+          Already have an account?{' '}
+          <Link href="/login" className="font-medium text-gray-900 hover:text-primary">
+            Sign in
+          </Link>
+        </p>
+      </div>
     </div>
   );
 }
 
 export default function RegisterPage() {
   return (
-    <Suspense fallback={<div className="w-full max-w-md" />}>
+    <Suspense fallback={<div className="w-full" />}>
       <RegisterContent />
     </Suspense>
   );

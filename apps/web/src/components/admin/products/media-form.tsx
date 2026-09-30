@@ -195,7 +195,7 @@ export function MediaForm({ images, onChange, primaryIndex = 0, onPrimaryChange 
       <div className="bento-card p-6 sm:p-8">
         <div className="mb-6 flex items-center gap-2">
           <FileImage className="h-5 w-5 text-gray-400" />
-          <h2 className="text-lg font-black text-gray-900 tracking-tight">Product Images</h2>
+          <h2 className="font-heading text-lg font-semibold text-gray-900">Product Images</h2>
         </div>
 
         {/* Upload Zone */}
@@ -205,7 +205,7 @@ export function MediaForm({ images, onChange, primaryIndex = 0, onPrimaryChange 
           onDrop={handleDrop}
           onClick={() => fileInputRef.current?.click()}
           className={cn(
-            'cursor-pointer rounded-xl border-2 border-dashed p-8 text-center transition-colors',
+            'cursor-pointer border-2 border-dashed p-8 text-center transition-colors',
             isDragging
               ? 'border-brand-400 bg-brand-50'
               : 'border-gray-300 hover:border-brand-400 hover:bg-gray-50',
@@ -234,10 +234,7 @@ export function MediaForm({ images, onChange, primaryIndex = 0, onPrimaryChange 
         {uploadingFiles.length > 0 && (
           <div className="mt-4 space-y-2">
             {uploadingFiles.map((file) => (
-              <div
-                key={file.id}
-                className="flex items-center gap-3 rounded-[1.5rem] border border-foreground/[0.05] p-3"
-              >
+              <div key={file.id} className="flex items-center gap-3 border border-gray-200 p-3">
                 <img
                   src={file.preview}
                   alt={file.name}
@@ -277,9 +274,9 @@ export function MediaForm({ images, onChange, primaryIndex = 0, onPrimaryChange 
                     setDragOverIndex(null);
                   }}
                   className={cn(
-                    'group relative aspect-square overflow-hidden rounded-xl border-2 bg-gray-50 transition-all',
+                    'group relative aspect-square overflow-hidden border-2 bg-gray-50 transition-all',
                     dragOverIndex === index
-                      ? 'border-brand-400 scale-105'
+                      ? 'border-primary'
                       : index === primaryIndex
                         ? 'border-brand-500'
                         : 'border-gray-200',
@@ -306,7 +303,7 @@ export function MediaForm({ images, onChange, primaryIndex = 0, onPrimaryChange 
                         e.stopPropagation();
                         onPrimaryChange?.(index);
                       }}
-                      className="rounded-xl bg-card/90 p-2 text-gray-700 hover:bg-card transition-all"
+                      className="bg-card/90 p-2 text-gray-700 hover:bg-card transition-all"
                       title={index === primaryIndex ? 'Primary image' : 'Set as primary'}
                     >
                       {index === primaryIndex ? (
@@ -320,7 +317,7 @@ export function MediaForm({ images, onChange, primaryIndex = 0, onPrimaryChange 
                         e.stopPropagation();
                         removeImage(index);
                       }}
-                      className="rounded-xl bg-card/90 p-2 text-red-600 hover:bg-card transition-all"
+                      className="bg-card/90 p-2 text-red-600 hover:bg-card transition-all"
                       title="Remove"
                     >
                       <X className="h-4 w-4" />
@@ -328,7 +325,7 @@ export function MediaForm({ images, onChange, primaryIndex = 0, onPrimaryChange 
                   </div>
 
                   {/* Drag handle */}
-                  <div className="absolute bottom-2 right-2 rounded bg-card/80 p-1 opacity-0 shadow-sm group-hover:opacity-100">
+                  <div className="absolute bottom-2 right-2 bg-card/80 p-1 opacity-0 group-hover:opacity-100">
                     <GripVertical className="h-3 w-3 text-gray-500" />
                   </div>
                 </div>

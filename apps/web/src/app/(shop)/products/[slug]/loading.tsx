@@ -4,43 +4,56 @@ export default function ProductLoading() {
   return <ProductDetailSkeleton />;
 }
 
-/** Bento skeleton mirroring the PDP layout (gallery tile + info tile). */
+/** Skeleton mirroring the PDP layout (breadcrumb strip, gallery + bordered info panel). */
 function ProductDetailSkeleton() {
   return (
-    <div className="site-container px-4 py-6 sm:py-8">
+    <div className="min-h-screen">
       {/* Breadcrumb skeleton */}
-      <SkeletonBlock className="mb-6 h-4 w-64 rounded-xl" />
-
-      <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-12">
-        {/* Image gallery skeleton */}
-        <div className="bento-card p-3 sm:p-4 lg:col-span-7">
-          <SkeletonBlock className="aspect-square rounded-[1.5rem]" />
-          <div className="mt-3 grid grid-cols-5 gap-2 sm:gap-3">
-            {Array.from({ length: 5 }).map((_, i) => (
-              <SkeletonBlock key={i} className="aspect-square rounded-[1rem]" />
-            ))}
-          </div>
+      <div className="breadcrumb-bar">
+        <div className="site-container px-4 py-3 sm:px-6 lg:px-8">
+          <SkeletonBlock className="h-4 w-64" />
         </div>
+      </div>
 
-        {/* Product info skeleton */}
-        <div className="bento-card space-y-4 p-6 sm:p-8 lg:col-span-5">
-          <SkeletonBlock className="h-3 w-32 rounded-xl" />
-          <SkeletonBlock className="h-9 w-3/4 rounded-xl" />
-          <SkeletonBlock className="h-4 w-40 rounded-xl" />
-          <SkeletonBlock className="h-20 w-full rounded-[1.5rem]" />
-          <div className="flex gap-2">
-            {Array.from({ length: 4 }).map((_, i) => (
-              <SkeletonBlock key={i} className="h-10 w-16 rounded-xl" />
-            ))}
+      <div className="site-container px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-12 lg:gap-10">
+          {/* Image gallery skeleton */}
+          <div className="lg:col-span-6">
+            <SkeletonBlock className="aspect-square" />
+            <div className="mt-3 grid grid-cols-4 gap-2 sm:grid-cols-5 sm:gap-3">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <SkeletonBlock
+                  key={i}
+                  className={`aspect-square ${i === 4 ? 'hidden sm:block' : ''}`}
+                />
+              ))}
+            </div>
           </div>
-          <div className="flex gap-3">
-            <SkeletonBlock className="h-12 w-32 rounded-2xl" />
-            <SkeletonBlock className="h-12 flex-1 rounded-2xl" />
-          </div>
-          <div className="grid grid-cols-3 gap-2">
-            {Array.from({ length: 3 }).map((_, i) => (
-              <SkeletonBlock key={i} className="h-24 rounded-[1.25rem]" />
-            ))}
+
+          {/* Product info skeleton */}
+          <div className="space-y-4 border border-gray-200 p-5 sm:p-6 lg:col-span-6">
+            <SkeletonBlock className="h-7 w-3/4" />
+            <SkeletonBlock className="h-8 w-32" />
+            <div className="space-y-2">
+              <SkeletonBlock className="h-3.5 w-40" />
+              <SkeletonBlock className="h-3.5 w-48" />
+              <SkeletonBlock className="h-3.5 w-36" />
+            </div>
+            <SkeletonBlock className="h-16 w-full" />
+            <div className="flex gap-2">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <SkeletonBlock key={i} className="h-10 w-12" />
+              ))}
+            </div>
+            <div className="flex gap-3">
+              <SkeletonBlock className="h-[3.125rem] w-32" />
+              <SkeletonBlock className="h-[3.125rem] flex-1" />
+            </div>
+            <div className="grid grid-cols-3 gap-3">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <SkeletonBlock key={i} className="h-10" />
+              ))}
+            </div>
           </div>
         </div>
       </div>

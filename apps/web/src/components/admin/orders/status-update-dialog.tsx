@@ -205,21 +205,23 @@ export default function StatusUpdateDialog({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={handleClose} />
+      <div className="absolute inset-0 bg-black/40" onClick={handleClose} />
 
       {/* Dialog */}
-      <div className="relative max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-[2rem] bg-card shadow-2xl">
+      <div className="relative max-h-[90vh] w-full max-w-lg overflow-y-auto border border-gray-200 bg-card">
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-foreground/[0.04] px-6 py-5 sm:px-8">
+        <div className="flex items-center justify-between border-b border-gray-200 px-6 py-5 sm:px-8">
           <div>
-            <h2 className="text-xl font-black tracking-tight text-gray-900">Update Order Status</h2>
-            <p className="eyebrow mt-1">Order #{orderNumber}</p>
+            <h2 className="font-heading text-xl font-semibold text-gray-900">
+              Update Order Status
+            </h2>
+            <p className="mt-1 text-sm text-gray-500">Order #{orderNumber}</p>
           </div>
           <button
             type="button"
             onClick={handleClose}
             aria-label="Close dialog"
-            className="btn-icon h-10 w-10 rounded-xl bg-gray-50 text-gray-500 hover:bg-gray-100 hover:text-gray-900"
+            className="btn-icon h-10 w-10 text-gray-500 hover:bg-gray-100 hover:text-gray-900"
           >
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path
@@ -236,7 +238,7 @@ export default function StatusUpdateDialog({
           /* Confirmation View */
           <div className="px-6 py-6 sm:px-8">
             <div className="text-center">
-              <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-orange-50">
+              <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center bg-orange-50">
                 <svg
                   className="h-6 w-6 text-orange-500"
                   fill="none"
@@ -251,7 +253,7 @@ export default function StatusUpdateDialog({
                   />
                 </svg>
               </div>
-              <h3 className="mb-2 text-lg font-black tracking-tight text-gray-900">
+              <h3 className="mb-2 font-heading text-lg font-semibold text-gray-900">
                 Confirm Status Change
               </h3>
               <p className="mb-6 text-sm font-medium text-gray-500">
@@ -262,7 +264,7 @@ export default function StatusUpdateDialog({
               <button
                 type="button"
                 onClick={() => setShowConfirmation(false)}
-                className="btn btn-soft"
+                className="btn btn-secondary"
                 disabled={submitting}
               >
                 Go Back
@@ -283,7 +285,7 @@ export default function StatusUpdateDialog({
             {/* Current Status */}
             <div>
               <span className="field-label">Current Status</span>
-              <div className="inline-flex items-center gap-1.5 rounded-xl bg-gray-100 px-3 py-1.5 text-sm font-black capitalize text-gray-700">
+              <div className="inline-flex items-center gap-1.5 bg-gray-100 px-3 py-1.5 text-sm font-semibold capitalize text-gray-700">
                 {STATUS_OPTIONS.find((o) => o.value === currentStatus)?.icon}{' '}
                 {STATUS_OPTIONS.find((o) => o.value === currentStatus)?.label}
               </div>
@@ -293,7 +295,7 @@ export default function StatusUpdateDialog({
             <div>
               <span className="field-label">New Status</span>
               {availableOptions.length === 0 ? (
-                <p className="rounded-[1.25rem] bg-gray-50 p-4 text-sm font-bold text-gray-400">
+                <p className="bg-gray-50 p-4 text-sm text-gray-500">
                   No status transitions available from the current status.
                 </p>
               ) : (
@@ -301,10 +303,10 @@ export default function StatusUpdateDialog({
                   {availableOptions.map((option) => (
                     <label
                       key={option.value}
-                      className={`flex cursor-pointer items-start gap-3 rounded-[1.25rem] border-2 p-4 transition-all ${
+                      className={`flex cursor-pointer items-start gap-3 border p-4 transition-colors ${
                         selectedStatus === option.value
-                          ? 'border-brand-400 bg-brand-50'
-                          : 'border-foreground/[0.04] bg-gray-50/60 hover:border-gray-200 hover:bg-card'
+                          ? 'border-primary bg-brand-50'
+                          : 'border-gray-200 bg-card hover:border-gray-300 hover:bg-gray-50'
                       }`}
                     >
                       <input
@@ -319,12 +321,10 @@ export default function StatusUpdateDialog({
                         className="mt-0.5 h-4 w-4 border-gray-300 text-brand-600 focus:ring-brand-500"
                       />
                       <div>
-                        <span className="text-sm font-black text-gray-900">
+                        <span className="text-sm font-semibold text-gray-900">
                           {option.icon} {option.label}
                         </span>
-                        <p className="mt-0.5 text-xs font-medium text-gray-500">
-                          {option.description}
-                        </p>
+                        <p className="mt-0.5 text-xs text-gray-500">{option.description}</p>
                       </div>
                     </label>
                   ))}
@@ -382,19 +382,19 @@ export default function StatusUpdateDialog({
                 onChange={(e) => setNotes(e.target.value)}
                 placeholder="Add a note about this status change..."
                 rows={3}
-                className="field-input resize-none rounded-[1.25rem]"
+                className="field-input resize-none"
               />
             </div>
 
             {/* Notify Customer */}
-            <label className="flex cursor-pointer items-center gap-3 rounded-[1.25rem] bg-gray-50 px-4 py-3">
+            <label className="flex cursor-pointer items-center gap-3 border border-gray-200 bg-gray-50 px-4 py-3">
               <input
                 type="checkbox"
                 checked={notifyCustomer}
                 onChange={(e) => setNotifyCustomer(e.target.checked)}
-                className="h-4 w-4 rounded border-gray-300 text-brand-600 focus:ring-brand-500"
+                className="h-4 w-4 border-gray-300 text-brand-600 focus:ring-brand-500"
               />
-              <span className="text-sm font-bold text-gray-700">
+              <span className="text-sm font-medium text-gray-700">
                 Notify customer via email and SMS
               </span>
             </label>
@@ -402,7 +402,7 @@ export default function StatusUpdateDialog({
             {/* Error */}
             {error && (
               <div
-                className="rounded-[1.25rem] bg-rose-50 p-4 text-sm font-bold text-rose-600"
+                className="border border-rose-200 bg-rose-50 p-4 text-sm font-medium text-rose-600"
                 role="alert"
               >
                 {error}
@@ -410,11 +410,11 @@ export default function StatusUpdateDialog({
             )}
 
             {/* Actions */}
-            <div className="flex justify-end gap-3 border-t border-foreground/[0.04] pt-5">
+            <div className="flex justify-end gap-3 border-t border-gray-200 pt-5">
               <button
                 type="button"
                 onClick={handleClose}
-                className="btn btn-soft"
+                className="btn btn-secondary"
                 disabled={submitting}
               >
                 Cancel

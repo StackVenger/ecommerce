@@ -110,7 +110,7 @@ export function RichTextEditor({
     return (
       <div
         className={cn(
-          'overflow-hidden rounded-[1.25rem] border border-foreground/[0.06] bg-card shadow-sm transition-all focus-within:border-brand-300 focus-within:ring-4 focus-within:ring-brand-500/10',
+          'overflow-hidden border border-gray-300 bg-card transition-colors focus-within:border-primary focus-within:ring-1 focus-within:ring-primary',
           invalid && 'border-rose-300',
         )}
         style={{ minHeight }}
@@ -121,8 +121,8 @@ export function RichTextEditor({
   return (
     <div
       className={cn(
-        'overflow-hidden rounded-[1.25rem] border border-foreground/[0.06] bg-card shadow-sm transition-all focus-within:border-brand-300 focus-within:ring-4 focus-within:ring-brand-500/10',
-        invalid && 'border-rose-300 focus-within:border-rose-400 focus-within:ring-rose-500/10',
+        'overflow-hidden border border-gray-300 bg-card transition-colors focus-within:border-primary focus-within:ring-1 focus-within:ring-primary',
+        invalid && 'border-rose-300 focus-within:border-rose-400 focus-within:ring-rose-400',
         disabled && 'pointer-events-none opacity-60',
       )}
     >
@@ -155,7 +155,7 @@ function ToolbarButton({ onClick, active, disabled, label, children }: ToolbarBu
       aria-label={label}
       aria-pressed={active}
       className={cn(
-        'inline-flex h-8 w-8 items-center justify-center rounded-xl text-gray-600 transition-colors hover:bg-card hover:shadow-sm hover:text-gray-900 disabled:cursor-not-allowed disabled:opacity-40',
+        'inline-flex h-8 w-8 items-center justify-center text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900 disabled:cursor-not-allowed disabled:opacity-40',
         active && 'bg-brand-50 text-brand-700 hover:bg-brand-100 hover:text-brand-700',
       )}
     >
@@ -179,7 +179,7 @@ function Toolbar({ editor }: { editor: Editor }) {
   }, [editor]);
 
   return (
-    <div className="flex flex-wrap items-center gap-0.5 border-b border-foreground/[0.04] bg-gray-50 px-2 py-1.5">
+    <div className="flex flex-wrap items-center gap-0.5 border-b border-gray-200 bg-gray-50 px-2 py-1.5">
       <ToolbarButton
         onClick={() => editor.chain().focus().toggleBold().run()}
         active={editor.isActive('bold')}

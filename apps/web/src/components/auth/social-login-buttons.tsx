@@ -1,6 +1,5 @@
 'use client';
 
-import { Button } from '@ecommerce/ui';
 import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useState } from 'react';
@@ -92,24 +91,23 @@ export function SocialLoginButtons({ mode = 'login' }: SocialLoginButtonsProps) 
   return (
     <>
       <div className="space-y-3">
-        <Button
+        <button
           type="button"
-          variant="outline"
-          className="h-12 w-full"
+          className="btn btn-secondary btn-lg w-full font-medium"
           disabled={isLoading}
           onClick={handleGoogleSignIn}
         >
-          <GoogleIcon className="mr-2 h-5 w-5" />
+          <GoogleIcon className="h-5 w-5" />
           {isGoogleLoading ? 'Connecting...' : `${label} with Google`}
-        </Button>
+        </button>
       </div>
 
       <div className="relative my-6">
         <div className="absolute inset-0 flex items-center">
-          <span className="w-full border-t border-foreground/[0.05]" />
+          <span className="w-full border-t border-gray-200" />
         </div>
         <div className="relative flex justify-center">
-          <span className="eyebrow bg-card px-3">or continue with email</span>
+          <span className="bg-card px-3 text-[13px] text-gray-500">or continue with email</span>
         </div>
       </div>
     </>

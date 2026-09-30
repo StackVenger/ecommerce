@@ -53,7 +53,7 @@ export default function BorderSettings({ borders, onChange }: BorderSettingsProp
     <div className="space-y-8">
       {/* Radius Presets */}
       <div>
-        <h3 className="text-sm font-black text-gray-900 mb-4 tracking-tight">
+        <h3 className="font-heading text-base font-semibold text-gray-900 mb-4">
           Border Radius Presets
         </h3>
         <div className="grid grid-cols-3 md:grid-cols-6 gap-3">
@@ -61,7 +61,7 @@ export default function BorderSettings({ borders, onChange }: BorderSettingsProp
             <button
               key={preset.name}
               onClick={() => applyPreset(preset)}
-              className="rounded-2xl border border-foreground/[0.05] bg-card p-4 text-center shadow-sm transition-all hover:border-brand-300 hover:bg-brand-50"
+              className="border border-gray-200 bg-card p-4 text-center transition-colors hover:border-primary"
             >
               <div
                 className="w-12 h-12 bg-brand-500 mx-auto mb-2"
@@ -75,7 +75,7 @@ export default function BorderSettings({ borders, onChange }: BorderSettingsProp
 
       {/* Custom Radius Values */}
       <div>
-        <h3 className="text-sm font-black text-gray-900 mb-4 tracking-tight">
+        <h3 className="font-heading text-base font-semibold text-gray-900 mb-4">
           Custom Border Radius
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -140,7 +140,7 @@ export default function BorderSettings({ borders, onChange }: BorderSettingsProp
 
       {/* Border Width & Color */}
       <div>
-        <h3 className="text-sm font-black text-gray-900 mb-4 tracking-tight">Border Style</h3>
+        <h3 className="font-heading text-base font-semibold text-gray-900 mb-4">Border Style</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label className="field-label">Border Width</label>
@@ -182,7 +182,7 @@ export default function BorderSettings({ borders, onChange }: BorderSettingsProp
 
       {/* Preview */}
       <div>
-        <h3 className="text-sm font-black text-gray-900 mb-4 tracking-tight">Preview</h3>
+        <h3 className="font-heading text-base font-semibold text-gray-900 mb-4">Preview</h3>
         <div className="p-6 bg-gray-50 rounded-lg space-y-4">
           <div className="grid grid-cols-3 gap-4">
             <div

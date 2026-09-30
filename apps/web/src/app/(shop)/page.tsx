@@ -4,25 +4,17 @@ import {
   ChevronLeft,
   ChevronRight,
   Truck,
-  Shield,
+  ShieldCheck,
   RotateCcw,
   Sparkles,
-  ArrowRight,
   Zap,
-  TrendingUp,
   type LucideIcon,
 } from 'lucide-react';
 import Link from 'next/link';
 import { useEffect, useState, useCallback } from 'react';
 
 import { ProductCard, ProductCardSkeleton, ProductGrid } from '@/components/products/product-card';
-import {
-  BentoGlow,
-  EmptyState,
-  IconTile,
-  SectionHeader,
-  type BentoTone,
-} from '@/components/ui/bento';
+import { EmptyState, ShopSectionHeading } from '@/components/ui/bento';
 import { useCart } from '@/hooks/use-cart';
 import { useWishlist } from '@/hooks/use-wishlist';
 import { apiClient } from '@/lib/api/client';
@@ -122,7 +114,7 @@ function discountPercent(price: number, compare?: number): number {
 }
 
 // A HERO slide derived from either an admin Banner row or the baked-in
-// defaults below. Each slide is a single image + overlay + copy + link.
+// defaults below. Each slide is a single image + copy + link.
 interface HeroSlide {
   id: string;
   title: string;
@@ -130,7 +122,6 @@ interface HeroSlide {
   cta?: string;
   href: string;
   image: string;
-  overlay: string;
 }
 
 interface PromoBanner {
@@ -151,7 +142,6 @@ const DEFAULT_HERO_SLIDES: HeroSlide[] = [
     subtitle: 'Discover the finest traditional & modern wear',
     cta: 'Shop Now',
     href: '/categories/fashion',
-    overlay: 'from-black/70 via-black/50 to-black/30',
     image:
       'https://images.unsplash.com/photo-1607082349566-187342175e2f?w=1400&h=700&fit=crop&q=80',
   },
@@ -161,7 +151,6 @@ const DEFAULT_HERO_SLIDES: HeroSlide[] = [
     subtitle: 'Up to 40% off on smartphones & gadgets',
     cta: 'Explore Deals',
     href: '/categories/electronics',
-    overlay: 'from-blue-900/75 via-blue-900/50 to-blue-900/25',
     image:
       'https://images.unsplash.com/photo-1468495244123-6c6c332eeece?w=1400&h=700&fit=crop&q=80',
   },
@@ -171,7 +160,6 @@ const DEFAULT_HERO_SLIDES: HeroSlide[] = [
     subtitle: 'Transform your space with up to 30% off furniture & decor',
     cta: 'Shop Home',
     href: '/categories/home-living',
-    overlay: 'from-emerald-900/75 via-emerald-900/50 to-emerald-900/25',
     image:
       'https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?w=1400&h=700&fit=crop&q=80',
   },
@@ -181,7 +169,6 @@ const DEFAULT_HERO_SLIDES: HeroSlide[] = [
     subtitle: 'Premium skincare, makeup & self-care essentials',
     cta: 'Explore Beauty',
     href: '/categories/beauty-health',
-    overlay: 'from-rose-900/70 via-rose-900/45 to-rose-900/20',
     image:
       'https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=1400&h=700&fit=crop&q=80',
   },
@@ -191,7 +178,6 @@ const DEFAULT_HERO_SLIDES: HeroSlide[] = [
     subtitle: 'Free shipping on all orders over ৳1,000',
     cta: 'Shop All',
     href: '/products',
-    overlay: 'from-orange-900/70 via-orange-900/45 to-orange-900/20',
     image: 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=1400&h=700&fit=crop&q=80',
   },
 ];
@@ -199,8 +185,7 @@ const DEFAULT_HERO_SLIDES: HeroSlide[] = [
 /**
  * Normalise the Banner model rows coming from GET /banners?position=HERO
  * into the HeroSlide shape the carousel renders. Skips rows without an
- * image. Falls back to a sensible dark overlay since the Banner model
- * doesn't currently carry an overlay gradient.
+ * image or title.
  */
 function bannersToHeroSlides(raw: unknown): HeroSlide[] {
   if (!Array.isArray(raw)) {
@@ -223,7 +208,6 @@ function bannersToHeroSlides(raw: unknown): HeroSlide[] {
       cta: r.ctaText ?? 'Shop Now',
       href: r.link ?? '/products',
       image: r.image,
-      overlay: 'from-black/70 via-black/45 to-black/20',
     }));
 }
 
@@ -373,95 +357,86 @@ export default function HomePage() {
     return Array.from({ length: 8 }).map((_, i) => <ProductCardSkeleton key={i} />);
   }
 
+  const activeSlide = heroSlides[heroIndex] ?? heroSlides[0];
+
   return (
-    <div className="min-h-screen bg-gray-50 pb-16">
-      {/* ─── Hero bento: carousel + promo tiles ──────────────────────── */}
-      <section className="site-container px-4 pt-4 sm:pt-6">
-        <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-12">
-          {/* Carousel tile */}
-          <div className="relative h-[380px] overflow-hidden rounded-[2rem] bg-ink shadow-bento sm:h-[440px] sm:rounded-[2.5rem] lg:col-span-8 lg:h-[520px]">
-            {/* Slide images — all stacked, opacity controls visibility */}
-            {heroSlides.map((slide, i) => (
-              <div
-                key={slide.id}
-                className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
-                  i === heroIndex ? 'opacity-100 z-10' : 'opacity-0 z-0'
-                }`}
-                aria-hidden={i !== heroIndex}
-              >
-                {/* Background image with zoom on active */}
-                <img
-                  src={slide.image}
-                  alt={slide.title}
-                  className={`absolute inset-0 h-full w-full object-cover transition-transform duration-[6000ms] ease-out ${
-                    i === heroIndex ? 'scale-110' : 'scale-100'
+    <div className="min-h-screen bg-background pb-16">
+      {/* ─── Hero slider ─────────────────────────────────────────────── */}
+      <section
+        className="relative h-[420px] overflow-hidden bg-gray-50 sm:h-[480px] lg:h-[560px]"
+        aria-roledescription="carousel"
+        aria-label="Featured promotions"
+      >
+        {heroSlides.map((slide, i) => (
+          <div
+            key={slide.id}
+            className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
+              i === heroIndex ? 'z-10 opacity-100' : 'z-0 opacity-0'
+            }`}
+            aria-hidden={i !== heroIndex}
+          >
+            <img
+              src={slide.image}
+              alt={slide.title}
+              className={`absolute inset-0 h-full w-full object-cover transition-transform duration-[6000ms] ease-out ${
+                i === heroIndex ? 'scale-105' : 'scale-100'
+              }`}
+            />
+            {/* Light wash from the left keeps the dark copy legible on any photo. */}
+            <div className="absolute inset-0 bg-gradient-to-r from-white/95 via-white/75 to-white/0 dark:from-black/85 dark:via-black/55 dark:to-black/0 sm:via-white/60 sm:dark:via-black/45" />
+
+            <div className="site-container relative flex h-full items-center px-4 sm:px-6 lg:px-8">
+              <div className="max-w-xl">
+                <h1
+                  className={`font-heading text-3xl font-semibold leading-tight text-gray-900 transition-all delay-200 duration-700 sm:text-4xl lg:text-[3.125rem] ${
+                    i === heroIndex ? 'translate-y-0 opacity-100' : 'translate-y-6 opacity-0'
                   }`}
-                />
-
-                {/* Gradient overlay */}
-                <div className={`absolute inset-0 bg-gradient-to-r ${slide.overlay}`} />
-
-                {/* Content */}
-                <div className="relative flex h-full items-end px-6 pb-16 sm:items-center sm:px-10 sm:pb-0 lg:px-14">
-                  <div className="max-w-xl">
-                    <span
-                      className={`mb-4 inline-flex items-center gap-1.5 rounded-xl bg-white/15 px-3 py-1.5 text-[10px] font-black uppercase tracking-widest text-white backdrop-blur-md transition-all duration-700 delay-200 ${
-                        i === heroIndex ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'
-                      }`}
-                    >
-                      <Sparkles className="h-3 w-3" strokeWidth={2.5} /> Limited Time Offer
-                    </span>
-                    <h1
-                      className={`mb-3 text-3xl font-black leading-[1.05] tracking-tighter text-white sm:mb-4 sm:text-5xl lg:text-6xl transition-all duration-700 delay-300 ${
-                        i === heroIndex ? 'translate-y-0 opacity-100' : 'translate-y-6 opacity-0'
-                      }`}
-                    >
-                      {slide.title}
-                    </h1>
-                    <p
-                      className={`mb-6 text-sm font-bold text-white/80 sm:mb-8 sm:text-lg transition-all duration-700 delay-[400ms] ${
-                        i === heroIndex ? 'translate-y-0 opacity-100' : 'translate-y-6 opacity-0'
-                      }`}
-                    >
-                      {slide.subtitle}
-                    </p>
-                    <Link
-                      href={slide.href}
-                      tabIndex={i === heroIndex ? undefined : -1}
-                      className={`inline-flex items-center gap-2 rounded-2xl bg-card px-6 py-3 text-sm font-black text-gray-900 shadow-xl shadow-black/10 transition-all duration-700 delay-500 hover:scale-[1.03] active:scale-95 sm:px-7 sm:py-3.5 ${
-                        i === heroIndex ? 'translate-y-0 opacity-100' : 'translate-y-6 opacity-0'
-                      }`}
-                    >
-                      {slide.cta}
-                      <ArrowRight className="h-4 w-4" strokeWidth={2.5} />
-                    </Link>
-                  </div>
-                </div>
+                >
+                  {slide.title}
+                </h1>
+                {slide.subtitle && (
+                  <p
+                    className={`mt-4 text-base text-gray-700 transition-all delay-300 duration-700 sm:text-lg ${
+                      i === heroIndex ? 'translate-y-0 opacity-100' : 'translate-y-6 opacity-0'
+                    }`}
+                  >
+                    {slide.subtitle}
+                  </p>
+                )}
+                <Link
+                  href={slide.href}
+                  tabIndex={i === heroIndex ? undefined : -1}
+                  className={`btn btn-primary btn-lg mt-7 transition-all delay-[400ms] duration-700 ${
+                    i === heroIndex ? 'translate-y-0 opacity-100' : 'translate-y-6 opacity-0'
+                  }`}
+                >
+                  {slide.cta}
+                </Link>
               </div>
-            ))}
-
-            {/* Carousel controls */}
-            <div className="absolute bottom-5 right-5 z-20 flex gap-2 sm:bottom-8 sm:right-8">
-              <button
-                type="button"
-                onClick={() => setHeroIndex((i) => (i - 1 + heroSlides.length) % heroSlides.length)}
-                aria-label="Previous slide"
-                className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/15 text-white backdrop-blur-md transition-all hover:bg-white/25 active:scale-95"
-              >
-                <ChevronLeft className="h-5 w-5" strokeWidth={2.5} />
-              </button>
-              <button
-                type="button"
-                onClick={() => setHeroIndex((i) => (i + 1) % heroSlides.length)}
-                aria-label="Next slide"
-                className="flex h-11 w-11 items-center justify-center rounded-2xl bg-card text-gray-900 shadow-lg shadow-black/10 transition-all hover:scale-105 active:scale-95"
-              >
-                <ChevronRight className="h-5 w-5" strokeWidth={2.5} />
-              </button>
             </div>
+          </div>
+        ))}
 
-            {/* Indicators */}
-            <div className="absolute bottom-9 left-6 z-20 flex gap-1.5 sm:bottom-12 sm:left-10 lg:left-14">
+        {heroSlides.length > 1 && (
+          <>
+            <button
+              type="button"
+              onClick={() => setHeroIndex((i) => (i - 1 + heroSlides.length) % heroSlides.length)}
+              aria-label="Previous slide"
+              className="absolute left-3 top-1/2 z-20 hidden h-11 w-11 -translate-y-1/2 items-center justify-center bg-card/80 text-gray-900 transition-colors hover:bg-primary hover:text-white md:flex"
+            >
+              <ChevronLeft className="h-5 w-5" strokeWidth={1.75} />
+            </button>
+            <button
+              type="button"
+              onClick={() => setHeroIndex((i) => (i + 1) % heroSlides.length)}
+              aria-label="Next slide"
+              className="absolute right-3 top-1/2 z-20 hidden h-11 w-11 -translate-y-1/2 items-center justify-center bg-card/80 text-gray-900 transition-colors hover:bg-primary hover:text-white md:flex"
+            >
+              <ChevronRight className="h-5 w-5" strokeWidth={1.75} />
+            </button>
+
+            <div className="absolute bottom-6 left-1/2 z-20 flex -translate-x-1/2 gap-2">
               {heroSlides.map((slide, i) => (
                 <button
                   key={slide.id}
@@ -469,98 +444,89 @@ export default function HomePage() {
                   onClick={() => setHeroIndex(i)}
                   aria-label={`Go to slide ${i + 1}`}
                   aria-current={i === heroIndex}
-                  className={`h-2 rounded-full transition-all duration-500 ${
-                    i === heroIndex ? 'w-8 bg-card' : 'w-2 bg-white/40 hover:bg-card/60'
+                  className={`h-2.5 w-2.5 rounded-full transition-colors duration-300 ${
+                    i === heroIndex ? 'bg-primary' : 'bg-gray-300 hover:bg-gray-400'
                   }`}
                 />
               ))}
             </div>
-          </div>
+          </>
+        )}
+        <span className="sr-only" aria-live="polite">
+          {activeSlide
+            ? `Slide ${heroIndex + 1} of ${heroSlides.length}: ${activeSlide.title}`
+            : ''}
+        </span>
+      </section>
 
-          {/* Promo tiles */}
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 lg:col-span-4 lg:grid-cols-1 lg:grid-rows-2">
-            <Link
-              href="/categories/electronics"
-              className="bento-primary group flex min-h-[220px] flex-col justify-between p-7 transition-transform duration-300 hover:scale-[1.01] sm:p-8"
-            >
-              <BentoGlow />
-              <div className="relative z-10 flex items-start justify-between">
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/20 backdrop-blur-md">
-                  <Zap className="h-6 w-6" strokeWidth={2.25} />
-                </div>
-                <span className="rounded-xl bg-white/15 px-3 py-1 text-[10px] font-black uppercase tracking-widest backdrop-blur-md">
-                  Up to 50% off
-                </span>
-              </div>
-              <div className="relative z-10">
-                <p className="mb-2 text-[10px] font-black uppercase tracking-widest text-white/70">
-                  Limited time
-                </p>
-                <h3 className="mb-2 text-2xl font-black leading-tight tracking-tight">
-                  Flash Sale
-                </h3>
-                <p className="mb-5 text-sm font-bold text-white/80">
-                  Up to 50% off on electronics — limited time!
-                </p>
-                <span className="inline-flex items-center gap-1.5 rounded-xl bg-card px-5 py-2 text-xs font-black text-primary transition-transform group-hover:scale-105">
-                  View Deals <ArrowRight className="h-3.5 w-3.5" strokeWidth={2.5} />
-                </span>
-              </div>
-            </Link>
-
-            <Link
-              href="/categories/fashion"
-              className="bento-dark group flex min-h-[220px] flex-col justify-between rounded-[2rem] p-7 transition-transform duration-300 hover:scale-[1.01] sm:p-8"
-            >
-              <BentoGlow variant="dark" />
-              <div className="relative z-10 flex items-center gap-3 text-white/50">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/10 backdrop-blur-md">
-                  <Sparkles className="h-5 w-5" strokeWidth={2.25} />
-                </div>
-                <span className="text-[10px] font-black uppercase tracking-widest">Collection</span>
-              </div>
-              <div className="relative z-10">
-                <h3 className="mb-2 text-2xl font-black leading-none tracking-tighter sm:text-3xl">
-                  Traditional Wear
-                </h3>
-                <p className="mb-5 text-sm font-bold text-white/60">
-                  Authentic Bangladeshi clothing for every occasion
-                </p>
-                <span className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-5 py-2 text-xs font-black text-white shadow-lg shadow-primary/25 transition-transform group-hover:scale-105">
-                  Shop Now <ArrowRight className="h-3.5 w-3.5" strokeWidth={2.5} />
-                </span>
-              </div>
-            </Link>
-          </div>
-        </div>
-
-        {/* ─── Trust tiles ────────────────────────────────────────────── */}
-        <div className="mt-4 grid grid-cols-2 gap-3 sm:mt-6 sm:gap-6 lg:grid-cols-4">
+      {/* ─── Feature strip ───────────────────────────────────────────── */}
+      <section className="site-container px-4 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-2 gap-x-4 gap-y-6 border-b border-gray-200 py-7 sm:py-8 lg:grid-cols-4">
           {TRUST_ITEMS.map((item) => (
-            <div
-              key={item.title}
-              className="bento-card bento-card-hover group flex flex-col items-start gap-3 p-4 sm:flex-row sm:items-center sm:gap-4 sm:p-5"
-            >
-              <IconTile
-                icon={item.icon}
-                tone={item.tone}
-                size="sm"
-                className="group-hover:scale-110"
+            <div key={item.title} className="flex items-center gap-3 sm:gap-4">
+              <item.icon
+                className="h-9 w-9 shrink-0 text-primary sm:h-10 sm:w-10"
+                strokeWidth={1.25}
               />
               <div className="min-w-0">
-                <p className="text-sm font-black tracking-tight text-gray-900">{item.title}</p>
-                <p className="text-[11px] font-bold text-gray-500">{item.caption}</p>
+                <p className="font-heading text-sm font-semibold text-primary">{item.title}</p>
+                <p className="text-[13px] text-gray-600">{item.caption}</p>
               </div>
             </div>
           ))}
         </div>
       </section>
 
+      {/* ─── Promo panels ────────────────────────────────────────────── */}
+      <section className="site-container px-4 pt-12 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+          <Link
+            href="/categories/electronics"
+            className="group relative flex min-h-[200px] flex-col justify-center overflow-hidden bg-ink p-8 text-white sm:min-h-[220px] sm:p-10"
+          >
+            <Zap
+              className="absolute -right-6 -top-6 h-48 w-48 text-white/[0.06] transition-transform duration-700 group-hover:scale-110"
+              strokeWidth={1}
+              aria-hidden
+            />
+            <p className="text-sm uppercase tracking-wide text-primary">Limited time</p>
+            <h3 className="mt-2 font-heading text-2xl font-semibold sm:text-3xl">Flash Sale</h3>
+            <p className="mt-2 text-sm text-white/80">
+              Up to 50% off on electronics — limited time!
+            </p>
+            <span className="mt-5 w-fit border-b-2 border-white pb-0.5 font-heading text-sm font-semibold uppercase tracking-wide transition-colors group-hover:border-primary group-hover:text-primary">
+              View Deals
+            </span>
+          </Link>
+
+          <Link
+            href="/categories/fashion"
+            className="group relative flex min-h-[200px] flex-col justify-center overflow-hidden bg-gray-100 p-8 sm:min-h-[220px] sm:items-end sm:p-10 sm:text-right"
+          >
+            <Sparkles
+              className="absolute -left-6 -top-6 h-48 w-48 text-gray-900/[0.05] transition-transform duration-700 group-hover:scale-110"
+              strokeWidth={1}
+              aria-hidden
+            />
+            <p className="text-sm uppercase tracking-wide text-primary">Collection</p>
+            <h3 className="mt-2 font-heading text-2xl font-semibold text-gray-900 sm:text-3xl">
+              Traditional Wear
+            </h3>
+            <p className="mt-2 text-sm text-gray-600">
+              Authentic Bangladeshi clothing for every occasion
+            </p>
+            <span className="mt-5 w-fit border-b-2 border-gray-900 pb-0.5 font-heading text-sm font-semibold uppercase tracking-wide text-gray-900 transition-colors group-hover:border-primary group-hover:text-primary">
+              Shop Now
+            </span>
+          </Link>
+        </div>
+      </section>
+
       {/* ─── Sidebar promo banners (SIDEBAR position) ────────────────── */}
       {sidebarBanners.length > 0 && (
-        <section className="site-container px-4 pt-4 sm:pt-6">
+        <section className="site-container px-4 pt-3 sm:px-6 lg:px-8">
           <div
-            className={`grid gap-4 sm:gap-6 ${
+            className={`grid gap-3 ${
               sidebarBanners.length === 1
                 ? 'grid-cols-1'
                 : sidebarBanners.length === 2
@@ -570,20 +536,21 @@ export default function HomePage() {
           >
             {sidebarBanners.slice(0, 6).map((b) => {
               const card = (
-                <div className="group relative overflow-hidden rounded-[2rem] border border-foreground/[0.04] shadow-bento transition-all duration-300 hover:shadow-bento-hover">
+                <div className="group relative overflow-hidden bg-gray-50">
                   <img
                     src={b.image}
                     alt={b.title}
-                    className="h-44 w-full object-cover transition-transform duration-500 group-hover:scale-105 sm:h-52"
+                    className="h-48 w-full object-cover transition-transform duration-700 group-hover:scale-105 sm:h-56"
                     loading="lazy"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-                  <div className="absolute bottom-5 left-6 right-6 text-white">
-                    <h3 className="text-xl font-black tracking-tight drop-shadow">{b.title}</h3>
-                    {b.subtitle && (
-                      <p className="mt-0.5 text-sm font-bold text-white/80 drop-shadow">
-                        {b.subtitle}
-                      </p>
+                  <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/25 to-transparent" />
+                  <div className="absolute inset-y-0 left-7 right-7 flex flex-col justify-center text-white">
+                    <h3 className="font-heading text-2xl font-semibold">{b.title}</h3>
+                    {b.subtitle && <p className="mt-1 text-sm text-white/85">{b.subtitle}</p>}
+                    {b.link && (
+                      <span className="mt-4 w-fit border-b-2 border-white pb-0.5 font-heading text-sm font-semibold uppercase tracking-wide">
+                        Shop Now
+                      </span>
                     )}
                   </div>
                 </div>
@@ -601,19 +568,20 @@ export default function HomePage() {
       )}
 
       {/* ─── Shop by Category ────────────────────────────────────────── */}
-      <section className="site-container px-4 pt-4 sm:pt-6">
-        <div className="bento-card p-6 sm:p-8">
-          <SectionHeader
-            as="h2"
+      {topCategories.length > 0 && (
+        <section className="site-container px-4 pt-14 sm:px-6 lg:px-8">
+          <ShopSectionHeading
             title="Shop by Categories"
-            caption="Browse our wide range of product categories"
             action={
-              <Link href="/categories" className="btn btn-soft btn-sm">
-                View All <ArrowRight className="h-3.5 w-3.5" strokeWidth={2.5} />
+              <Link
+                href="/categories"
+                className="text-sm font-medium text-gray-700 transition-colors hover:text-primary"
+              >
+                View All
               </Link>
             }
           />
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4 xl:grid-cols-8">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 xl:grid-cols-8">
             {topCategories.map((cat: any) => {
               const productCount =
                 cat.productCount ??
@@ -627,94 +595,72 @@ export default function HomePage() {
                 <Link
                   key={cat.id}
                   href={`/categories/${cat.slug}`}
-                  className="group flex flex-col items-center rounded-[1.5rem] border border-foreground/[0.03] bg-gray-50 px-3 py-5 text-center transition-all duration-300 hover:bg-card hover:shadow-bento-hover"
+                  className="group flex flex-col items-center border border-gray-200 bg-card px-3 py-5 text-center transition-colors hover:border-primary"
                 >
-                  <span className="mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-card text-2xl shadow-sm transition-transform duration-500 group-hover:scale-110">
+                  <span className="mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-gray-50 text-2xl transition-transform duration-300 group-hover:scale-110">
                     {CATEGORY_ICONS[cat.slug] || '📦'}
                   </span>
-                  <h3 className="w-full truncate text-sm font-black tracking-tight text-gray-900 transition-colors group-hover:text-primary">
+                  <h3 className="w-full truncate font-heading text-sm font-semibold text-gray-900 transition-colors group-hover:text-primary">
                     {cat.name}
                   </h3>
                   {productCount > 0 && (
-                    <span className="eyebrow mt-1">{productCount} products</span>
+                    <span className="mt-1 text-xs text-gray-500">{productCount} products</span>
                   )}
                 </Link>
               );
             })}
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* ─── Featured Products ───────────────────────────────────────── */}
-      <section className="site-container px-4 pt-4 sm:pt-6">
-        <div className="rounded-[2rem] border border-foreground/[0.04] bg-card p-5 shadow-bento sm:rounded-[2.5rem] sm:p-8">
-          <SectionHeader
-            as="h2"
-            icon={Zap}
-            title="Featured Products"
-            caption="Hand-picked top products just for you"
-            action={
-              <Link
-                href="/products?isFeatured=true"
-                className="btn btn-soft btn-sm hidden sm:inline-flex"
-              >
-                View All <ArrowRight className="h-3.5 w-3.5" strokeWidth={2.5} />
-              </Link>
-            }
-          />
+      <section className="site-container px-4 pt-14 sm:px-6 lg:px-8">
+        <ShopSectionHeading
+          title="Featured Products"
+          action={
+            <Link
+              href="/products?isFeatured=true"
+              className="text-sm font-medium text-gray-700 transition-colors hover:text-primary"
+            >
+              View All
+            </Link>
+          }
+        />
 
-          <ProductGrid>
-            {loading ? renderProductSkeleton() : featuredProducts.map(renderProductCard)}
-          </ProductGrid>
+        <ProductGrid>
+          {loading ? renderProductSkeleton() : featuredProducts.map(renderProductCard)}
+        </ProductGrid>
 
-          {!loading && featuredProducts.length === 0 && (
-            <EmptyState bare icon={Zap} title="No featured products available." />
-          )}
-
-          <Link
-            href="/products?isFeatured=true"
-            className="btn btn-soft btn-sm mt-6 w-full sm:hidden"
-          >
-            View All Featured <ArrowRight className="h-3.5 w-3.5" strokeWidth={2.5} />
-          </Link>
-        </div>
+        {!loading && featuredProducts.length === 0 && (
+          <EmptyState bare icon={Zap} title="No featured products available." />
+        )}
       </section>
 
       {/* ─── New Arrivals ────────────────────────────────────────────── */}
-      <section className="site-container px-4 pt-4 sm:pt-6">
-        <div className="rounded-[2rem] border border-foreground/[0.04] bg-card p-5 shadow-bento sm:rounded-[2.5rem] sm:p-8">
-          <SectionHeader
-            as="h2"
-            icon={TrendingUp}
-            title="New Arrivals"
-            caption="The latest additions to our store"
-            action={
-              <Link
-                href="/products?sortBy=createdAt&sortOrder=desc"
-                className="btn btn-soft btn-sm hidden sm:inline-flex"
-              >
-                View All <ArrowRight className="h-3.5 w-3.5" strokeWidth={2.5} />
-              </Link>
-            }
-          />
+      <section className="site-container px-4 pt-14 sm:px-6 lg:px-8">
+        <ShopSectionHeading
+          title="New Arrivals"
+          action={
+            <Link
+              href="/products?sortBy=createdAt&sortOrder=desc"
+              className="text-sm font-medium text-gray-700 transition-colors hover:text-primary"
+            >
+              View All
+            </Link>
+          }
+        />
 
-          <ProductGrid>
-            {loading ? renderProductSkeleton() : newArrivals.map(renderProductCard)}
-          </ProductGrid>
-        </div>
+        <ProductGrid>
+          {loading ? renderProductSkeleton() : newArrivals.map(renderProductCard)}
+        </ProductGrid>
       </section>
     </div>
   );
 }
 
-const TRUST_ITEMS: { title: string; caption: string; icon: LucideIcon; tone: BentoTone }[] = [
-  { title: 'Free Delivery', caption: 'On orders over ৳2,000', icon: Truck, tone: 'brand' },
-  { title: 'Secure Payment', caption: 'bKash, Nagad, Cards', icon: Shield, tone: 'blue' },
-  { title: 'Easy Returns', caption: '7-day return policy', icon: RotateCcw, tone: 'amber' },
-  {
-    title: 'Made in Bangladesh',
-    caption: 'Supporting local businesses',
-    icon: Sparkles,
-    tone: 'emerald',
-  },
+const TRUST_ITEMS: { title: string; caption: string; icon: LucideIcon }[] = [
+  { title: 'Free Delivery', caption: 'On orders over ৳2,000', icon: Truck },
+  { title: 'Secure Payment', caption: 'bKash, Nagad, Cards', icon: ShieldCheck },
+  { title: 'Easy Returns', caption: '7-day return policy', icon: RotateCcw },
+  { title: 'Made in Bangladesh', caption: 'Supporting local businesses', icon: Sparkles },
 ];

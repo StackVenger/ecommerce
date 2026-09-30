@@ -247,7 +247,7 @@ export default function AdminNavigationPage() {
       {/* Create Menu Modal */}
       {showAddMenu && (
         <div className="bento-card p-6 sm:p-8">
-          <h3 className="text-lg font-black text-gray-900 mb-4 tracking-tight">Create New Menu</h3>
+          <h3 className="text-lg font-heading font-semibold text-gray-900 mb-4">Create New Menu</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="field-label">Menu Name</label>
@@ -288,8 +288,8 @@ export default function AdminNavigationPage() {
         {/* Menu List */}
         <div className="lg:col-span-1">
           <div className="bento-card overflow-hidden">
-            <div className="px-4 py-3 border-b border-foreground/[0.04]">
-              <h3 className="text-lg font-black tracking-tight text-gray-900">Menus</h3>
+            <div className="px-4 py-3 border-b border-gray-200">
+              <h3 className="text-lg font-heading font-semibold text-gray-900">Menus</h3>
             </div>
             <div className="divide-y divide-gray-100">
               {menus.length === 0 ? (
@@ -343,9 +343,9 @@ export default function AdminNavigationPage() {
         <div className="lg:col-span-3">
           {selectedMenu ? (
             <div className="bento-card">
-              <div className="px-6 py-4 border-b border-foreground/[0.04] flex items-center justify-between">
+              <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
                 <div>
-                  <h3 className="text-lg font-black text-gray-900 tracking-tight">
+                  <h3 className="text-lg font-heading font-semibold text-gray-900">
                     {selectedMenu.name}
                   </h3>
                   <p className="text-xs text-gray-500">
@@ -454,7 +454,7 @@ export default function AdminNavigationPage() {
               </div>
             </div>
           ) : (
-            <div className="bento-card px-6 py-12 text-center text-sm font-bold text-gray-400">
+            <div className="bento-card px-6 py-12 text-center text-sm text-gray-500">
               Select a menu from the left to manage its items
             </div>
           )}

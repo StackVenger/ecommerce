@@ -20,7 +20,6 @@ import { OrderStatusPill } from '@/components/admin/orders/order-status';
 import { useConfirm } from '@/components/admin/ui/confirm-dialog';
 import { AccountStatusPill, RolePill } from '@/components/admin/users/user-pills';
 import {
-  BentoGlow,
   EmptyState,
   LoadingState,
   PageHeader,
@@ -170,7 +169,7 @@ export default function AdminCustomerDetailPage() {
         eyebrow={
           <Link
             href="/admin/customers"
-            className="mb-1 inline-flex w-fit items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-gray-400 transition-colors hover:text-gray-900"
+            className="mb-1 inline-flex w-fit items-center gap-1.5 text-sm text-gray-500 transition-colors hover:text-primary"
           >
             <ArrowLeft className="h-3.5 w-3.5" strokeWidth={2.5} /> Back to customers
           </Link>
@@ -202,11 +201,10 @@ export default function AdminCustomerDetailPage() {
 
       <div className="grid grid-cols-2 gap-4 sm:gap-6 md:grid-cols-6 xl:grid-cols-12">
         {/* Identity */}
-        <section className="bento-dark col-span-2 p-7 md:col-span-6 xl:col-span-4">
-          <BentoGlow variant="dark" />
-          <div className="relative z-10 flex h-full flex-col gap-6">
+        <section className="bento-card col-span-2 p-7 md:col-span-6 xl:col-span-4">
+          <div className="flex h-full flex-col gap-6">
             <div className="flex items-center gap-4">
-              <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-primary text-xl font-black text-white shadow-brand-glow">
+              <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-full bg-primary text-xl font-semibold text-white">
                 {user.avatar ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={user.avatar} alt="" className="h-full w-full object-cover" />
@@ -215,20 +213,22 @@ export default function AdminCustomerDetailPage() {
                 )}
               </div>
               <div className="min-w-0">
-                <p className="truncate text-xl font-black tracking-tight text-white">{fullName}</p>
+                <p className="truncate font-heading text-xl font-semibold text-gray-900">
+                  {fullName}
+                </p>
                 <div className="mt-2 flex flex-wrap gap-1.5">
                   <RolePill role={user.role} />
                   <AccountStatusPill status={user.status} />
                 </div>
               </div>
             </div>
-            <div className="mt-auto space-y-2 text-sm font-bold text-white/70">
+            <div className="mt-auto space-y-2 text-sm text-gray-600">
               <p className="flex items-center gap-2 break-all">
-                <Mail className="h-4 w-4 shrink-0 text-white/40" strokeWidth={2.25} />
+                <Mail className="h-4 w-4 shrink-0 text-gray-400" strokeWidth={2.25} />
                 {user.email}
                 {user.emailVerified && (
                   <ShieldCheck
-                    className="h-4 w-4 shrink-0 text-emerald-400"
+                    className="h-4 w-4 shrink-0 text-emerald-500"
                     aria-label="Verified"
                     strokeWidth={2.25}
                   />
@@ -236,7 +236,7 @@ export default function AdminCustomerDetailPage() {
               </p>
               {user.phone && (
                 <p className="flex items-center gap-2">
-                  <Phone className="h-4 w-4 shrink-0 text-white/40" strokeWidth={2.25} />
+                  <Phone className="h-4 w-4 shrink-0 text-gray-400" strokeWidth={2.25} />
                   {user.phone}
                 </p>
               )}
@@ -245,16 +245,13 @@ export default function AdminCustomerDetailPage() {
         </section>
 
         {/* Lifetime spend */}
-        <section className="bento-primary col-span-2 flex flex-col justify-between gap-6 p-7 md:col-span-6 xl:col-span-4">
-          <BentoGlow variant="primary" />
-          <div className="relative z-10 flex h-12 w-12 items-center justify-center rounded-2xl bg-white/20 backdrop-blur-md">
+        <section className="bento-card col-span-2 flex flex-col justify-between gap-6 border-t-2 border-t-primary p-7 md:col-span-6 xl:col-span-4">
+          <div className="icon-tile bg-brand-50 text-primary">
             <Wallet className="h-6 w-6" strokeWidth={2.25} />
           </div>
-          <div className="relative z-10">
-            <p className="mb-1 text-[10px] font-black uppercase tracking-widest text-white/70">
-              Lifetime spend
-            </p>
-            <p className="text-4xl font-black tabular-nums tracking-tighter sm:text-5xl">
+          <div>
+            <p className="eyebrow mb-1">Lifetime spend</p>
+            <p className="stat-value text-4xl text-primary sm:text-5xl">
               {formatSpend(user.orders)}
             </p>
           </div>
@@ -311,7 +308,7 @@ export default function AdminCustomerDetailPage() {
         <section className="bento-card col-span-2 p-6 sm:p-8 md:col-span-6 xl:col-span-8">
           <SectionHeader title="Recent orders" caption="Latest 10 orders" icon={ShoppingBag} />
           {!user.orders || user.orders.length === 0 ? (
-            <p className="rounded-[1.5rem] bg-gray-50 py-10 text-center text-sm font-bold text-gray-400">
+            <p className="rounded-xl bg-gray-50 py-10 text-center text-sm text-gray-500">
               No orders yet.
             </p>
           ) : (
@@ -331,7 +328,7 @@ export default function AdminCustomerDetailPage() {
                       <td>
                         <Link
                           href={`/admin/orders/${o.id}`}
-                          className="whitespace-nowrap text-sm font-black text-gray-900 transition-colors hover:text-primary"
+                          className="whitespace-nowrap text-sm font-semibold text-gray-900 transition-colors hover:text-primary"
                         >
                           {o.orderNumber}
                         </Link>
@@ -339,10 +336,10 @@ export default function AdminCustomerDetailPage() {
                       <td className="text-center">
                         <OrderStatusPill status={o.status} />
                       </td>
-                      <td className="whitespace-nowrap text-xs font-bold text-gray-500">
+                      <td className="whitespace-nowrap text-xs text-gray-500">
                         {new Date(o.createdAt).toLocaleDateString('en-BD')}
                       </td>
-                      <td className="whitespace-nowrap text-right text-sm font-black tabular-nums text-gray-900">
+                      <td className="whitespace-nowrap text-right text-sm font-semibold tabular-nums text-gray-900">
                         ৳{Number(o.totalAmount).toLocaleString('en-BD')}
                       </td>
                     </tr>
@@ -359,9 +356,9 @@ export default function AdminCustomerDetailPage() {
 
 function Row({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex items-center justify-between gap-4 border-b border-foreground/[0.03] pb-3.5 last:border-0 last:pb-0">
-      <dt className="shrink-0 font-bold text-gray-500">{label}</dt>
-      <dd className="truncate text-right font-black text-gray-900">{value}</dd>
+    <div className="flex items-center justify-between gap-4 border-b border-gray-200 pb-3.5 last:border-0 last:pb-0">
+      <dt className="shrink-0 text-gray-500">{label}</dt>
+      <dd className="truncate text-right font-semibold text-gray-900">{value}</dd>
     </div>
   );
 }

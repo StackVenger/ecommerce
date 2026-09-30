@@ -130,7 +130,7 @@ export default function AdminUserDetailPage() {
         eyebrow={
           <Link
             href="/admin/users"
-            className="mb-1 inline-flex w-fit items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-gray-400 transition-colors hover:text-gray-900"
+            className="mb-1 inline-flex w-fit items-center gap-1.5 text-sm text-gray-500 transition-colors hover:text-primary"
           >
             <ArrowLeft className="h-3.5 w-3.5" strokeWidth={2.5} /> Users
           </Link>
@@ -224,7 +224,7 @@ export default function AdminUserDetailPage() {
                 ))}
               </select>
             </div>
-            <div className="col-span-full flex justify-end border-t border-foreground/[0.04] pt-5">
+            <div className="col-span-full flex justify-end border-t border-gray-200 pt-5">
               <button
                 type="button"
                 onClick={handleSave}
@@ -256,13 +256,13 @@ export default function AdminUserDetailPage() {
           </div>
           <div className="bento-card flex flex-col justify-between gap-2 p-5">
             <p className="eyebrow">Joined</p>
-            <p className="text-sm font-black text-gray-900">
+            <p className="text-sm font-semibold text-gray-900">
               {new Date(user.createdAt).toLocaleDateString()}
             </p>
           </div>
           <div className="bento-card flex flex-col justify-between gap-2 p-5">
             <p className="eyebrow">Last Login</p>
-            <p className="text-sm font-black text-gray-900">
+            <p className="text-sm font-semibold text-gray-900">
               {user.lastLoginAt ? new Date(user.lastLoginAt).toLocaleString() : 'Never'}
             </p>
           </div>
@@ -273,7 +273,7 @@ export default function AdminUserDetailPage() {
       <section className="bento-card p-6 sm:p-8">
         <SectionHeader title="Recent Orders" caption="Order history" icon={ShoppingBag} />
         {user.orders.length === 0 ? (
-          <p className="rounded-[1.5rem] bg-gray-50 py-10 text-center text-sm font-bold text-gray-400">
+          <p className="rounded-xl bg-gray-50 py-10 text-center text-sm text-gray-500">
             No orders yet
           </p>
         ) : (
@@ -290,16 +290,16 @@ export default function AdminUserDetailPage() {
               <tbody>
                 {user.orders.map((order) => (
                   <tr key={order.id}>
-                    <td className="whitespace-nowrap text-sm font-black text-gray-900">
+                    <td className="whitespace-nowrap text-sm font-semibold text-gray-900">
                       {order.orderNumber}
                     </td>
-                    <td className="whitespace-nowrap text-right text-sm font-black tabular-nums text-gray-900">
+                    <td className="whitespace-nowrap text-right text-sm font-semibold tabular-nums text-gray-900">
                       ৳{Number(order.totalAmount ?? 0).toLocaleString('en-BD')}
                     </td>
                     <td className="text-center">
                       <OrderStatusPill status={order.status} />
                     </td>
-                    <td className="whitespace-nowrap text-xs font-bold text-gray-500">
+                    <td className="whitespace-nowrap text-xs text-gray-500">
                       {new Date(order.createdAt).toLocaleDateString()}
                     </td>
                   </tr>

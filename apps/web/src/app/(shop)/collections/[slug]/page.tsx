@@ -1,12 +1,12 @@
 'use client';
 
-import { ChevronRight, Layers } from 'lucide-react';
+import { Layers } from 'lucide-react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
 import { ProductCard, ProductCardSkeleton, ProductGrid } from '@/components/products/product-card';
-import { BentoGlow, EmptyState } from '@/components/ui/bento';
+import { Breadcrumbs, EmptyState } from '@/components/ui/bento';
 import { apiClient } from '@/lib/api/client';
 
 interface Product {
@@ -48,84 +48,75 @@ export default function CollectionPage() {
   const formatPrice = (price: number) => `৳${price.toLocaleString('en-BD')}`;
 
   return (
-    <div className="site-container px-4 py-6 sm:py-8">
-      <nav className="mb-4 flex items-center gap-2 text-xs font-bold text-gray-400">
-        <Link href="/" className="transition-colors hover:text-gray-900">
-          Home
-        </Link>
-        <ChevronRight className="h-3.5 w-3.5" />
-        <span className="text-gray-900">{title}</span>
-      </nav>
+    <div className="min-h-screen bg-background">
+      <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: title }]} />
 
-      <div className="bento-dark mb-6 rounded-[2rem] p-8 sm:mb-8 sm:p-10">
-        <BentoGlow variant="dark" />
-        <div className="relative z-10 flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
+      <div className="site-container px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
+        <div className="mb-8 flex flex-col gap-6 bg-gray-50 p-8 sm:mb-10 sm:flex-row sm:items-end sm:justify-between sm:p-10">
           <div>
-            <div className="mb-5 flex items-center gap-3 text-white/50">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/10 backdrop-blur-md">
-                <Layers className="h-5 w-5" strokeWidth={2.25} />
-              </div>
-              <span className="text-[10px] font-black uppercase tracking-widest">Collection</span>
-            </div>
-            <h1 className="text-3xl font-black leading-none tracking-tighter sm:text-4xl">
+            <p className="mb-2 flex items-center gap-2 text-sm font-medium text-primary">
+              <Layers className="h-4 w-4" strokeWidth={2} />
+              Collection
+            </p>
+            <h1 className="font-heading text-3xl font-semibold text-gray-900 sm:text-4xl">
               {title}
             </h1>
-            <p className="mt-3 text-sm font-bold text-white/60">
+            <p className="mt-3 text-sm text-gray-600 sm:text-base">
               Explore our curated {title.toLowerCase()} collection
             </p>
           </div>
           {!loading && products.length > 0 && (
-            <div className="shrink-0 rounded-2xl bg-white/10 px-5 py-3 text-center backdrop-blur-md">
-              <p className="text-2xl font-black tabular-nums tracking-tighter">{products.length}</p>
-              <p className="text-[10px] font-black uppercase tracking-widest text-white/50">
-                Products
+            <div className="shrink-0 border-l-2 border-primary pl-4">
+              <p className="font-heading text-2xl font-semibold tabular-nums text-gray-900">
+                {products.length}
               </p>
+              <p className="text-sm text-gray-500">Products</p>
             </div>
           )}
         </div>
-      </div>
 
-      {loading ? (
-        <ProductGrid>
-          {Array.from({ length: 8 }).map((_, i) => (
-            <ProductCardSkeleton key={i} />
-          ))}
-        </ProductGrid>
-      ) : products.length === 0 ? (
-        <EmptyState
-          icon={Layers}
-          title="This collection is coming soon."
-          action={
-            <Link href="/shop" className="btn btn-primary">
-              Browse all products
-            </Link>
-          }
-        />
-      ) : (
-        <ProductGrid>
-          {products.map((product) => (
-            <ProductCard
-              key={product.id}
-              href={`/products/${product.slug}`}
-              name={product.name}
-              image={product.images?.[0]}
-              price={product.salePrice ?? product.price}
-              originalPrice={product.salePrice ? product.price : null}
-              formatPrice={formatPrice}
-              badges={
-                product.salePrice
-                  ? [
-                      {
-                        label: `${Math.round(((product.price - product.salePrice) / product.price) * 100)}% OFF`,
-                        tone: 'sale',
-                      },
-                    ]
-                  : []
-              }
-            />
-          ))}
-        </ProductGrid>
-      )}
+        {loading ? (
+          <ProductGrid>
+            {Array.from({ length: 8 }).map((_, i) => (
+              <ProductCardSkeleton key={i} />
+            ))}
+          </ProductGrid>
+        ) : products.length === 0 ? (
+          <EmptyState
+            icon={Layers}
+            title="This collection is coming soon."
+            action={
+              <Link href="/shop" className="btn btn-primary">
+                Browse all products
+              </Link>
+            }
+          />
+        ) : (
+          <ProductGrid>
+            {products.map((product) => (
+              <ProductCard
+                key={product.id}
+                href={`/products/${product.slug}`}
+                name={product.name}
+                image={product.images?.[0]}
+                price={product.salePrice ?? product.price}
+                originalPrice={product.salePrice ? product.price : null}
+                formatPrice={formatPrice}
+                badges={
+                  product.salePrice
+                    ? [
+                        {
+                          label: `${Math.round(((product.price - product.salePrice) / product.price) * 100)}% OFF`,
+                          tone: 'sale',
+                        },
+                      ]
+                    : []
+                }
+              />
+            ))}
+          </ProductGrid>
+        )}
+      </div>
     </div>
   );
 }

@@ -7,7 +7,7 @@ import { useState } from 'react';
 import { cn } from '@/lib/utils';
 
 // ──────────────────────────────────────────────────────────
-// Bento product card
+// Product card (watch theme)
 //
 // Presentational only — every page keeps its own data mapping, price /
 // discount maths and cart / wishlist handlers and passes the results in.
@@ -54,8 +54,8 @@ interface ProductCardProps {
 }
 
 const BADGE_TONES: Record<NonNullable<ProductCardBadge['tone']>, string> = {
-  sale: 'bg-rose-500',
-  new: 'bg-emerald-500',
+  sale: 'bg-primary',
+  new: 'bg-ink',
   featured: 'bg-amber-500',
 };
 
@@ -90,15 +90,13 @@ export function ProductCard({
   // Dead image URLs fall back to the placeholder instead of alt text.
   const [imageFailed, setImageFailed] = useState(false);
 
+  // Watch-theme card: #f7f7f7 image well, square coral sale tag, white
+  // info strip with a hairline border, coral price, cart glyph on the right.
   const media = (
     <div
       className={cn(
         'relative shrink-0 overflow-hidden bg-gray-50',
-        isList
-          ? 'h-32 w-32 rounded-[1.25rem] sm:h-40 sm:w-40'
-          : compact
-            ? 'h-28 w-full'
-            : 'aspect-square w-full',
+        isList ? 'aspect-square w-32 sm:w-52' : compact ? 'h-28 w-full' : 'aspect-square w-full',
       )}
     >
       {image && !imageFailed ? (
@@ -112,22 +110,23 @@ export function ProductCard({
         />
       ) : (
         <div className="flex h-full items-center justify-center text-gray-300">
-          <Package className={compact ? 'h-8 w-8' : 'h-12 w-12'} strokeWidth={1.75} />
+          <Package className={compact ? 'h-8 w-8' : 'h-12 w-12'} strokeWidth={1.25} />
         </div>
       )}
 
       {badges.length > 0 && (
         <div
           className={cn(
-            'pointer-events-none absolute z-10 flex flex-col items-start gap-1.5',
-            compact ? 'left-2 top-2' : 'left-3 top-3 sm:left-4 sm:top-4',
+            'pointer-events-none absolute z-10 flex flex-col items-start gap-1',
+            compact ? 'left-2 top-2' : 'left-2.5 top-2.5 sm:left-3 sm:top-3',
           )}
         >
           {badges.map((b) => (
             <span
               key={b.label}
               className={cn(
-                'rounded-lg px-2.5 py-1 text-[9px] font-black uppercase tracking-widest text-white shadow-sm',
+                'px-2.5 py-1 font-semibold text-white',
+                compact ? 'text-[10px]' : 'text-xs',
                 BADGE_TONES[b.tone ?? 'sale'],
               )}
             >
@@ -138,7 +137,7 @@ export function ProductCard({
       )}
 
       {outOfStock && (
-        <div className="pointer-events-none absolute inset-x-3 bottom-3 z-10 rounded-xl bg-ink/85 py-2 text-center text-[10px] font-black uppercase tracking-widest text-white backdrop-blur-sm">
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 bg-ink/80 py-1.5 text-center text-xs font-semibold uppercase tracking-wide text-white">
           Sold out
         </div>
       )}
@@ -146,17 +145,17 @@ export function ProductCard({
   );
 
   const priceBlock = (
-    <div className="flex min-w-0 flex-col">
+    <div className="flex min-w-0 flex-wrap items-baseline gap-x-2.5 gap-y-0.5">
       <span
         className={cn(
-          'font-black tabular-nums tracking-tighter text-gray-900',
-          compact ? 'text-sm' : 'text-lg',
+          'font-bold tabular-nums text-primary',
+          compact ? 'text-sm' : isList ? 'text-lg' : 'text-base',
         )}
       >
         {formatPrice(price)}
       </span>
       {showOriginal && (
-        <span className="text-[10px] font-bold tabular-nums text-gray-400 line-through sm:text-[11px]">
+        <span className="text-[13px] font-light tabular-nums text-gray-500 line-through">
           {formatPrice(originalPrice)}
         </span>
       )}
@@ -165,7 +164,23 @@ export function ProductCard({
 
   const cartControl = onAddToCart ? (
     outOfStock ? (
-      <span className="pill pill-danger relative z-10 shrink-0">Out of stock</span>
+      <span className="relative z-10 shrink-0 text-xs font-medium text-gray-500">Sold out</span>
+    ) : isList ? (
+      <button
+        type="button"
+        onClick={onAddToCart}
+        disabled={addDisabled || inCart}
+        aria-label={inCart ? `${name} is in your cart` : `Add ${name} to cart`}
+        title={inCart ? 'Added to cart' : 'Add to cart'}
+        className={cn('btn btn-sm relative z-10', inCart ? 'btn-secondary' : 'btn-outline')}
+      >
+        {inCart ? (
+          <Check className="h-4 w-4" strokeWidth={2.5} />
+        ) : (
+          <ShoppingCart className="h-4 w-4" strokeWidth={1.75} />
+        )}
+        {inCart ? 'Added to cart' : 'Add to cart'}
+      </button>
     ) : (
       <button
         type="button"
@@ -174,20 +189,18 @@ export function ProductCard({
         aria-label={inCart ? `${name} is in your cart` : `Add ${name} to cart`}
         title={inCart ? 'Added to cart' : 'Add to cart'}
         className={cn(
-          'relative z-10 flex shrink-0 items-center justify-center rounded-xl shadow-sm transition-all active:scale-95',
+          'relative z-10 -mr-1.5 flex shrink-0 items-center justify-center transition-colors',
+          compact ? 'h-7 w-7' : 'h-9 w-9',
           inCart
-            ? 'cursor-not-allowed bg-emerald-50 text-emerald-600'
-            : 'bg-brand-50 text-brand-600 hover:bg-primary hover:text-white disabled:opacity-50',
-          compact ? 'h-8 w-8' : 'h-10 w-10',
-          isList && 'w-auto gap-2 px-4 text-xs font-black',
+            ? 'cursor-not-allowed text-emerald-600'
+            : 'text-gray-900 hover:text-primary disabled:opacity-50',
         )}
       >
         {inCart ? (
-          <Check className={compact ? 'h-3.5 w-3.5' : 'h-4 w-4'} strokeWidth={3} />
+          <Check className={compact ? 'h-4 w-4' : 'h-[18px] w-[18px]'} strokeWidth={2.5} />
         ) : (
-          <ShoppingCart className={compact ? 'h-3.5 w-3.5' : 'h-4 w-4'} strokeWidth={2.5} />
+          <ShoppingCart className={compact ? 'h-4 w-4' : 'h-[18px] w-[18px]'} strokeWidth={1.75} />
         )}
-        {isList && <span>{inCart ? 'Added to cart' : 'Add to cart'}</span>}
       </button>
     )
   ) : null;
@@ -196,8 +209,7 @@ export function ProductCard({
     <div
       className={cn(
         'product-card group relative flex',
-        isList ? 'flex-row gap-4 p-3 sm:gap-6 sm:p-4' : 'flex-col',
-        compact && 'rounded-[1.25rem]',
+        isList ? 'flex-row gap-4 p-3 sm:gap-7 sm:p-4' : 'flex-col border-0 bg-transparent',
         className,
       )}
     >
@@ -210,8 +222,8 @@ export function ProductCard({
           aria-label={wishlisted ? `Remove ${name} from wishlist` : `Add ${name} to wishlist`}
           aria-pressed={wishlisted}
           className={cn(
-            'absolute z-20 flex h-9 w-9 items-center justify-center rounded-xl border border-foreground/[0.04] bg-card/90 shadow-sm backdrop-blur-sm transition-all duration-300 hover:scale-110 hover:bg-card',
-            isList ? 'left-5 top-5 sm:left-6 sm:top-6' : 'right-3 top-3 sm:right-4 sm:top-4',
+            'absolute z-20 flex h-9 w-9 items-center justify-center bg-card shadow-sm transition-all duration-300 hover:text-primary',
+            isList ? 'left-5 top-5 sm:left-6 sm:top-6' : 'right-2.5 top-2.5 sm:right-3 sm:top-3',
             wishlisted
               ? 'opacity-100'
               : 'opacity-100 [@media(hover:hover)]:translate-y-1 [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover:translate-y-0 [@media(hover:hover)]:group-hover:opacity-100 [@media(hover:hover)]:focus-visible:translate-y-0 [@media(hover:hover)]:focus-visible:opacity-100',
@@ -220,9 +232,9 @@ export function ProductCard({
           <Heart
             className={cn(
               'h-4 w-4 transition-colors',
-              wishlisted ? 'fill-rose-500 text-rose-500' : 'text-gray-500 hover:text-rose-500',
+              wishlisted ? 'fill-primary text-primary' : 'text-gray-700',
             )}
-            strokeWidth={2.25}
+            strokeWidth={1.75}
           />
         </button>
       )}
@@ -230,45 +242,58 @@ export function ProductCard({
       <div
         className={cn(
           'flex min-w-0 flex-1 flex-col',
-          isList ? 'justify-between py-1' : compact ? 'p-3' : 'p-4 sm:p-5',
+          isList
+            ? 'justify-between py-1'
+            : cn(
+                'border border-t-0 border-gray-200 bg-card',
+                compact ? 'px-3 py-2.5' : 'px-3.5 py-3.5 sm:px-4',
+              ),
         )}
       >
         <div className="min-w-0">
           {brand && !compact && (
-            <p className="mb-1 truncate text-[10px] font-black uppercase tracking-widest text-brand-600">
+            <p className="mb-1 truncate text-[11px] uppercase tracking-wide text-gray-500">
               {brand}
             </p>
           )}
           <Link
             href={href}
             className={cn(
-              'line-clamp-2 font-bold leading-snug text-gray-900 transition-colors after:absolute after:inset-0 after:z-0 group-hover:text-primary focus-visible:outline-none focus-visible:after:rounded-[1.75rem] focus-visible:after:ring-4 focus-visible:after:ring-brand-500/25',
-              compact ? 'text-xs' : isList ? 'text-base' : 'text-sm',
+              'line-clamp-2 font-heading leading-snug text-gray-900 transition-colors after:absolute after:inset-0 after:z-0 hover:text-primary focus-visible:outline-none focus-visible:after:ring-2 focus-visible:after:ring-primary/40',
+              compact ? 'text-xs' : isList ? 'text-lg font-medium' : 'text-sm sm:text-[15px]',
             )}
           >
             {name}
           </Link>
           {isList && description && (
-            <p className="mt-1.5 line-clamp-2 text-sm font-medium text-gray-500">{description}</p>
+            <p className="mt-2 line-clamp-2 text-sm text-gray-600">{description}</p>
           )}
-          {rating !== null && rating !== undefined && (
-            <div className="mt-1.5 flex items-center gap-1.5">
-              <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
-              <span className="text-[11px] font-bold text-gray-500">
-                {rating.toFixed(1)}
-                {reviewCount !== undefined && (
-                  <span className="text-gray-400"> ({reviewCount})</span>
-                )}
-              </span>
+          {rating !== null && rating !== undefined && rating > 0 && (
+            <div
+              className="mt-1.5 flex items-center gap-1"
+              aria-label={`Rated ${rating.toFixed(1)} out of 5`}
+            >
+              {Array.from({ length: 5 }).map((_, i) => (
+                <Star
+                  key={i}
+                  className={cn(
+                    'h-3 w-3',
+                    i < Math.round(rating) ? 'fill-amber-400 text-amber-400' : 'text-gray-300',
+                  )}
+                />
+              ))}
+              {reviewCount !== undefined && (
+                <span className="ml-0.5 text-[11px] text-gray-500">({reviewCount})</span>
+              )}
             </div>
           )}
         </div>
 
         <div
           className={cn(
-            'mt-auto flex flex-wrap items-end justify-between gap-2',
-            compact ? 'pt-2' : 'pt-3',
-            isList && 'pt-4',
+            'mt-auto flex items-center justify-between gap-2',
+            compact ? 'pt-1.5' : 'pt-2',
+            isList && 'flex-wrap pt-4',
           )}
         >
           {priceBlock}
@@ -283,27 +308,25 @@ export function ProductCard({
 export function ProductCardSkeleton({ layout = 'grid' }: { layout?: 'grid' | 'list' }) {
   if (layout === 'list') {
     return (
-      <div className="flex animate-pulse gap-4 rounded-[1.75rem] border border-foreground/[0.04] bg-card p-4">
-        <div className="h-32 w-32 shrink-0 rounded-[1.25rem] bg-gray-100 sm:h-40 sm:w-40" />
+      <div className="flex animate-pulse gap-4 border border-gray-200 bg-card p-4">
+        <div className="aspect-square w-32 shrink-0 bg-gray-100 sm:w-52" />
         <div className="flex flex-1 flex-col gap-3 py-2">
-          <div className="h-3 w-16 rounded-full bg-gray-100" />
-          <div className="h-4 w-3/4 rounded-full bg-gray-100" />
-          <div className="h-3 w-1/2 rounded-full bg-gray-100" />
-          <div className="mt-auto h-6 w-24 rounded-full bg-gray-100" />
+          <div className="h-3 w-16 bg-gray-100" />
+          <div className="h-4 w-3/4 bg-gray-100" />
+          <div className="h-3 w-1/2 bg-gray-100" />
+          <div className="mt-auto h-6 w-24 bg-gray-100" />
         </div>
       </div>
     );
   }
   return (
-    <div className="animate-pulse overflow-hidden rounded-[1.75rem] border border-foreground/[0.04] bg-card">
+    <div className="animate-pulse">
       <div className="aspect-square bg-gray-100" />
-      <div className="space-y-2.5 p-4 sm:p-5">
-        <div className="h-2.5 w-14 rounded-full bg-gray-100" />
-        <div className="h-3.5 w-full rounded-full bg-gray-100" />
-        <div className="h-3 w-20 rounded-full bg-gray-100" />
-        <div className="flex items-end justify-between pt-2">
-          <div className="h-5 w-16 rounded-full bg-gray-100" />
-          <div className="h-10 w-10 rounded-xl bg-gray-100" />
+      <div className="space-y-2.5 border border-t-0 border-gray-200 p-4">
+        <div className="h-3.5 w-3/4 bg-gray-100" />
+        <div className="flex items-center justify-between">
+          <div className="h-4 w-16 bg-gray-100" />
+          <div className="h-5 w-5 bg-gray-100" />
         </div>
       </div>
     </div>
@@ -324,7 +347,7 @@ export function ProductGrid({
   return (
     <div
       className={cn(
-        'grid grid-cols-2 gap-3 sm:gap-5 md:grid-cols-3',
+        'grid grid-cols-2 gap-x-3 gap-y-5 sm:gap-x-5 sm:gap-y-7 md:grid-cols-3',
         columns === 4 ? 'lg:grid-cols-4' : 'xl:grid-cols-3',
         className,
       )}

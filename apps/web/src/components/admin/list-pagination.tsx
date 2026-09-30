@@ -1,8 +1,8 @@
 import { cn } from '@/lib/utils';
 
 // ──────────────────────────────────────────────────────────
-// List pagination — "Showing x–y of n" + soft Prev / numbered / dark Next
-// pills, matching the reference ledger footer.
+// List pagination — "Showing x–y of n" + "Prev 1 2 3 Next" square boxes;
+// the active page is a coral square.
 // ──────────────────────────────────────────────────────────
 
 interface ListPaginationProps {
@@ -38,23 +38,23 @@ export function ListPagination({
     <nav
       aria-label="Pagination"
       className={cn(
-        'mt-2 flex flex-col gap-3 border-t border-foreground/[0.04] px-2 pb-1 pt-4 sm:flex-row sm:items-center sm:justify-between',
+        'mt-2 flex flex-col gap-3 border-t border-gray-200 px-2 pb-1 pt-4 sm:flex-row sm:items-center sm:justify-between',
         className,
       )}
     >
-      <p className="text-[11px] font-bold text-gray-500">
+      <p className="text-sm text-gray-500">
         Showing{' '}
-        <span className="text-gray-900">
+        <span className="font-medium text-gray-900">
           {(page - 1) * limit + 1}–{Math.min(page * limit, total)}
         </span>{' '}
-        of <span className="text-gray-900">{total}</span> {noun}
+        of <span className="font-medium text-gray-900">{total}</span> {noun}
       </p>
-      <div className="flex flex-wrap items-center gap-1.5">
+      <div className="flex flex-wrap items-center gap-1">
         <button
           type="button"
           onClick={() => onPageChange(page - 1)}
           disabled={page <= 1}
-          className="btn btn-soft btn-sm"
+          className="h-9 border border-gray-200 bg-card px-3 text-sm text-gray-700 transition-colors hover:border-primary hover:text-primary disabled:pointer-events-none disabled:opacity-40"
         >
           Prev
         </button>
@@ -65,10 +65,10 @@ export function ListPagination({
             onClick={() => onPageChange(p)}
             aria-current={p === page ? 'page' : undefined}
             className={cn(
-              'h-9 min-w-[2.25rem] rounded-xl px-3 text-xs font-black tabular-nums transition-all',
+              'h-9 min-w-[2.25rem] border px-2 text-sm tabular-nums transition-colors',
               p === page
-                ? 'bg-primary text-white shadow-brand-glow'
-                : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900',
+                ? 'border-primary bg-primary font-semibold text-white'
+                : 'border-gray-200 bg-card text-gray-700 hover:border-primary hover:text-primary',
             )}
           >
             {p}
@@ -78,7 +78,7 @@ export function ListPagination({
           type="button"
           onClick={() => onPageChange(page + 1)}
           disabled={page >= totalPages}
-          className="btn btn-dark btn-sm"
+          className="h-9 border border-gray-200 bg-card px-3 text-sm text-gray-700 transition-colors hover:border-primary hover:text-primary disabled:pointer-events-none disabled:opacity-40"
         >
           Next
         </button>

@@ -139,6 +139,8 @@ export function tailwindThemeVars(colors: ThemeColorsInput): Record<string, stri
  */
 const NEXT_FONT_VARS: Record<string, string> = {
   Inter: '--font-inter',
+  Montserrat: '--font-montserrat',
+  'IBM Plex Sans': '--font-plex',
   'Noto Sans Bengali': '--font-noto-sans-bengali',
 };
 

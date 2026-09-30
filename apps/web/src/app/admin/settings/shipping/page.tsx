@@ -126,7 +126,7 @@ export default function ShippingSettingsPage() {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-8">
-      <h2 className="text-lg font-black text-gray-900 tracking-tight">Shipping Settings</h2>
+      <h2 className="text-lg font-heading font-semibold text-gray-900">Shipping Settings</h2>
 
       {/* Shipping Methods */}
       <section className="space-y-4">
@@ -135,7 +135,7 @@ export default function ShippingSettingsPage() {
           {methods.map((method) => (
             <div
               key={method.id}
-              className="flex items-center gap-4 rounded-[1.5rem] border border-foreground/[0.05] p-3"
+              className="flex items-center gap-4 rounded-xl border border-gray-200 p-3"
             >
               <input
                 type="checkbox"
@@ -163,7 +163,7 @@ export default function ShippingSettingsPage() {
         <h3 className="font-medium text-gray-800">Shipping Zones</h3>
         <div className="space-y-4">
           {zones.map((zone, idx) => (
-            <div key={zone.name} className="rounded-[1.5rem] border border-foreground/[0.05] p-4">
+            <div key={zone.name} className="rounded-xl border border-gray-200 p-4">
               <div className="flex items-center justify-between">
                 <h4 className="font-medium text-gray-700">{zone.name}</h4>
                 <div className="flex items-center gap-1">

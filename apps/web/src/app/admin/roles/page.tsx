@@ -149,13 +149,11 @@ export default function AdminRolesPage() {
             <div key={role.id} className="bento-card bento-card-hover group flex flex-col p-6">
               <div className="flex items-start justify-between gap-3">
                 <div className="flex min-w-0 items-center gap-3">
-                  <div
-                    className={`icon-tile h-12 w-12 group-hover:scale-110 ${ROLE_TONES[i % ROLE_TONES.length]}`}
-                  >
+                  <div className={`icon-tile h-12 w-12 ${ROLE_TONES[i % ROLE_TONES.length]}`}>
                     <ShieldCheck className="h-5 w-5" strokeWidth={2.25} />
                   </div>
                   <div className="min-w-0">
-                    <h3 className="truncate text-base font-black tracking-tight text-gray-900">
+                    <h3 className="truncate text-base font-heading font-semibold text-gray-900">
                       {role.name}
                     </h3>
                     {role.description && (
@@ -171,18 +169,18 @@ export default function AdminRolesPage() {
                 {role.permissions.slice(0, 5).map((p) => (
                   <span
                     key={p}
-                    className="rounded-lg bg-brand-50 px-2 py-1 text-[10px] font-black text-brand-700"
+                    className="bg-brand-50 px-2 py-1 text-xs font-medium text-brand-700"
                   >
                     {p}
                   </span>
                 ))}
                 {role.permissions.length > 5 && (
-                  <span className="rounded-lg bg-gray-100 px-2 py-1 text-[10px] font-black text-gray-500">
+                  <span className="bg-gray-100 px-2 py-1 text-xs font-medium text-gray-500">
                     +{role.permissions.length - 5} more
                   </span>
                 )}
               </div>
-              <div className="mt-5 flex gap-2 border-t border-foreground/[0.04] pt-5">
+              <div className="mt-5 flex gap-2 border-t border-gray-200 pt-5">
                 <button
                   type="button"
                   onClick={() => handleEdit(role)}
@@ -208,12 +206,12 @@ export default function AdminRolesPage() {
       {/* Role Form Modal */}
       {showForm && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
           role="dialog"
           aria-modal="true"
         >
-          <div className="max-h-[85vh] w-full max-w-2xl overflow-y-auto rounded-[2rem] bg-card p-6 shadow-2xl sm:p-8">
-            <h2 className="text-xl font-black tracking-tight text-gray-900">
+          <div className="max-h-[85vh] w-full max-w-2xl overflow-y-auto border border-gray-200 bg-card p-6 shadow-bento-hover sm:p-8">
+            <h2 className="text-xl font-heading font-semibold text-gray-900">
               {editingRole ? `Edit Role: ${editingRole.name}` : 'Create New Role'}
             </h2>
 
@@ -248,7 +246,7 @@ export default function AdminRolesPage() {
               <div className="space-y-3">
                 <p className="field-label mb-0">Permissions</p>
                 {Object.entries(permissionGroups).map(([group, perms]) => (
-                  <div key={group} className="rounded-[1.25rem] bg-gray-50 p-4">
+                  <div key={group} className="rounded-xl bg-gray-50 p-4">
                     <h4 className="eyebrow mb-3">{group}</h4>
                     <div className="flex flex-wrap gap-2">
                       {perms.map((p) => {
@@ -278,7 +276,7 @@ export default function AdminRolesPage() {
               </div>
             </div>
 
-            <div className="mt-6 flex justify-end gap-2 border-t border-foreground/[0.04] pt-5">
+            <div className="mt-6 flex justify-end gap-2 border-t border-gray-200 pt-5">
               <button type="button" onClick={() => setShowForm(false)} className="btn btn-soft">
                 Cancel
               </button>

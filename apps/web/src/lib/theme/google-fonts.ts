@@ -7,10 +7,11 @@ import type { ThemeConfig } from '@/lib/config/site-config';
  * by next/font, so we don't fire an extra request in the common case.
  *
  * Skipped families:
- *  - "Inter": already loaded via next/font in the root layout.
+ *  - "Inter", "Montserrat", "IBM Plex Sans": already loaded via next/font
+ *    in the root layout.
  *  - "Noto Sans Bengali": ditto.
  */
-const PRELOADED = new Set(['Inter', 'Noto Sans Bengali']);
+const PRELOADED = new Set(['Inter', 'Montserrat', 'IBM Plex Sans', 'Noto Sans Bengali']);
 
 export function getGoogleFontsUrl(typography: ThemeConfig['typography'] | undefined): string {
   if (!typography) {

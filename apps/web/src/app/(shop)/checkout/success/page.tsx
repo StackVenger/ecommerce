@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
-import { IconTile } from '@/components/ui/bento';
+import { Breadcrumbs } from '@/components/ui/bento';
 
 // ──────────────────────────────────────────────────────────
 // Confetti Animation (CSS-only)
@@ -18,7 +18,7 @@ import { IconTile } from '@/components/ui/bento';
  * No external dependencies required.
  */
 function Confetti() {
-  const colors = ['#f46e54', '#fd9a80', '#10b981', '#3b82f6', '#a855f7', '#f59e0b', '#1a1a1a'];
+  const colors = ['#f9706a', '#fca6a1', '#10b981', '#3b82f6', '#a855f7', '#f59e0b', '#1a1a1a'];
   // Random geometry is generated after mount so the server and client
   // markup match (Math.random during render caused a hydration mismatch).
   const [pieces, setPieces] = useState<
@@ -109,25 +109,21 @@ export default function CheckoutSuccessPage() {
   const steps = [
     {
       icon: MailCheck,
-      tone: 'brand' as const,
       title: 'Order Confirmation',
       text: 'You will receive an email confirmation with your order details shortly.',
     },
     {
       icon: PackageCheck,
-      tone: 'blue' as const,
       title: 'Processing',
       text: 'Our team will verify and start preparing your order within 24 hours.',
     },
     {
       icon: Truck,
-      tone: 'purple' as const,
       title: 'Shipping',
       text: 'Once shipped, you will receive a tracking update via SMS and email.',
     },
     {
       icon: Home,
-      tone: 'emerald' as const,
       title: 'Delivery',
       text: 'Your order will be delivered to your specified address.',
     },
@@ -137,16 +133,20 @@ export default function CheckoutSuccessPage() {
     <>
       {showConfetti && <Confetti />}
 
-      <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8 lg:py-16">
-        <div className="grid grid-cols-1 gap-4 sm:gap-6 md:grid-cols-6">
-          {/* Hero tile */}
-          <div className="bento-card flex flex-col items-center p-8 text-center sm:p-10 md:col-span-6">
-            <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-[1.75rem] bg-emerald-50 text-emerald-500">
-              <Check className="h-10 w-10" strokeWidth={3} />
+      <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'Order Confirmed' }]} />
+
+      <div className="site-container px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
+        <div className="mx-auto max-w-4xl space-y-6">
+          {/* Hero panel */}
+          <div className="flex flex-col items-center border border-gray-200 bg-card p-8 text-center sm:p-10">
+            <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-full border-2 border-emerald-500 text-emerald-500">
+              <Check className="h-8 w-8" strokeWidth={2.5} />
             </div>
 
-            <p className="eyebrow mb-2 text-emerald-600">Payment received · Order confirmed</p>
-            <h1 className="page-title mb-3 sm:text-4xl">Order Placed Successfully!</h1>
+            <p className="mb-2 text-sm font-medium text-emerald-600">
+              Payment received · Order confirmed
+            </p>
+            <h1 className="page-title mb-3 sm:text-3xl">Order Placed Successfully!</h1>
 
             <p className="page-subtitle max-w-md">
               Thank you for your order. We&apos;re getting it ready for you.
@@ -154,9 +154,9 @@ export default function CheckoutSuccessPage() {
 
             {/* Order number */}
             {orderNumber && (
-              <div className="mt-6 inline-flex flex-wrap items-center justify-center gap-3 rounded-[1.25rem] border border-primary/10 bg-primary/5 px-6 py-4">
-                <span className="eyebrow text-brand-700">Order Number</span>
-                <span className="font-mono text-lg font-black text-brand-700">{orderNumber}</span>
+              <div className="mt-6 inline-flex flex-wrap items-center justify-center gap-3 border border-gray-200 bg-gray-50 px-6 py-4">
+                <span className="text-sm text-gray-500">Order Number</span>
+                <span className="font-mono text-lg font-bold text-primary">{orderNumber}</span>
               </div>
             )}
 
@@ -171,45 +171,51 @@ export default function CheckoutSuccessPage() {
                 </Link>
               )}
 
-              <Link href="/" className="btn btn-secondary btn-lg w-full sm:w-auto">
+              <Link href="/" className="btn btn-outline btn-lg w-full sm:w-auto">
                 Continue Shopping
               </Link>
             </div>
           </div>
 
           {/* What happens next */}
-          <div className="bento-card p-6 sm:p-8 md:col-span-6">
-            <h2 className="section-title">What happens next?</h2>
-            <p className="eyebrow mb-6 mt-1">Your order journey</p>
+          <div className="border border-gray-200 bg-card p-6 sm:p-8">
+            <h2 className="shop-heading">What happens next?</h2>
+            <p className="mb-6 mt-3 text-sm text-gray-500">Your order journey</p>
 
-            <ol className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-              {steps.map((step, index) => (
-                <li key={step.title} className="bento-tile flex flex-col gap-3 p-5">
-                  <div className="flex items-center justify-between">
-                    <IconTile icon={step.icon} tone={step.tone} size="sm" />
-                    <span className="text-2xl font-black tabular-nums tracking-tighter text-gray-200">
-                      0{index + 1}
-                    </span>
-                  </div>
-                  <div>
-                    <p className="text-sm font-black text-gray-900">{step.title}</p>
-                    <p className="mt-1 text-xs font-medium leading-relaxed text-gray-500">
-                      {step.text}
-                    </p>
-                  </div>
-                </li>
-              ))}
+            <ol className="grid grid-cols-1 border-t border-gray-200 sm:grid-cols-2 lg:grid-cols-4">
+              {steps.map((step, index) => {
+                const Icon = step.icon;
+                return (
+                  <li
+                    key={step.title}
+                    className="flex flex-col gap-3 border-b border-gray-200 py-5 sm:px-4 lg:border-b-0 lg:border-r lg:last:border-r-0"
+                  >
+                    <div className="flex items-center justify-between">
+                      <Icon className="h-7 w-7 text-primary" strokeWidth={1.5} />
+                      <span className="font-heading text-xl font-semibold tabular-nums text-gray-300">
+                        0{index + 1}
+                      </span>
+                    </div>
+                    <div>
+                      <p className="font-heading text-sm font-semibold text-primary">
+                        {step.title}
+                      </p>
+                      <p className="mt-1 text-[13px] leading-relaxed text-gray-500">{step.text}</p>
+                    </div>
+                  </li>
+                );
+              })}
             </ol>
           </div>
-        </div>
 
-        {/* Help text */}
-        <p className="mt-8 text-center text-xs font-bold text-gray-400">
-          Have a question about your order?{' '}
-          <a href="/contact" className="font-black text-brand-700 hover:underline">
-            Contact our support team
-          </a>
-        </p>
+          {/* Help text */}
+          <p className="text-center text-sm text-gray-500">
+            Have a question about your order?{' '}
+            <a href="/contact" className="font-medium text-primary hover:underline">
+              Contact our support team
+            </a>
+          </p>
+        </div>
       </div>
     </>
   );

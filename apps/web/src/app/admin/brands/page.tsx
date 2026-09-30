@@ -74,10 +74,10 @@ interface BrandCardProps {
 
 function BrandCard({ brand, onEdit, onDelete }: BrandCardProps) {
   return (
-    <div className="bento-card group p-5 transition-all hover:shadow-md">
+    <div className="bento-card group p-5 transition-all hover:shadow-bento-hover">
       <div className="mb-4 flex items-start justify-between">
         {/* Logo */}
-        <div className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-[12px] border border-foreground/[0.04] bg-gray-50">
+        <div className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-lg border border-gray-200 bg-gray-50">
           {brand.logo ? (
             <img src={brand.logo} alt={brand.name} className="h-full w-full object-contain p-1" />
           ) : (
@@ -102,7 +102,7 @@ function BrandCard({ brand, onEdit, onDelete }: BrandCardProps) {
         </div>
       </div>
 
-      <h3 className="text-lg font-black tracking-tight text-gray-900">{brand.name}</h3>
+      <h3 className="text-lg font-heading font-semibold text-gray-900">{brand.name}</h3>
       {brand.nameBn && <p className="text-xs text-gray-500">{brand.nameBn}</p>}
       <p className="mt-1 line-clamp-2 text-xs text-gray-500">
         {brand.description || 'No description'}
@@ -132,8 +132,8 @@ function BrandCard({ brand, onEdit, onDelete }: BrandCardProps) {
 
 function BrandRow({ brand, onEdit, onDelete }: BrandCardProps) {
   return (
-    <div className="flex items-center gap-4 border-b border-foreground/[0.04] px-6 py-3 last:border-0 hover:bg-gray-50">
-      <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center overflow-hidden rounded-[12px] border border-foreground/[0.04] bg-gray-50">
+    <div className="flex items-center gap-4 border-b border-gray-200 px-6 py-3 last:border-0 hover:bg-gray-50">
+      <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center overflow-hidden rounded-lg border border-gray-200 bg-gray-50">
         {brand.logo ? (
           <img src={brand.logo} alt={brand.name} className="h-full w-full object-contain p-0.5" />
         ) : (
@@ -315,9 +315,9 @@ function BrandFormDialog({ isOpen, onClose, onSuccess, editBrand }: BrandFormDia
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       <div className="absolute inset-0 bg-black/50" onClick={onClose} />
-      <div className="relative w-full max-w-md rounded-[2rem] bg-card p-6 shadow-xl">
+      <div className="relative w-full max-w-md border border-gray-200 bg-card p-6 shadow-bento-hover">
         <div className="mb-6 flex items-center justify-between">
-          <h2 className="text-lg font-black text-gray-900 tracking-tight">
+          <h2 className="text-lg font-heading font-semibold text-gray-900">
             {isEditing ? 'Edit Brand' : 'Create Brand'}
           </h2>
           <button
@@ -331,7 +331,7 @@ function BrandFormDialog({ isOpen, onClose, onSuccess, editBrand }: BrandFormDia
         <div className="space-y-4">
           {/* Logo Upload */}
           <div className="flex items-center gap-4">
-            <div className="flex h-16 w-16 flex-shrink-0 items-center justify-center overflow-hidden rounded-[12px] border-2 border-dashed border-gray-300 bg-gray-50">
+            <div className="flex h-16 w-16 flex-shrink-0 items-center justify-center overflow-hidden rounded-lg border-2 border-dashed border-gray-300 bg-gray-50">
               {formData.logo ? (
                 <img src={formData.logo} alt="Logo" className="h-full w-full object-contain p-1" />
               ) : (
@@ -447,7 +447,7 @@ function BrandFormDialog({ isOpen, onClose, onSuccess, editBrand }: BrandFormDia
           </label>
         </div>
 
-        <div className="mt-6 flex justify-end gap-3 border-t border-foreground/[0.04] pt-4">
+        <div className="mt-6 flex justify-end gap-3 border-t border-gray-200 pt-4">
           <button onClick={onClose} className="btn btn-secondary">
             Cancel
           </button>
@@ -556,7 +556,7 @@ export default function AdminBrandsPage() {
           />
         </div>
 
-        <div className="flex rounded-2xl border border-foreground/[0.05] bg-card p-1 shadow-sm">
+        <div className="flex rounded-2xl border border-gray-200 bg-card p-1 shadow-sm">
           <button
             onClick={() => setViewMode('grid')}
             aria-label="Grid view"

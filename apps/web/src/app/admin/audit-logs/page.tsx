@@ -108,7 +108,7 @@ export default function AdminAuditLogPage() {
       />
 
       {/* Filters */}
-      <div className="mb-6 rounded-[1.75rem] border border-foreground/[0.04] bg-card p-3 shadow-bento">
+      <div className="mb-6 rounded-2xl border border-gray-200 bg-card p-3 shadow-bento">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
           <select
             value={entity}
@@ -178,22 +178,22 @@ export default function AdminAuditLogPage() {
                       onClick={() => setExpandedId(expandedId === log.id ? null : log.id)}
                       className={`cursor-pointer ${expandedId === log.id ? 'bg-gray-50' : ''}`}
                     >
-                      <td className="whitespace-nowrap pl-4 text-xs font-bold text-gray-500">
+                      <td className="whitespace-nowrap pl-4 text-xs text-gray-500">
                         {new Date(log.createdAt).toLocaleString()}
                       </td>
-                      <td className="whitespace-nowrap text-sm font-black text-gray-900">
+                      <td className="whitespace-nowrap text-sm font-semibold text-gray-900">
                         {log.user ? `${log.user.firstName} ${log.user.lastName}` : 'System'}
                       </td>
                       <td className="whitespace-nowrap">{actionBadge(log.action)}</td>
                       <td className="whitespace-nowrap">
-                        <span className="rounded-xl bg-gray-100 px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-gray-600">
+                        <span className="bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-600">
                           {log.entity}
                         </span>
                       </td>
                       <td className="whitespace-nowrap font-mono text-xs text-gray-400">
                         {log.entityId ? log.entityId.slice(0, 8) + '...' : '—'}
                       </td>
-                      <td className="whitespace-nowrap pr-4 text-xs font-bold text-gray-400">
+                      <td className="whitespace-nowrap pr-4 text-xs text-gray-400">
                         {log.ipAddress ?? '—'}
                       </td>
                     </tr>
@@ -204,7 +204,7 @@ export default function AdminAuditLogPage() {
                             {log.oldValues && (
                               <div>
                                 <h4 className="eyebrow mb-2">Previous Values</h4>
-                                <pre className="max-h-40 overflow-auto rounded-[1.25rem] bg-gray-50 p-4 text-xs text-gray-700">
+                                <pre className="max-h-40 overflow-auto rounded-xl bg-gray-50 p-4 text-xs text-gray-700">
                                   {formatJson(log.oldValues)}
                                 </pre>
                               </div>
@@ -212,7 +212,7 @@ export default function AdminAuditLogPage() {
                             {log.newValues && (
                               <div>
                                 <h4 className="eyebrow mb-2">New Values</h4>
-                                <pre className="max-h-40 overflow-auto rounded-[1.25rem] bg-ink p-4 text-xs text-white/80">
+                                <pre className="max-h-40 overflow-auto rounded-xl bg-ink p-4 text-xs text-white/80">
                                   {formatJson(log.newValues)}
                                 </pre>
                               </div>

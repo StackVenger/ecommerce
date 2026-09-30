@@ -135,14 +135,12 @@ export default function AdminCustomersPage() {
         title="Customers"
         description={`${pagination.total} total users`}
         actions={
-          <div className="flex items-center gap-3 rounded-2xl border border-foreground/[0.04] bg-card px-4 py-2.5 shadow-bento">
+          <div className="flex items-center gap-3 rounded-2xl border border-gray-200 bg-card px-4 py-2.5 shadow-bento">
             <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-blue-50 text-blue-500">
               <Users className="h-4 w-4" strokeWidth={2.5} />
             </div>
             <div>
-              <p className="text-lg font-black leading-none tabular-nums tracking-tighter text-gray-900">
-                {pagination.total}
-              </p>
+              <p className="stat-value text-lg leading-none">{pagination.total}</p>
               <p className="eyebrow mt-0.5">Accounts</p>
             </div>
           </div>
@@ -150,7 +148,7 @@ export default function AdminCustomersPage() {
       />
 
       {/* Search and Filters */}
-      <div className="mb-6 rounded-[1.75rem] border border-foreground/[0.04] bg-card p-3 shadow-bento">
+      <div className="mb-6 rounded-2xl border border-gray-200 bg-card p-3 shadow-bento">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
           <div className="group/search relative flex-1">
             <Search
@@ -223,11 +221,11 @@ export default function AdminCustomersPage() {
                         href={`/admin/customers/${customer.id}`}
                         className="flex items-center gap-3"
                       >
-                        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[16px] bg-brand-50 text-sm font-black text-brand-700 transition-transform group-hover:scale-105">
+                        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-brand-50 text-sm font-semibold text-brand-700 transition-transform">
                           {customer.firstName.charAt(0)}
                           {customer.lastName.charAt(0)}
                         </div>
-                        <span className="whitespace-nowrap text-sm font-black text-gray-900 transition-colors group-hover:text-primary">
+                        <span className="whitespace-nowrap text-sm font-semibold text-gray-900 transition-colors group-hover:text-primary">
                           {customer.firstName} {customer.lastName}
                         </span>
                       </a>
@@ -237,7 +235,7 @@ export default function AdminCustomersPage() {
                         {customer.email}
                       </div>
                       {customer.phone && (
-                        <div className="text-[11px] font-bold text-gray-400">{customer.phone}</div>
+                        <div className="text-xs text-gray-500">{customer.phone}</div>
                       )}
                     </td>
                     <td className="text-center">
@@ -246,17 +244,17 @@ export default function AdminCustomersPage() {
                     <td className="text-center">
                       <AccountStatusPill status={customer.status} />
                     </td>
-                    <td className="text-center text-sm font-black tabular-nums text-gray-900">
+                    <td className="text-center text-sm font-semibold tabular-nums text-gray-900">
                       {customer.orders}
                     </td>
-                    <td className="whitespace-nowrap text-xs font-bold text-gray-500">
+                    <td className="whitespace-nowrap text-xs text-gray-500">
                       {new Date(customer.createdAt).toLocaleDateString('en-BD', {
                         day: 'numeric',
                         month: 'short',
                         year: 'numeric',
                       })}
                     </td>
-                    <td className="whitespace-nowrap text-xs font-bold text-gray-500">
+                    <td className="whitespace-nowrap text-xs text-gray-500">
                       {customer.lastLoginAt ? (
                         new Date(customer.lastLoginAt).toLocaleDateString('en-BD', {
                           day: 'numeric',

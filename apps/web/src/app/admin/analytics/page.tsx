@@ -17,13 +17,7 @@ import { ConversionFunnel } from '@/components/admin/analytics/conversion-funnel
 import { DateRangePicker, type DateRange } from '@/components/admin/analytics/date-range-picker';
 import { MostSearchedChart } from '@/components/admin/analytics/most-searched-chart';
 import { MostViewedChart } from '@/components/admin/analytics/most-viewed-chart';
-import {
-  BentoGlow,
-  PageHeader,
-  SectionHeader,
-  SkeletonBlock,
-  StatCard,
-} from '@/components/ui/bento';
+import { PageHeader, SectionHeader, SkeletonBlock, StatCard } from '@/components/ui/bento';
 import {
   fetchAnalyticsOverview,
   formatBDT,
@@ -66,7 +60,7 @@ function RankTable<T>({
       <SectionHeader title={title} caption={subtitle} icon={icon} />
 
       {data.length === 0 ? (
-        <p className="flex flex-1 items-center justify-center rounded-[1.5rem] bg-gray-50 py-10 text-center text-sm font-bold text-gray-400">
+        <p className="flex flex-1 items-center justify-center rounded-xl bg-gray-50 py-10 text-center text-sm text-gray-500">
           {emptyMessage}
         </p>
       ) : (
@@ -88,7 +82,7 @@ function RankTable<T>({
                   <td>
                     <span
                       className={cn(
-                        'flex h-8 w-8 items-center justify-center rounded-xl text-[11px] font-black tabular-nums',
+                        'flex h-8 w-8 items-center justify-center text-xs font-semibold tabular-nums',
                         index === 0 ? 'bg-primary text-white' : 'bg-gray-100 text-gray-500',
                       )}
                     >
@@ -163,11 +157,11 @@ export default function AnalyticsPage() {
         />
         <div className="grid grid-cols-2 gap-4 sm:gap-6 md:grid-cols-6 xl:grid-cols-12">
           {Array.from({ length: 4 }).map((_, i) => (
-            <SkeletonBlock key={i} className="h-44 rounded-[2rem] md:col-span-3" />
+            <SkeletonBlock key={i} className="h-44 rounded-2xl md:col-span-3" />
           ))}
-          <SkeletonBlock className="col-span-2 h-80 rounded-[2rem] md:col-span-6 xl:col-span-12" />
-          <SkeletonBlock className="col-span-2 h-96 rounded-[2rem] md:col-span-6" />
-          <SkeletonBlock className="col-span-2 h-96 rounded-[2rem] md:col-span-6" />
+          <SkeletonBlock className="col-span-2 h-80 rounded-2xl md:col-span-6 xl:col-span-12" />
+          <SkeletonBlock className="col-span-2 h-96 rounded-2xl md:col-span-6" />
+          <SkeletonBlock className="col-span-2 h-96 rounded-2xl md:col-span-6" />
         </div>
       </div>
     );
@@ -186,7 +180,7 @@ export default function AnalyticsPage() {
           <div className="icon-tile bg-rose-50 text-rose-500">
             <AlertTriangle className="h-6 w-6" strokeWidth={2.25} />
           </div>
-          <p className="text-sm font-black text-gray-900">{error ?? 'Something went wrong'}</p>
+          <p className="text-sm font-semibold text-gray-900">{error ?? 'Something went wrong'}</p>
           <button type="button" onClick={loadData} className="btn btn-dark btn-sm">
             Retry
           </button>
@@ -210,23 +204,18 @@ export default function AnalyticsPage() {
 
       <div className="grid grid-cols-2 gap-4 sm:gap-6 md:grid-cols-6 xl:grid-cols-12">
         {/* KPI tiles — conversion rate leads as the coral hero */}
-        <div className="bento-primary col-span-2 flex flex-col justify-between gap-6 p-7 md:col-span-6 xl:col-span-3">
-          <BentoGlow variant="primary" />
-          <div className="relative z-10 flex items-start justify-between">
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/20 backdrop-blur-md">
+        <div className="bento-card col-span-2 flex flex-col justify-between gap-6 border-t-2 border-t-primary p-7 md:col-span-6 xl:col-span-3">
+          <div className="flex items-start justify-between">
+            <div className="icon-tile bg-brand-50 text-primary">
               <TrendingUp className="h-6 w-6" strokeWidth={2.25} />
             </div>
-            <span className="rounded-xl bg-white/15 px-3 py-1 text-[10px] font-black uppercase tracking-widest">
+            <span className="bg-gray-100 px-3 py-1 text-xs font-medium text-gray-600">
               Views → Orders
             </span>
           </div>
-          <div className="relative z-10">
-            <p className="mb-1 text-[10px] font-black uppercase tracking-widest text-white/70">
-              Conversion Rate
-            </p>
-            <p className="text-5xl font-black tabular-nums tracking-tighter">
-              {data.funnel.overallConversionRate}%
-            </p>
+          <div>
+            <p className="eyebrow mb-1">Conversion Rate</p>
+            <p className="stat-value text-5xl text-primary">{data.funnel.overallConversionRate}%</p>
           </div>
         </div>
         <StatCard
@@ -276,13 +265,13 @@ export default function AnalyticsPage() {
             {
               label: 'Product',
               render: (item) => (
-                <span className="text-sm font-black text-gray-900">{item.name}</span>
+                <span className="text-sm font-semibold text-gray-900">{item.name}</span>
               ),
             },
             {
               label: 'Units Sold',
               render: (item) => (
-                <span className="font-black tabular-nums text-gray-700">
+                <span className="font-semibold tabular-nums text-gray-700">
                   {item.totalQuantity.toLocaleString()}
                 </span>
               ),
@@ -291,7 +280,7 @@ export default function AnalyticsPage() {
             {
               label: 'Revenue',
               render: (item) => (
-                <span className="font-black tabular-nums tracking-tight text-primary">
+                <span className="font-semibold tabular-nums text-primary">
                   {formatBDT(item.totalRevenue)}
                 </span>
               ),
@@ -311,7 +300,7 @@ export default function AnalyticsPage() {
             {
               label: 'Product',
               render: (item) => (
-                <span className="text-sm font-black text-gray-900">{item.name}</span>
+                <span className="text-sm font-semibold text-gray-900">{item.name}</span>
               ),
             },
             {
@@ -319,7 +308,7 @@ export default function AnalyticsPage() {
               render: (item) => (
                 <div className="flex items-center justify-end gap-1.5">
                   <ShoppingCart className="h-3.5 w-3.5 text-gray-400" />
-                  <span className="font-black tabular-nums text-gray-700">
+                  <span className="font-semibold tabular-nums text-gray-700">
                     {item.cartAddCount.toLocaleString()}
                   </span>
                 </div>
@@ -341,7 +330,7 @@ export default function AnalyticsPage() {
             {
               label: 'Product',
               render: (item) => (
-                <span className="text-sm font-black text-gray-900">{item.name}</span>
+                <span className="text-sm font-semibold text-gray-900">{item.name}</span>
               ),
             },
             {
@@ -349,7 +338,7 @@ export default function AnalyticsPage() {
               render: (item) => (
                 <div className="flex items-center justify-end gap-1.5">
                   <Heart className="h-3.5 w-3.5 text-rose-400" />
-                  <span className="font-black tabular-nums text-gray-700">
+                  <span className="font-semibold tabular-nums text-gray-700">
                     {item.wishlistCount.toLocaleString()}
                   </span>
                 </div>

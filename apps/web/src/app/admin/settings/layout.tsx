@@ -22,7 +22,7 @@ export default function SettingsLayout({ children }: { children: ReactNode }) {
       </div>
 
       <nav
-        className="flex gap-1 overflow-x-auto rounded-[1.5rem] border border-foreground/[0.04] bg-card p-2 shadow-bento scrollbar-none sm:w-fit"
+        className="flex gap-1 overflow-x-auto border border-gray-200 bg-card p-2 scrollbar-none sm:w-fit"
         aria-label="Settings tabs"
       >
         {SETTINGS_TABS.map((tab) => {

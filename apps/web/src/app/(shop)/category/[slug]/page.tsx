@@ -1,12 +1,11 @@
 'use client';
 
-import { ChevronRight, PackageSearch, SlidersHorizontal } from 'lucide-react';
-import Link from 'next/link';
+import { PackageSearch, SlidersHorizontal } from 'lucide-react';
 import { useParams } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 
 import { ProductCard, ProductCardSkeleton, ProductGrid } from '@/components/products/product-card';
-import { EmptyState } from '@/components/ui/bento';
+import { Breadcrumbs, EmptyState } from '@/components/ui/bento';
 import { RichText } from '@/components/ui/rich-text';
 import { apiClient } from '@/lib/api/client';
 
@@ -155,264 +154,256 @@ export default function CategoryPage() {
   const formatPrice = (price: number) => `৳${price.toLocaleString('en-BD')}`;
 
   return (
-    <div className="site-container px-4 py-6 sm:py-8">
-      {/* Breadcrumb */}
-      <nav className="mb-4 flex items-center gap-2 text-xs font-bold text-gray-400">
-        <Link href="/" className="transition-colors hover:text-gray-900">
-          Home
-        </Link>
-        <ChevronRight className="h-3.5 w-3.5" />
-        <span className="text-gray-900">{category?.name ?? slug}</span>
-      </nav>
+    <div className="min-h-screen bg-background">
+      <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: category?.name ?? slug }]} />
 
-      {/* Header */}
-      <div className="mb-6 sm:mb-8">
-        <h1 className="page-title">{category?.name ?? 'Category'}</h1>
-        {category?.description && (
-          <RichText
-            html={category.description}
-            className="mt-1 text-sm font-medium text-gray-500"
-          />
-        )}
-        {pagination && <p className="page-subtitle mt-1">{pagination.total} products</p>}
-      </div>
-
-      <div className="flex flex-col gap-6 lg:flex-row">
-        {/* Sidebar Filters */}
-        <aside
-          className={`bento-card w-full shrink-0 space-y-7 self-start p-6 lg:w-64 ${
-            showFilters ? 'block' : 'hidden lg:block'
-          }`}
-        >
-          {/* Brands */}
-          {facets && facets.brands.length > 0 && (
-            <div>
-              <h3 className="eyebrow mb-3">Brand</h3>
-              <div className="space-y-2">
-                {facets.brands.map((brand) => (
-                  <label key={brand.value} className="flex cursor-pointer items-center gap-2.5">
-                    <input
-                      type="checkbox"
-                      checked={selectedBrands.includes(brand.value)}
-                      onChange={() => toggleBrand(brand.value)}
-                      className="h-4 w-4 rounded border-gray-300 text-brand-600 focus:ring-brand-500"
-                    />
-                    <span className="text-sm font-bold text-gray-700">{brand.label}</span>
-                    <span className="ml-auto text-[11px] font-bold tabular-nums text-gray-400">
-                      {brand.count}
-                    </span>
-                  </label>
-                ))}
-              </div>
-            </div>
+      <div className="site-container px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
+        {/* Header */}
+        <div className="mb-6 sm:mb-8">
+          <h1 className="shop-heading">{category?.name ?? 'Category'}</h1>
+          {category?.description && (
+            <RichText html={category.description} className="mt-3 text-sm text-gray-600" />
           )}
+          {pagination && <p className="mt-2 text-sm text-gray-500">{pagination.total} products</p>}
+        </div>
 
-          {/* Price Range */}
-          <div>
-            <h3 className="eyebrow mb-3">Price (৳)</h3>
-            <div className="flex items-center gap-2">
-              <input
-                type="number"
-                value={minPrice}
-                onChange={(e) => {
-                  setMinPrice(e.target.value);
-                  setPage(1);
-                }}
-                placeholder="Min"
-                aria-label="Minimum price"
-                className="field-input px-3 py-2.5"
-              />
-              <span className="font-bold text-gray-300">—</span>
-              <input
-                type="number"
-                value={maxPrice}
-                onChange={(e) => {
-                  setMaxPrice(e.target.value);
-                  setPage(1);
-                }}
-                placeholder="Max"
-                aria-label="Maximum price"
-                className="field-input px-3 py-2.5"
-              />
-            </div>
-            {facets && (
-              <p className="field-hint">
-                Range: {formatPrice(facets.priceRange.min)} - {formatPrice(facets.priceRange.max)}
-              </p>
-            )}
-          </div>
-
-          {/* Rating */}
-          {facets && facets.ratings.length > 0 && (
-            <div>
-              <h3 className="eyebrow mb-3">Rating</h3>
-              <div className="space-y-2">
-                {[4, 3, 2, 1].map((r) => (
-                  <label key={r} className="flex cursor-pointer items-center gap-2.5">
-                    <input
-                      type="radio"
-                      name="rating"
-                      checked={minRating === r}
-                      onChange={() => {
-                        setMinRating(r);
-                        setPage(1);
-                      }}
-                      className="h-4 w-4 border-gray-300 text-brand-600 focus:ring-brand-500"
-                    />
-                    <span className="flex text-sm">
-                      {Array.from({ length: 5 }).map((_, i) => (
-                        <span key={i} className={i < r ? 'text-amber-400' : 'text-gray-300'}>
-                          ★
-                        </span>
-                      ))}
-                    </span>
-                    <span className="text-[11px] font-bold text-gray-500">& Up</span>
-                  </label>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Availability */}
-          <div>
-            <label className="flex cursor-pointer items-center gap-2.5">
-              <input
-                type="checkbox"
-                checked={inStock}
-                onChange={(e) => {
-                  setInStock(e.target.checked);
-                  setPage(1);
-                }}
-                className="h-4 w-4 rounded border-gray-300 text-brand-600 focus:ring-brand-500"
-              />
-              <span className="text-sm font-bold text-gray-700">In Stock Only</span>
-              {facets && (
-                <span className="ml-auto text-[11px] font-bold tabular-nums text-gray-400">
-                  {facets.availability.inStock}
-                </span>
-              )}
-            </label>
-          </div>
-
-          {/* Clear Filters */}
-          <button
-            onClick={() => {
-              setSelectedBrands([]);
-              setMinPrice('');
-              setMaxPrice('');
-              setMinRating(0);
-              setInStock(false);
-              setPage(1);
-            }}
-            className="btn btn-soft btn-sm w-full"
+        <div className="flex flex-col gap-6 lg:flex-row lg:gap-8">
+          {/* Sidebar Filters */}
+          <aside
+            className={`w-full shrink-0 self-start bg-gray-50 p-5 lg:w-[270px] [&>*+*]:mt-5 [&>*+*]:border-t [&>*+*]:border-gray-200 [&>*+*]:pt-5 ${
+              showFilters ? 'block' : 'hidden lg:block'
+            }`}
           >
-            Clear All Filters
-          </button>
-        </aside>
+            {/* Brands */}
+            {facets && facets.brands.length > 0 && (
+              <div>
+                <h3 className="mb-4 font-heading text-base font-semibold text-gray-900">Brand</h3>
+                <div className="space-y-2">
+                  {facets.brands.map((brand) => (
+                    <label key={brand.value} className="flex cursor-pointer items-center gap-2.5">
+                      <input
+                        type="checkbox"
+                        checked={selectedBrands.includes(brand.value)}
+                        onChange={() => toggleBrand(brand.value)}
+                        className="h-4 w-4 border-gray-300 text-primary accent-primary focus:ring-primary"
+                      />
+                      <span className="text-sm text-gray-700">{brand.label}</span>
+                      <span className="ml-auto text-[13px] tabular-nums text-gray-500">
+                        {brand.count}
+                      </span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+            )}
 
-        {/* Product Grid */}
-        <div className="min-w-0 flex-1">
-          {/* Sort Bar */}
-          <div className="mb-5 flex items-center justify-between gap-3">
+            {/* Price Range */}
+            <div>
+              <h3 className="mb-4 font-heading text-base font-semibold text-gray-900">Price (৳)</h3>
+              <div className="flex items-center gap-2">
+                <input
+                  type="number"
+                  value={minPrice}
+                  onChange={(e) => {
+                    setMinPrice(e.target.value);
+                    setPage(1);
+                  }}
+                  placeholder="Min"
+                  aria-label="Minimum price"
+                  className="field-input h-10 px-3"
+                />
+                <span className="text-gray-400">–</span>
+                <input
+                  type="number"
+                  value={maxPrice}
+                  onChange={(e) => {
+                    setMaxPrice(e.target.value);
+                    setPage(1);
+                  }}
+                  placeholder="Max"
+                  aria-label="Maximum price"
+                  className="field-input h-10 px-3"
+                />
+              </div>
+              {facets && (
+                <p className="field-hint">
+                  Range: {formatPrice(facets.priceRange.min)} - {formatPrice(facets.priceRange.max)}
+                </p>
+              )}
+            </div>
+
+            {/* Rating */}
+            {facets && facets.ratings.length > 0 && (
+              <div>
+                <h3 className="mb-4 font-heading text-base font-semibold text-gray-900">Rating</h3>
+                <div className="space-y-2">
+                  {[4, 3, 2, 1].map((r) => (
+                    <label key={r} className="flex cursor-pointer items-center gap-2.5">
+                      <input
+                        type="radio"
+                        name="rating"
+                        checked={minRating === r}
+                        onChange={() => {
+                          setMinRating(r);
+                          setPage(1);
+                        }}
+                        className="h-4 w-4 border-gray-300 text-primary accent-primary focus:ring-primary"
+                      />
+                      <span className="flex text-sm">
+                        {Array.from({ length: 5 }).map((_, i) => (
+                          <span key={i} className={i < r ? 'text-amber-400' : 'text-gray-300'}>
+                            ★
+                          </span>
+                        ))}
+                      </span>
+                      <span className="text-[13px] text-gray-500">& Up</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Availability */}
+            <div>
+              <label className="flex cursor-pointer items-center gap-2.5">
+                <input
+                  type="checkbox"
+                  checked={inStock}
+                  onChange={(e) => {
+                    setInStock(e.target.checked);
+                    setPage(1);
+                  }}
+                  className="h-4 w-4 border-gray-300 text-primary accent-primary focus:ring-primary"
+                />
+                <span className="text-sm text-gray-700">In Stock Only</span>
+                {facets && (
+                  <span className="ml-auto text-[13px] tabular-nums text-gray-500">
+                    {facets.availability.inStock}
+                  </span>
+                )}
+              </label>
+            </div>
+
+            {/* Clear Filters */}
             <button
-              onClick={() => setShowFilters(!showFilters)}
-              className="btn btn-secondary btn-sm lg:hidden"
-            >
-              <SlidersHorizontal className="h-4 w-4" strokeWidth={2.5} />
-              {showFilters ? 'Hide Filters' : 'Show Filters'}
-            </button>
-            <select
-              value={sortBy}
-              onChange={(e) => {
-                setSortBy(e.target.value);
+              onClick={() => {
+                setSelectedBrands([]);
+                setMinPrice('');
+                setMaxPrice('');
+                setMinRating(0);
+                setInStock(false);
                 setPage(1);
               }}
-              aria-label="Sort products"
-              className="field-input ml-auto w-auto cursor-pointer py-2.5 pr-9 text-xs font-bold"
+              className="btn btn-secondary btn-sm w-full"
             >
-              {SORT_OPTIONS.map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
-          </div>
+              Clear All Filters
+            </button>
+          </aside>
 
-          {loading ? (
-            <ProductGrid columns={3}>
-              {Array.from({ length: 9 }).map((_, i) => (
-                <ProductCardSkeleton key={i} />
-              ))}
-            </ProductGrid>
-          ) : products.length === 0 ? (
-            <EmptyState icon={PackageSearch} title="No products match your filters." />
-          ) : (
-            <ProductGrid columns={3}>
-              {products.map((product) => (
-                <ProductCard
-                  key={product.id}
-                  href={`/product/${product.slug}`}
-                  name={product.name}
-                  image={product.images?.[0]}
-                  brand={product.brandName}
-                  rating={product.reviewCount > 0 ? product.averageRating : null}
-                  reviewCount={product.reviewCount}
-                  price={product.salePrice ?? product.price}
-                  originalPrice={product.salePrice ? product.price : null}
-                  formatPrice={formatPrice}
-                  badges={
-                    product.salePrice
-                      ? [
-                          {
-                            label: `${Math.round(((product.price - product.salePrice) / product.price) * 100)}% OFF`,
-                            tone: 'sale',
-                          },
-                        ]
-                      : []
-                  }
-                />
-              ))}
-            </ProductGrid>
-          )}
-
-          {/* Pagination */}
-          {pagination && pagination.pages > 1 && (
-            <div className="mt-8 flex flex-wrap items-center justify-center gap-1.5">
+          {/* Product Grid */}
+          <div className="min-w-0 flex-1">
+            {/* Sort Bar */}
+            <div className="mb-7 flex items-center justify-between gap-3 border border-gray-200 px-3 py-2.5 sm:px-4 sm:py-3">
               <button
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
-                disabled={page === 1}
-                className="btn btn-soft btn-sm"
+                onClick={() => setShowFilters(!showFilters)}
+                className="btn btn-secondary btn-sm h-9 lg:hidden"
               >
-                Previous
+                <SlidersHorizontal className="h-4 w-4" strokeWidth={2} />
+                {showFilters ? 'Hide Filters' : 'Show Filters'}
               </button>
-
-              {Array.from({ length: Math.min(5, pagination.pages) }).map((_, i) => {
-                const pageNum = i + 1;
-                return (
-                  <button
-                    key={pageNum}
-                    onClick={() => setPage(pageNum)}
-                    aria-current={pageNum === page ? 'page' : undefined}
-                    className={`h-10 min-w-[40px] rounded-xl px-3 text-xs font-black tabular-nums transition-all ${
-                      pageNum === page
-                        ? 'bg-ink text-white shadow-lg shadow-black/10'
-                        : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900'
-                    }`}
-                  >
-                    {pageNum}
-                  </button>
-                );
-              })}
-
-              <button
-                onClick={() => setPage((p) => Math.min(pagination.pages, p + 1))}
-                disabled={page === pagination.pages}
-                className="btn btn-dark btn-sm"
+              <select
+                value={sortBy}
+                onChange={(e) => {
+                  setSortBy(e.target.value);
+                  setPage(1);
+                }}
+                aria-label="Sort products"
+                className="ml-auto h-9 cursor-pointer border-0 bg-gray-100 px-3 pr-8 text-sm text-gray-700 outline-none focus:ring-1 focus:ring-primary"
               >
-                Next
-              </button>
+                {SORT_OPTIONS.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
+                ))}
+              </select>
             </div>
-          )}
+
+            {loading ? (
+              <ProductGrid columns={3}>
+                {Array.from({ length: 9 }).map((_, i) => (
+                  <ProductCardSkeleton key={i} />
+                ))}
+              </ProductGrid>
+            ) : products.length === 0 ? (
+              <EmptyState icon={PackageSearch} title="No products match your filters." />
+            ) : (
+              <ProductGrid columns={3}>
+                {products.map((product) => (
+                  <ProductCard
+                    key={product.id}
+                    href={`/product/${product.slug}`}
+                    name={product.name}
+                    image={product.images?.[0]}
+                    brand={product.brandName}
+                    rating={product.reviewCount > 0 ? product.averageRating : null}
+                    reviewCount={product.reviewCount}
+                    price={product.salePrice ?? product.price}
+                    originalPrice={product.salePrice ? product.price : null}
+                    formatPrice={formatPrice}
+                    badges={
+                      product.salePrice
+                        ? [
+                            {
+                              label: `${Math.round(((product.price - product.salePrice) / product.price) * 100)}% OFF`,
+                              tone: 'sale',
+                            },
+                          ]
+                        : []
+                    }
+                  />
+                ))}
+              </ProductGrid>
+            )}
+
+            {/* Pagination */}
+            {pagination && pagination.pages > 1 && (
+              <div className="mt-10 flex flex-wrap items-center justify-center gap-1.5 border border-gray-200 px-3 py-3 sm:justify-start sm:px-4">
+                <button
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  disabled={page === 1}
+                  className="flex h-9 min-w-[36px] items-center justify-center border border-gray-200 bg-card px-2.5 text-sm tabular-nums text-gray-700 transition-colors hover:text-primary disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:text-gray-700"
+                >
+                  Previous
+                </button>
+
+                {Array.from({ length: Math.min(5, pagination.pages) }).map((_, i) => {
+                  const pageNum = i + 1;
+                  return (
+                    <button
+                      key={pageNum}
+                      onClick={() => setPage(pageNum)}
+                      aria-current={pageNum === page ? 'page' : undefined}
+                      className={`flex h-9 min-w-[36px] items-center justify-center border border-gray-200 bg-card px-2.5 text-sm tabular-nums text-gray-700 transition-colors hover:text-primary disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:text-gray-700 ${
+                        pageNum === page
+                          ? 'border-primary bg-primary text-white hover:text-white'
+                          : ''
+                      }`}
+                    >
+                      {pageNum}
+                    </button>
+                  );
+                })}
+
+                <button
+                  onClick={() => setPage((p) => Math.min(pagination.pages, p + 1))}
+                  disabled={page === pagination.pages}
+                  className="flex h-9 min-w-[36px] items-center justify-center border border-gray-200 bg-card px-2.5 text-sm tabular-nums text-gray-700 transition-colors hover:text-primary disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:text-gray-700"
+                >
+                  Next
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>

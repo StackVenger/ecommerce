@@ -78,7 +78,7 @@ export function DateRangePicker({ value, onChange }: DateRangePickerProps) {
 
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <div className="flex items-center gap-1 rounded-2xl border border-foreground/[0.04] bg-card p-1.5 shadow-bento">
+      <div className="flex items-center gap-1 border border-gray-200 bg-card p-1.5">
         {presets.map((preset) => (
           <button
             key={preset.key}
@@ -91,21 +91,21 @@ export function DateRangePicker({ value, onChange }: DateRangePickerProps) {
         ))}
       </div>
 
-      <div className="flex items-center gap-1.5 rounded-2xl border border-foreground/[0.04] bg-card p-1.5 text-xs font-bold text-gray-400 shadow-bento">
+      <div className="flex items-center gap-1.5 border border-gray-200 bg-card p-1.5 text-xs text-gray-500">
         <input
           type="date"
           value={value.startDate}
           onChange={(e) => onChange({ ...value, startDate: e.target.value })}
           aria-label="Start date"
-          className="rounded-xl border-0 bg-gray-50 px-2.5 py-1.5 text-xs font-bold text-gray-700 outline-none focus:ring-2 focus:ring-brand-500/20"
+          className="h-9 border-0 bg-gray-100 px-3 text-sm text-gray-700 outline-none focus:ring-1 focus:ring-primary"
         />
-        <span className="eyebrow">to</span>
+        <span className="text-xs text-gray-500">to</span>
         <input
           type="date"
           value={value.endDate}
           onChange={(e) => onChange({ ...value, endDate: e.target.value })}
           aria-label="End date"
-          className="rounded-xl border-0 bg-gray-50 px-2.5 py-1.5 text-xs font-bold text-gray-700 outline-none focus:ring-2 focus:ring-brand-500/20"
+          className="h-9 border-0 bg-gray-100 px-3 text-sm text-gray-700 outline-none focus:ring-1 focus:ring-primary"
         />
       </div>
     </div>

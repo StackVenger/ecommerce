@@ -21,7 +21,7 @@ import { useIsDark } from '@/lib/theme/color-mode';
 // ──────────────────────────────────────────────────────────
 
 const BAR_COLORS = [
-  '#f46e54',
+  '#f9706a',
   '#4f46e5',
   '#7c3aed',
   '#2563eb',
@@ -31,7 +31,7 @@ const BAR_COLORS = [
   '#dc2626',
   '#db2777',
   '#4338ca',
-  '#f46e54',
+  '#f9706a',
 ];
 
 // ──────────────────────────────────────────────────────────
@@ -57,12 +57,12 @@ function CustomTooltip({ active, payload }: CustomTooltipProps) {
   }
 
   return (
-    <div className="rounded-2xl bg-ink px-4 py-3 text-white shadow-xl shadow-black/10">
-      <p className="mb-1 text-xs font-black text-white">{product.name}</p>
-      <p className="text-[11px] font-bold text-white/60">
+    <div className="border border-gray-200 bg-card px-4 py-3 text-gray-900 shadow-bento-hover">
+      <p className="mb-1 font-heading text-xs font-semibold text-gray-900">{product.name}</p>
+      <p className="text-xs text-gray-600">
         Sold: <span className="font-medium">{product.totalSold} units</span>
       </p>
-      <p className="text-[11px] font-bold text-white/60">
+      <p className="text-xs text-gray-600">
         Revenue: <span className="font-medium">{formatBDT(product.revenue)}</span>
       </p>
     </div>
@@ -98,18 +98,18 @@ export function TopProductsChart() {
 
   if (isLoading) {
     return (
-      <div className="bento-card p-6 sm:p-8">
-        <div className="mb-4 h-6 w-40 animate-pulse rounded-xl bg-gray-100" />
-        <div className="h-80 animate-pulse rounded-[1.5rem] bg-gray-50" />
+      <div className="bento-card p-5 sm:p-6">
+        <div className="mb-4 h-6 w-40 animate-pulse bg-gray-100" />
+        <div className="h-80 animate-pulse bg-gray-50" />
       </div>
     );
   }
 
   if (products.length === 0) {
     return (
-      <div className="bento-card p-6 sm:p-8">
+      <div className="bento-card p-5 sm:p-6">
         <h3 className="section-title">Top Products</h3>
-        <p className="mt-4 rounded-[1.5rem] bg-gray-50 py-10 text-center text-sm font-bold text-gray-400">
+        <p className="mt-4 bg-gray-50 py-10 text-center text-sm text-gray-500">
           No sales data available yet.
         </p>
       </div>
@@ -123,7 +123,7 @@ export function TopProductsChart() {
   }));
 
   return (
-    <div className="bento-card p-6 sm:p-8">
+    <div className="bento-card p-5 sm:p-6">
       <div className="mb-6">
         <h3 className="section-title">Top Products</h3>
         <p className="eyebrow mt-1">Best sellers in the last 30 days</p>
@@ -134,7 +134,7 @@ export function TopProductsChart() {
           <CartesianGrid stroke={neutral.grid} horizontal={false} />
           <XAxis
             type="number"
-            tick={{ fontSize: 10, fill: neutral.tick, fontWeight: 700 }}
+            tick={{ fontSize: 10, fill: neutral.tick, fontWeight: 500 }}
             tickLine={false}
             axisLine={false}
           />
@@ -142,7 +142,7 @@ export function TopProductsChart() {
             dataKey="shortName"
             type="category"
             width={140}
-            tick={{ fontSize: 11, fill: neutral.tick, fontWeight: 700 }}
+            tick={{ fontSize: 11, fill: neutral.tick, fontWeight: 500 }}
             tickLine={false}
             axisLine={false}
           />

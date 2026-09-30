@@ -19,9 +19,9 @@ export default function Error({ error, reset }: ErrorPageProps) {
   }, [error]);
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-10">
+    <div className="flex min-h-screen items-center justify-center bg-background px-4 py-10">
       <div className="bento-card w-full max-w-md p-8 text-center sm:p-10">
-        <div className="mx-auto mb-8 flex h-20 w-20 items-center justify-center rounded-[1.75rem] bg-rose-50">
+        <div className="mx-auto mb-8 flex h-20 w-20 items-center justify-center rounded-full bg-rose-50">
           <svg
             className="h-10 w-10 text-rose-500"
             fill="none"
@@ -39,16 +39,16 @@ export default function Error({ error, reset }: ErrorPageProps) {
         </div>
 
         <p className="eyebrow mb-3">Unexpected error</p>
-        <h1 className="mb-3 text-3xl font-black tracking-tighter text-gray-900">
+        <h1 className="mb-3 font-heading text-3xl font-semibold text-gray-900">
           Something went wrong!
         </h1>
-        <p className="mb-2 font-bold text-gray-600">কিছু একটা সমস্যা হয়েছে!</p>
-        <p className="mb-8 text-sm font-medium text-gray-500">
+        <p className="mb-2 text-gray-600">কিছু একটা সমস্যা হয়েছে!</p>
+        <p className="mb-8 text-sm text-gray-500">
           We apologize for the inconvenience. Our team has been notified and is working on a fix.
         </p>
 
         {error.digest && (
-          <p className="mb-6 inline-block rounded-xl bg-gray-100 px-3 py-1 font-mono text-[11px] font-bold text-gray-500">
+          <p className="mb-6 inline-block rounded-xl bg-gray-100 px-3 py-1 font-mono text-[11px] text-gray-500">
             Error ID: {error.digest}
           </p>
         )}

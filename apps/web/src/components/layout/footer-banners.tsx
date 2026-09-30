@@ -12,33 +12,31 @@ export function FooterBanners({ banners }: FooterBannersProps) {
   }
 
   return (
-    <section className="pt-10">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+    <section className="pb-12 pt-4">
+      <div className="site-container px-4 sm:px-6 lg:px-8">
         <div
           className={
             banners.length === 1
               ? 'grid grid-cols-1'
-              : 'grid grid-cols-1 gap-4 sm:gap-6 md:grid-cols-2 lg:grid-cols-3'
+              : 'grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3'
           }
         >
           {banners.map((b) => {
             const inner = (
-              <div className="group relative overflow-hidden rounded-[2rem] border border-foreground/[0.04] bg-card shadow-bento transition-all duration-300 hover:shadow-bento-hover">
+              <div className="group relative overflow-hidden rounded-lg bg-gray-50">
                 <img
                   src={b.image}
                   alt={b.title}
-                  className="h-36 w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  className="h-40 w-full object-cover transition-transform duration-700 group-hover:scale-105 sm:h-48"
                   loading="lazy"
                 />
                 {(b.title || b.titleBn) && (
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+                  <div className="absolute inset-0 bg-gradient-to-r from-black/55 via-black/20 to-transparent" />
                 )}
                 {(b.title || b.titleBn) && (
-                  <div className="absolute bottom-4 left-5 right-5 text-white">
-                    <h3 className="text-lg font-black tracking-tight drop-shadow">{b.title}</h3>
-                    {b.titleBn && (
-                      <p className="text-xs font-bold opacity-90 drop-shadow">{b.titleBn}</p>
-                    )}
+                  <div className="absolute inset-y-0 left-6 right-6 flex flex-col justify-center text-white">
+                    <h3 className="font-heading text-xl font-semibold sm:text-2xl">{b.title}</h3>
+                    {b.titleBn && <p className="mt-1 text-sm opacity-90">{b.titleBn}</p>}
                   </div>
                 )}
               </div>

@@ -83,7 +83,7 @@ export default function AdminNewPagePage() {
           <div className="lg:col-span-2 space-y-6">
             {/* Language Tabs */}
             <div className="bento-card">
-              <div className="border-b border-foreground/[0.04]">
+              <div className="border-b border-gray-200">
                 <nav className="flex gap-1 p-3">
                   <button
                     type="button"
@@ -158,7 +158,7 @@ export default function AdminNewPagePage() {
 
             {/* SEO */}
             <div className="bento-card p-6 sm:p-8 space-y-4">
-              <h2 className="text-lg font-black text-gray-900 tracking-tight">SEO Settings</h2>
+              <h2 className="text-lg font-heading font-semibold text-gray-900">SEO Settings</h2>
               <div>
                 <label className="field-label">Meta Title</label>
                 <input
@@ -187,7 +187,7 @@ export default function AdminNewPagePage() {
                   }
                   placeholder="Meta description for search engines"
                   rows={3}
-                  className="field-input w-full resize-none rounded-[1.25rem]"
+                  className="field-input w-full resize-none rounded-xl"
                 />
               </div>
             </div>
@@ -196,7 +196,7 @@ export default function AdminNewPagePage() {
           {/* Sidebar */}
           <div className="space-y-6">
             <div className="bento-card p-6 sm:p-8 space-y-4">
-              <h2 className="text-lg font-black text-gray-900 tracking-tight">Page Settings</h2>
+              <h2 className="text-lg font-heading font-semibold text-gray-900">Page Settings</h2>
               <div>
                 <label className="field-label">URL Slug</label>
                 <div className="flex items-center">

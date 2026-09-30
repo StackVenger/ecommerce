@@ -24,7 +24,7 @@ import { useIsDark } from '@/lib/theme/color-mode';
 
 // Coral for the leader, softer coral steps for the rest.
 const BAR_COLORS = [
-  '#f46e54',
+  '#f9706a',
   '#f67e63',
   '#f99177',
   '#fdb29b',
@@ -59,10 +59,11 @@ function CustomTooltip({ active, payload }: CustomTooltipProps) {
   }
 
   return (
-    <div className="rounded-2xl bg-ink px-4 py-3 shadow-xl shadow-black/10">
-      <p className="mb-1 text-xs font-black text-white">{item.name}</p>
-      <p className="text-[11px] font-bold text-white/60">
-        Views: <span className="text-white">{item.viewCount.toLocaleString()}</span>
+    <div className="border border-gray-200 bg-card px-4 py-3 text-gray-900 shadow-bento-hover">
+      <p className="mb-1 font-heading text-xs font-semibold text-gray-900">{item.name}</p>
+      <p className="text-xs text-gray-600">
+        Views:{' '}
+        <span className="font-semibold text-gray-900">{item.viewCount.toLocaleString()}</span>
       </p>
     </div>
   );
@@ -80,7 +81,7 @@ export function MostViewedChart({ data }: MostViewedChartProps) {
   const neutral = chartNeutrals(useIsDark());
   if (data.length === 0) {
     return (
-      <div className="bento-card p-6 sm:p-8">
+      <div className="bento-card p-5 sm:p-6">
         <SectionHeader title="Most Viewed Products" caption="Products with the most page views" />
         <EmptyState bare icon={Eye} title="No view data available yet." className="py-8" />
       </div>
@@ -93,7 +94,7 @@ export function MostViewedChart({ data }: MostViewedChartProps) {
   }));
 
   return (
-    <div className="bento-card bento-card-hover p-6 sm:p-8">
+    <div className="bento-card p-5 sm:p-6">
       <SectionHeader title="Most Viewed Products" caption="Products with the most page views" />
 
       <ResponsiveContainer width="100%" height={320}>
@@ -101,7 +102,7 @@ export function MostViewedChart({ data }: MostViewedChartProps) {
           <CartesianGrid stroke={neutral.grid} horizontal={false} />
           <XAxis
             type="number"
-            tick={{ fontSize: 10, fontWeight: 700, fill: neutral.tick }}
+            tick={{ fontSize: 10, fontWeight: 500, fill: neutral.tick }}
             tickLine={false}
             axisLine={false}
           />
@@ -109,7 +110,7 @@ export function MostViewedChart({ data }: MostViewedChartProps) {
             dataKey="shortName"
             type="category"
             width={140}
-            tick={{ fontSize: 11, fontWeight: 700, fill: neutral.label }}
+            tick={{ fontSize: 11, fontWeight: 500, fill: neutral.label }}
             tickLine={false}
             axisLine={false}
           />

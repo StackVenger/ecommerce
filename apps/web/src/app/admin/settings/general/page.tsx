@@ -75,7 +75,7 @@ export default function GeneralSettingsPage() {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      <h2 className="text-lg font-black text-gray-900 tracking-tight">General Settings</h2>
+      <h2 className="text-lg font-heading font-semibold text-gray-900">General Settings</h2>
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         <div>
@@ -200,7 +200,7 @@ export default function GeneralSettingsPage() {
           value={form.address}
           onChange={(e) => handleChange('address', e.target.value)}
           rows={3}
-          className="field-input block w-full rounded-[1.25rem]"
+          className="field-input block w-full rounded-xl"
         />
       </div>
 

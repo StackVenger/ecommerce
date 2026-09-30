@@ -139,7 +139,7 @@ function NewAddressForm({ onSave, onCancel }: NewAddressFormProps) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 mt-6 p-6 bg-gray-50 rounded-xl">
+    <form onSubmit={handleSubmit} className="space-y-4 mt-6 p-6 bg-gray-50">
       <h3 className="text-base font-semibold text-gray-900 mb-4">Add New Address</h3>
 
       {/* Name row */}
@@ -298,17 +298,10 @@ function NewAddressForm({ onSave, onCancel }: NewAddressFormProps) {
 
       {/* Actions */}
       <div className="flex justify-end gap-3 pt-4">
-        <button
-          type="button"
-          onClick={onCancel}
-          className="rounded-lg px-5 py-2.5 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
-        >
+        <button type="button" onClick={onCancel} className="btn btn-secondary">
           Cancel
         </button>
-        <button
-          type="submit"
-          className="rounded-lg bg-primary px-6 py-2.5 text-sm font-semibold text-white hover:bg-primary/90 transition-colors"
-        >
+        <button type="submit" className="btn btn-primary">
           Save Address
         </button>
       </div>
@@ -331,10 +324,10 @@ function AddressCard({ address, isSelected, onSelect }: AddressCardProps) {
     <button
       type="button"
       onClick={onSelect}
-      className={`w-full text-left rounded-[1.5rem] border-2 p-4 transition-colors ${
+      className={`w-full text-left border p-4 transition-colors ${
         isSelected
-          ? 'border-primary bg-brand-50/60 shadow-brand-glow'
-          : 'border-foreground/[0.04] bg-card hover:border-foreground/[0.1]'
+          ? 'border-primary bg-brand-50/40 ring-1 ring-primary'
+          : 'border-gray-200 bg-card hover:border-gray-400'
       }`}
     >
       <div className="flex items-start justify-between">
@@ -353,11 +346,7 @@ function AddressCard({ address, isSelected, onSelect }: AddressCardProps) {
         </div>
 
         <div className="flex items-center gap-2">
-          {address.isDefault && (
-            <span className="rounded-full bg-brand-100 px-2.5 py-0.5 text-xs font-medium text-primary">
-              Default
-            </span>
-          )}
+          {address.isDefault && <span className="pill pill-brand">Default</span>}
 
           <div
             className={`h-5 w-5 rounded-full border-2 flex items-center justify-center ${
@@ -419,7 +408,7 @@ export default function AddressStep({
 
       {/* Empty state */}
       {savedAddresses.length === 0 && !showNewForm && (
-        <div className="rounded-xl border-2 border-dashed border-gray-200 p-8 text-center mb-6">
+        <div className="border border-dashed border-gray-300 p-8 text-center mb-6">
           <p className="text-gray-500 mb-4">
             No saved addresses found. Add a new address to continue.
           </p>
@@ -457,7 +446,7 @@ export default function AddressStep({
       )}
 
       {/* Continue button */}
-      <div className="flex justify-end pt-6 mt-6 border-t border-gray-100">
+      <div className="flex justify-end pt-6 mt-6 border-t border-gray-200">
         <button
           type="button"
           onClick={onContinue}

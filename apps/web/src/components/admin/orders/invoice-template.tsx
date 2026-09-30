@@ -82,7 +82,7 @@ export default function InvoiceTemplate({ data, showActions = true }: InvoiceTem
       {/* Print Actions */}
       {showActions && (
         <div className="mx-auto mb-6 flex max-w-4xl items-center justify-between gap-3 print:hidden">
-          <a href="/admin/orders" className="btn btn-soft btn-sm">
+          <a href="/admin/orders" className="btn btn-secondary btn-sm">
             &larr; Back to Orders
           </a>
           <div className="flex items-center gap-3">
@@ -96,7 +96,7 @@ export default function InvoiceTemplate({ data, showActions = true }: InvoiceTem
       {/* Invoice */}
       <div
         ref={printRef}
-        className="theme-light mx-auto max-w-4xl overflow-x-auto rounded-[2rem] border border-foreground/[0.04] bg-card p-6 shadow-bento sm:p-10 print:overflow-visible print:rounded-none print:border-0 print:p-0 print:shadow-none"
+        className="theme-light mx-auto max-w-4xl overflow-x-auto border border-gray-200 bg-card p-6 sm:p-10 print:overflow-visible print:border-0 print:p-0"
         style={{ fontFamily: "'Noto Sans Bengali', 'Noto Sans', sans-serif" }}
       >
         {/* Header */}
@@ -105,7 +105,7 @@ export default function InvoiceTemplate({ data, showActions = true }: InvoiceTem
             {data.store.logo && (
               <img src={data.store.logo} alt={data.store.name} className="h-12 mb-2" />
             )}
-            <h1 className="text-2xl font-black tracking-tight text-gray-900">{data.store.name}</h1>
+            <h1 className="font-heading text-2xl font-semibold text-gray-900">{data.store.name}</h1>
             <p className="text-sm text-gray-600">{data.store.nameBn}</p>
             <p className="text-sm text-gray-600 mt-1">{data.store.address}</p>
             <p className="text-sm text-gray-600">{data.store.addressBn}</p>
@@ -116,7 +116,7 @@ export default function InvoiceTemplate({ data, showActions = true }: InvoiceTem
             )}
           </div>
           <div className="text-right">
-            <h2 className="text-3xl font-black tracking-tighter text-gray-900">INVOICE</h2>
+            <h2 className="font-heading text-3xl font-semibold text-gray-900">INVOICE</h2>
             <p className="text-lg text-gray-600">চালান</p>
             <div className="mt-4 space-y-1">
               <p className="text-sm">
@@ -182,17 +182,25 @@ export default function InvoiceTemplate({ data, showActions = true }: InvoiceTem
         <div className="mt-8">
           <table className="w-full">
             <thead>
-              <tr className="bg-ink text-white">
-                <th className="px-4 py-2 text-left text-xs font-medium uppercase">#</th>
-                <th className="px-4 py-2 text-left text-xs font-medium uppercase">Item / পণ্য</th>
-                <th className="px-4 py-2 text-left text-xs font-medium uppercase">SKU</th>
-                <th className="px-4 py-2 text-center text-xs font-medium uppercase">
+              <tr className="border-b border-gray-300 bg-gray-100 text-gray-800">
+                <th className="px-4 py-2.5 text-left font-heading text-xs font-semibold uppercase">
+                  #
+                </th>
+                <th className="px-4 py-2.5 text-left font-heading text-xs font-semibold uppercase">
+                  Item / পণ্য
+                </th>
+                <th className="px-4 py-2.5 text-left font-heading text-xs font-semibold uppercase">
+                  SKU
+                </th>
+                <th className="px-4 py-2.5 text-center font-heading text-xs font-semibold uppercase">
                   Qty / পরিমাণ
                 </th>
-                <th className="px-4 py-2 text-right text-xs font-medium uppercase">
+                <th className="px-4 py-2.5 text-right font-heading text-xs font-semibold uppercase">
                   Price / মূল্য
                 </th>
-                <th className="px-4 py-2 text-right text-xs font-medium uppercase">Total / মোট</th>
+                <th className="px-4 py-2.5 text-right font-heading text-xs font-semibold uppercase">
+                  Total / মোট
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
@@ -254,7 +262,7 @@ export default function InvoiceTemplate({ data, showActions = true }: InvoiceTem
         </div>
 
         {/* Payment Method */}
-        <div className="mt-8 rounded-[1.25rem] bg-gray-50 p-4 print:rounded-none">
+        <div className="mt-8 border border-gray-200 bg-gray-50 p-4">
           <h3 className="text-sm font-semibold text-gray-700 mb-1">
             Payment Method / পেমেন্ট পদ্ধতি
           </h3>

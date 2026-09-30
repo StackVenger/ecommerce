@@ -146,7 +146,7 @@ function StockBadge({ product }: { product: Product }) {
           <span className={cn('pill', color)}>{text}</span>
         </div>
         {subParts.length > 0 && (
-          <span className="text-[11px] font-bold text-gray-500">{subParts.join(', ')}</span>
+          <span className="text-xs text-gray-500">{subParts.join(', ')}</span>
         )}
       </div>
     );
@@ -356,25 +356,20 @@ export default function AdminProductsPage() {
 
       {/* Inventory stat hub */}
       <div className="grid grid-cols-2 gap-4 sm:gap-6 lg:grid-cols-12">
-        <BentoCard variant="primary" className="col-span-2 lg:col-span-4">
+        <BentoCard className="col-span-2 border-t-2 border-t-primary lg:col-span-4">
           <div className="flex h-full flex-col justify-between gap-8">
             <div className="flex items-start justify-between">
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/20 backdrop-blur-md">
+              <div className="icon-tile bg-brand-50 text-primary">
                 <Package className="h-6 w-6" strokeWidth={2.25} />
               </div>
-              <Link
-                href="/admin/products/new"
-                className="rounded-xl bg-card px-4 py-2 text-xs font-black text-primary transition-all hover:scale-105 active:scale-95"
-              >
+              <Link href="/admin/products/new" className="btn btn-outline btn-sm">
                 New product
               </Link>
             </div>
             <div>
-              <p className="mb-2 text-[10px] font-black uppercase tracking-widest text-white/70">
-                Catalog size
-              </p>
-              <p className="text-5xl font-black tabular-nums tracking-tighter">{meta.total}</p>
-              <p className="mt-2 text-xs font-bold text-white/80">
+              <p className="eyebrow mb-2">Catalog size</p>
+              <p className="stat-value text-5xl">{meta.total}</p>
+              <p className="mt-2 text-xs text-gray-500">
                 {meta.totalPages} {meta.totalPages === 1 ? 'page' : 'pages'} · {meta.limit} per page
               </p>
             </div>
@@ -418,7 +413,7 @@ export default function AdminProductsPage() {
       </div>
 
       {/* Filters and Search */}
-      <div className="flex flex-col gap-3 rounded-[1.5rem] border border-foreground/[0.04] bg-card p-3 shadow-bento sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-3 rounded-xl border border-gray-200 bg-card p-3 shadow-bento sm:flex-row sm:items-center sm:justify-between">
         <form onSubmit={handleSearch} className="group/search relative flex-1 sm:max-w-sm">
           <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400 transition-colors group-focus-within/search:text-gray-700" />
           <input
@@ -494,7 +489,7 @@ export default function AdminProductsPage() {
                       setSortBy('price');
                       setSortOrder((o) => (o === 'asc' ? 'desc' : 'asc'));
                     }}
-                    className="inline-flex items-center gap-1 uppercase tracking-[0.2em] transition-colors hover:text-gray-900"
+                    className="inline-flex items-center gap-1 transition-colors hover:text-gray-900"
                   >
                     Price
                     <ArrowUpDown className="h-3 w-3" />
@@ -521,7 +516,7 @@ export default function AdminProductsPage() {
                     <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-50 text-brand-600">
                       <Package className="h-7 w-7" strokeWidth={2.25} />
                     </div>
-                    <p className="text-sm font-bold text-gray-500">
+                    <p className="text-sm text-gray-500">
                       No products found. Create your first product to get started.
                     </p>
                   </td>
@@ -546,7 +541,7 @@ export default function AdminProductsPage() {
                       </td>
                       <td>
                         <div className="flex items-center gap-3">
-                          <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center overflow-hidden rounded-[14px] border border-foreground/[0.04] bg-gray-50 shadow-sm transition-transform group-hover:scale-105">
+                          <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center overflow-hidden rounded-lg border border-gray-200 bg-gray-50 transition-transform">
                             {coverImage?.url ? (
                               <img
                                 src={coverImage.url}
@@ -560,11 +555,11 @@ export default function AdminProductsPage() {
                           <div className="min-w-0 max-w-[18rem]">
                             <Link
                               href={`/admin/products/${product.id}/edit`}
-                              className="block truncate text-sm font-black text-gray-900 transition-colors hover:text-brand-600"
+                              className="block truncate text-sm font-semibold text-gray-900 transition-colors hover:text-brand-600"
                             >
                               {product.name}
                             </Link>
-                            <p className="truncate text-[11px] font-bold text-gray-500">
+                            <p className="truncate text-xs text-gray-500">
                               <span className="tracking-wider 2xl:hidden">{product.sku}</span>
                               {product.brand && (
                                 <>
@@ -576,16 +571,16 @@ export default function AdminProductsPage() {
                           </div>
                         </div>
                       </td>
-                      <td className="hidden whitespace-nowrap text-xs font-bold tracking-wider text-gray-500 2xl:table-cell">
+                      <td className="hidden whitespace-nowrap text-xs tracking-wider text-gray-500 2xl:table-cell">
                         {product.sku}
                       </td>
                       <td className="whitespace-nowrap">
                         <div className="flex flex-col">
-                          <span className="text-sm font-black tabular-nums tracking-tighter text-gray-900">
+                          <span className="text-sm font-heading font-semibold tabular-nums text-gray-900">
                             {formatBDT(Number(product.price))}
                           </span>
                           {product.compareAtPrice && (
-                            <span className="text-[11px] font-bold text-gray-400 line-through">
+                            <span className="text-xs text-gray-500 line-through">
                               {formatBDT(Number(product.compareAtPrice))}
                             </span>
                           )}
@@ -596,7 +591,7 @@ export default function AdminProductsPage() {
                       </td>
                       <td className="whitespace-nowrap">
                         {product.category?.name ? (
-                          <span className="rounded-xl bg-gray-100 px-3 py-1.5 text-[11px] font-bold text-gray-600">
+                          <span className="rounded-xl bg-gray-100 px-3 py-1.5 text-xs text-gray-600">
                             {product.category.name}
                           </span>
                         ) : (
@@ -611,7 +606,7 @@ export default function AdminProductsPage() {
                           <Link
                             href={`/products/${product.slug}`}
                             target="_blank"
-                            className="rounded-xl p-2 text-gray-400 transition-all hover:bg-card hover:text-gray-900 hover:shadow-md"
+                            className="rounded-xl p-2 text-gray-400 transition-all hover:bg-card hover:text-gray-900 hover:shadow-bento-hover"
                             title="View on store"
                             aria-label={`View ${product.name} on store`}
                           >
@@ -619,7 +614,7 @@ export default function AdminProductsPage() {
                           </Link>
                           <Link
                             href={`/admin/products/${product.id}/edit`}
-                            className="rounded-xl p-2 text-gray-400 transition-all hover:bg-card hover:text-gray-900 hover:shadow-md"
+                            className="rounded-xl p-2 text-gray-400 transition-all hover:bg-card hover:text-gray-900 hover:shadow-bento-hover"
                             title="Edit"
                             aria-label={`Edit ${product.name}`}
                           >
@@ -645,8 +640,8 @@ export default function AdminProductsPage() {
 
         {/* Pagination */}
         {meta.totalPages > 1 && (
-          <div className="mt-4 flex flex-col gap-4 border-t border-foreground/[0.04] px-2 pt-5 sm:flex-row sm:items-center sm:justify-between">
-            <p className="text-[11px] font-bold text-gray-500">
+          <div className="mt-4 flex flex-col gap-4 border-t border-gray-200 px-2 pt-5 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-xs text-gray-500">
               Showing <span className="text-gray-900">{rangeStart}</span> to{' '}
               <span className="text-gray-900">{rangeEnd}</span> of{' '}
               <span className="text-gray-900">{meta.total}</span> products
@@ -655,7 +650,7 @@ export default function AdminProductsPage() {
               <button
                 onClick={() => goToPage(page - 1)}
                 disabled={page <= 1}
-                className="btn btn-soft btn-sm"
+                className="btn btn-secondary btn-sm"
                 aria-label="Previous page"
               >
                 <ChevronLeft className="h-4 w-4" />
@@ -669,10 +664,10 @@ export default function AdminProductsPage() {
                     onClick={() => goToPage(pageNum)}
                     aria-current={pageNum === page ? 'page' : undefined}
                     className={cn(
-                      'flex h-9 min-w-9 items-center justify-center rounded-xl px-3 text-xs font-black tabular-nums transition-all',
+                      'flex h-9 min-w-9 items-center justify-center border px-3 text-sm font-medium tabular-nums transition-colors',
                       pageNum === page
-                        ? 'bg-primary text-white shadow-brand-glow'
-                        : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900',
+                        ? 'border-primary bg-primary text-white'
+                        : 'border-gray-200 text-gray-700 hover:text-primary',
                     )}
                   >
                     {pageNum}
@@ -682,7 +677,7 @@ export default function AdminProductsPage() {
               <button
                 onClick={() => goToPage(page + 1)}
                 disabled={page >= meta.totalPages}
-                className="btn btn-dark btn-sm"
+                className="btn btn-secondary btn-sm"
                 aria-label="Next page"
               >
                 Next

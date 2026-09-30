@@ -7,7 +7,7 @@ import { useState, useEffect, useMemo, useCallback } from 'react';
 import { toast } from 'sonner';
 
 import { AddressForm } from '@/components/account/address-form';
-import { EmptyState, PageHeader } from '@/components/ui/bento';
+import { Breadcrumbs, EmptyState, PageHeader } from '@/components/ui/bento';
 import { useAuth } from '@/hooks/use-auth';
 import { useCart } from '@/hooks/use-cart';
 import {
@@ -109,6 +109,12 @@ const CHECKOUT_STEPS = [
 
 type StepId = (typeof CHECKOUT_STEPS)[number]['id'];
 
+const CHECKOUT_CRUMBS = [
+  { label: 'Home', href: '/' },
+  { label: 'Shopping Cart', href: '/cart' },
+  { label: 'Checkout' },
+];
+
 type PaymentMethodType = 'CARD' | 'COD' | 'BKASH';
 
 interface GuestInfo {
@@ -164,7 +170,7 @@ function Stepper({ currentStep, completedSteps, onStepClick }: StepperProps) {
   return (
     <nav
       aria-label="Checkout progress"
-      className="mb-6 rounded-[1.75rem] border border-foreground/[0.04] bg-card p-3 shadow-bento sm:mb-8 sm:p-4"
+      className="mb-6 border border-gray-200 bg-card px-3 py-4 sm:mb-8 sm:px-6"
     >
       <ol className="flex items-center justify-between">
         {CHECKOUT_STEPS.map((step, index) => {
@@ -184,12 +190,12 @@ function Stepper({ currentStep, completedSteps, onStepClick }: StepperProps) {
                 }`}
               >
                 <div
-                  className={`flex h-10 w-10 items-center justify-center rounded-2xl text-sm font-black tabular-nums transition-all ${
+                  className={`flex h-9 w-9 items-center justify-center border text-sm font-semibold tabular-nums transition-colors ${
                     isCurrent
-                      ? 'bg-primary text-white shadow-brand-glow ring-4 ring-primary/15'
+                      ? 'border-primary bg-primary text-white'
                       : isCompleted
-                        ? 'bg-emerald-50 text-emerald-600'
-                        : 'bg-gray-100 text-gray-400'
+                        ? 'border-primary bg-card text-primary'
+                        : 'border-gray-200 bg-gray-100 text-gray-400'
                   }`}
                 >
                   {isCompleted ? (
@@ -212,8 +218,8 @@ function Stepper({ currentStep, completedSteps, onStepClick }: StepperProps) {
                 </div>
 
                 <span
-                  className={`text-[10px] font-black uppercase tracking-widest ${
-                    isCurrent ? 'text-gray-900' : isCompleted ? 'text-emerald-600' : 'text-gray-400'
+                  className={`font-heading text-xs font-semibold sm:text-sm ${
+                    isCurrent ? 'text-primary' : isCompleted ? 'text-gray-900' : 'text-gray-400'
                   }`}
                 >
                   {step.label}
@@ -222,8 +228,8 @@ function Stepper({ currentStep, completedSteps, onStepClick }: StepperProps) {
 
               {index < CHECKOUT_STEPS.length - 1 && (
                 <div
-                  className={`mx-2 mt-[-1.5rem] hidden h-1 flex-1 rounded-full sm:block ${
-                    isCompleted ? 'bg-emerald-400' : 'bg-gray-100'
+                  className={`mx-2 mt-[-1.5rem] hidden h-0.5 flex-1 sm:block ${
+                    isCompleted ? 'bg-primary' : 'bg-gray-200'
                   }`}
                 />
               )}
@@ -259,46 +265,44 @@ function OrderSummary({
 }: OrderSummaryProps) {
   const isFreeShipping = shippingCost === 0 && (shippingBaseCost ?? 0) > 0;
   return (
-    <div className="bento-card sticky top-24 p-6 sm:p-8">
-      <div className="mb-6 flex items-center justify-between gap-3">
-        <h2 className="section-title">Order Summary</h2>
-        <span className="pill pill-neutral">
+    <div className="sticky top-24 border border-gray-200 bg-gray-50 p-6">
+      <div className="mb-5 flex items-center justify-between gap-3 border-b border-gray-200 pb-4">
+        <h2 className="font-heading text-lg font-semibold text-gray-900">Order Summary</h2>
+        <span className="text-sm text-gray-500">
           {itemCount} {itemCount === 1 ? 'Item' : 'Items'}
         </span>
       </div>
 
       <div className="space-y-3 text-sm">
         <div className="flex justify-between gap-3">
-          <span className="font-bold text-gray-500">
+          <span className="text-gray-600">
             Subtotal ({itemCount} {itemCount === 1 ? 'item' : 'items'})
           </span>
-          <span className="font-black tabular-nums text-gray-900">{formatPrice(subtotal)}</span>
+          <span className="font-semibold tabular-nums text-gray-900">{formatPrice(subtotal)}</span>
         </div>
 
         {discount > 0 && (
           <div className="flex justify-between gap-3">
-            <span className="font-bold text-emerald-600">Discount</span>
-            <span className="font-black tabular-nums text-emerald-600">
+            <span className="text-emerald-600">Discount</span>
+            <span className="font-semibold tabular-nums text-emerald-600">
               -{formatPrice(discount)}
             </span>
           </div>
         )}
 
         <div className="flex justify-between gap-3">
-          <span className="font-bold text-gray-500">Shipping</span>
+          <span className="text-gray-600">Shipping</span>
           {shippingCost === null ? (
-            <span className="text-xs font-bold italic text-gray-400">Calculated next</span>
+            <span className="text-[13px] text-gray-500">Calculated next</span>
           ) : isFreeShipping ? (
-            <span className="flex items-baseline gap-2 font-black">
-              <span className="text-xs text-gray-400 line-through">
-                {formatPrice(shippingBaseCost ?? 0)}
-              </span>
-              <span className="uppercase tracking-tight text-emerald-600">Free</span>
+            <span className="flex items-baseline gap-2 font-semibold">
+              <span className="price-original">{formatPrice(shippingBaseCost ?? 0)}</span>
+              <span className="text-emerald-600">Free</span>
             </span>
           ) : shippingCost === 0 ? (
-            <span className="font-black uppercase tracking-tight text-emerald-600">Free</span>
+            <span className="font-semibold text-emerald-600">Free</span>
           ) : (
-            <span className="font-black tabular-nums text-gray-900">
+            <span className="font-semibold tabular-nums text-gray-900">
               {formatPrice(shippingCost)}
             </span>
           )}
@@ -309,16 +313,12 @@ function OrderSummary({
         <CheckoutCouponInput />
       </div>
 
-      <div className="border-t-2 border-dashed border-gray-200 pt-6">
-        <div className="flex items-center justify-between gap-3 rounded-[1.25rem] border border-primary/10 bg-primary/5 p-4">
-          <span className="text-sm font-black text-brand-700">Final Total</span>
-          <span className="text-2xl font-black tabular-nums tracking-tighter text-brand-700">
-            {formatPrice(total)}
-          </span>
+      <div className="border-t border-gray-200 pt-5">
+        <div className="flex items-center justify-between gap-3">
+          <span className="font-heading text-base font-semibold text-gray-900">Final Total</span>
+          <span className="text-xl font-bold tabular-nums text-primary">{formatPrice(total)}</span>
         </div>
-        <p className="mt-2 text-right text-[10px] font-bold uppercase tracking-wider text-gray-400">
-          BDT ৳ (Bangladeshi Taka)
-        </p>
+        <p className="mt-1 text-right text-xs text-gray-500">BDT ৳ (Bangladeshi Taka)</p>
       </div>
     </div>
   );
@@ -357,14 +357,14 @@ function CheckoutCouponInput() {
 
   if (cart?.couponCode) {
     return (
-      <div className="rounded-[1.25rem] bg-emerald-50 px-4 py-3">
+      <div className="border border-emerald-200 bg-emerald-50 px-4 py-3">
         <div className="flex items-center justify-between gap-2">
           <div className="min-w-0">
-            <p className="truncate text-sm font-black text-emerald-700">
+            <p className="truncate text-sm font-semibold text-emerald-700">
               Coupon &quot;{cart.couponCode}&quot; applied
             </p>
             {cart.discount > 0 && (
-              <p className="mt-0.5 text-[11px] font-bold text-emerald-600">
+              <p className="mt-0.5 text-[13px] text-emerald-600">
                 You save {formatPrice(cart.discount)}
               </p>
             )}
@@ -373,7 +373,7 @@ function CheckoutCouponInput() {
             type="button"
             onClick={removeCoupon}
             disabled={isUpdating}
-            className="btn btn-sm bg-card text-emerald-700 shadow-sm hover:text-rose-600"
+            className="btn btn-sm btn-secondary"
           >
             Remove
           </button>
@@ -403,7 +403,7 @@ function CheckoutCouponInput() {
           }}
           placeholder="Enter code"
           aria-label="Coupon code"
-          className="field-input min-w-0 flex-1 font-bold uppercase tracking-wider"
+          className="field-input min-w-0 flex-1 uppercase"
         />
         <button
           type="button"
@@ -431,17 +431,15 @@ interface GuestInfoFormProps {
 
 function GuestInfoForm({ guestInfo, onChange, errors }: GuestInfoFormProps) {
   return (
-    <div className="bento-tile mb-6 p-5 sm:p-6">
+    <div className="mb-6 bg-gray-50 p-5 sm:p-6">
       <div className="mb-3 flex items-center gap-3">
-        <div className="icon-tile h-10 w-10 rounded-xl bg-amber-50 text-amber-500">
-          <UserRound className="h-5 w-5" strokeWidth={2.25} />
-        </div>
+        <UserRound className="h-5 w-5 shrink-0 text-primary" strokeWidth={1.75} />
         <div>
-          <h3 className="text-base font-black tracking-tight text-gray-900">Guest Checkout</h3>
-          <p className="eyebrow mt-0.5">Contact details</p>
+          <h3 className="font-heading text-base font-semibold text-gray-900">Guest Checkout</h3>
+          <p className="text-[13px] text-gray-500">Contact details</p>
         </div>
       </div>
-      <p className="mb-5 text-sm font-medium text-gray-500">
+      <p className="mb-5 text-sm text-gray-500">
         Please provide your contact information so we can send you order updates.
       </p>
 
@@ -456,9 +454,7 @@ function GuestInfoForm({ guestInfo, onChange, errors }: GuestInfoFormProps) {
             value={guestInfo.fullName}
             onChange={(e) => onChange({ ...guestInfo, fullName: e.target.value })}
             className={`field-input ${
-              errors?.fullName
-                ? 'border-rose-400 bg-rose-50/40 text-rose-900 focus:border-rose-400 focus:ring-rose-500/10'
-                : ''
+              errors?.fullName ? 'border-rose-400 focus:border-rose-500 focus:ring-rose-500' : ''
             }`}
             placeholder="Your full name"
           />
@@ -476,9 +472,7 @@ function GuestInfoForm({ guestInfo, onChange, errors }: GuestInfoFormProps) {
               value={guestInfo.email}
               onChange={(e) => onChange({ ...guestInfo, email: e.target.value })}
               className={`field-input ${
-                errors?.email
-                  ? 'border-rose-400 bg-rose-50/40 text-rose-900 focus:border-rose-400 focus:ring-rose-500/10'
-                  : ''
+                errors?.email ? 'border-rose-400 focus:border-rose-500 focus:ring-rose-500' : ''
               }`}
               placeholder="you@example.com"
             />
@@ -494,9 +488,7 @@ function GuestInfoForm({ guestInfo, onChange, errors }: GuestInfoFormProps) {
               value={guestInfo.phone}
               onChange={(e) => onChange({ ...guestInfo, phone: e.target.value })}
               className={`field-input ${
-                errors?.phone
-                  ? 'border-rose-400 bg-rose-50/40 text-rose-900 focus:border-rose-400 focus:ring-rose-500/10'
-                  : ''
+                errors?.phone ? 'border-rose-400 focus:border-rose-500 focus:ring-rose-500' : ''
               }`}
               placeholder="+880 1XXX-XXXXXX"
             />
@@ -536,7 +528,7 @@ function GuestAddressForm({ address, onChange, errors }: GuestAddressFormProps) 
             onChange={(e) => onChange({ ...address, fullName: e.target.value })}
             className={`field-input ${
               errors?.addressFullName
-                ? 'border-rose-400 bg-rose-50/40 text-rose-900 focus:border-rose-400 focus:ring-rose-500/10'
+                ? 'border-rose-400 focus:border-rose-500 focus:ring-rose-500'
                 : ''
             }`}
             placeholder="Recipient full name"
@@ -555,7 +547,7 @@ function GuestAddressForm({ address, onChange, errors }: GuestAddressFormProps) 
             onChange={(e) => onChange({ ...address, phone: e.target.value })}
             className={`field-input ${
               errors?.addressPhone
-                ? 'border-rose-400 bg-rose-50/40 text-rose-900 focus:border-rose-400 focus:ring-rose-500/10'
+                ? 'border-rose-400 focus:border-rose-500 focus:ring-rose-500'
                 : ''
             }`}
             placeholder="+880 1XXX-XXXXXX"
@@ -575,9 +567,7 @@ function GuestAddressForm({ address, onChange, errors }: GuestAddressFormProps) 
           value={address.addressLine1}
           onChange={(e) => onChange({ ...address, addressLine1: e.target.value })}
           className={`field-input ${
-            errors?.addressLine1
-              ? 'border-rose-400 bg-rose-50/40 text-rose-900 focus:border-rose-400 focus:ring-rose-500/10'
-              : ''
+            errors?.addressLine1 ? 'border-rose-400 focus:border-rose-500 focus:ring-rose-500' : ''
           }`}
           placeholder="House no., road, area"
         />
@@ -609,9 +599,7 @@ function GuestAddressForm({ address, onChange, errors }: GuestAddressFormProps) 
             value={address.division}
             onChange={(e) => onChange({ ...address, division: e.target.value, district: '' })}
             className={`field-input ${
-              errors?.division
-                ? 'border-rose-400 bg-rose-50/40 text-rose-900 focus:border-rose-400 focus:ring-rose-500/10'
-                : ''
+              errors?.division ? 'border-rose-400 focus:border-rose-500 focus:ring-rose-500' : ''
             }`}
           >
             <option value="">Select Division</option>
@@ -634,9 +622,7 @@ function GuestAddressForm({ address, onChange, errors }: GuestAddressFormProps) 
             onChange={(e) => onChange({ ...address, district: e.target.value })}
             disabled={!address.division}
             className={`field-input disabled:cursor-not-allowed ${
-              errors?.district
-                ? 'border-rose-400 bg-rose-50/40 text-rose-900 focus:border-rose-400 focus:ring-rose-500/10'
-                : ''
+              errors?.district ? 'border-rose-400 focus:border-rose-500 focus:ring-rose-500' : ''
             }`}
           >
             <option value="">Select District</option>
@@ -662,9 +648,7 @@ function GuestAddressForm({ address, onChange, errors }: GuestAddressFormProps) 
             value={address.area}
             onChange={(e) => onChange({ ...address, area: e.target.value })}
             className={`field-input ${
-              errors?.area
-                ? 'border-rose-400 bg-rose-50/40 text-rose-900 focus:border-rose-400 focus:ring-rose-500/10'
-                : ''
+              errors?.area ? 'border-rose-400 focus:border-rose-500 focus:ring-rose-500' : ''
             }`}
             placeholder="Area or town"
           />
@@ -681,9 +665,7 @@ function GuestAddressForm({ address, onChange, errors }: GuestAddressFormProps) 
             value={address.postalCode}
             onChange={(e) => onChange({ ...address, postalCode: e.target.value })}
             className={`field-input ${
-              errors?.postalCode
-                ? 'border-rose-400 bg-rose-50/40 text-rose-900 focus:border-rose-400 focus:ring-rose-500/10'
-                : ''
+              errors?.postalCode ? 'border-rose-400 focus:border-rose-500 focus:ring-rose-500' : ''
             }`}
             placeholder="1000"
           />
@@ -710,24 +692,24 @@ function AddressCard({ address, isSelected, onSelect }: AddressCardProps) {
       type="button"
       onClick={onSelect}
       aria-pressed={isSelected}
-      className={`w-full rounded-[1.5rem] border-2 p-4 text-left transition-all sm:p-5 ${
+      className={`w-full border p-4 text-left transition-colors sm:p-5 ${
         isSelected
-          ? 'border-primary bg-brand-50/60 shadow-brand-glow'
-          : 'border-foreground/[0.04] bg-card hover:border-foreground/[0.1] hover:shadow-bento-hover'
+          ? 'border-primary bg-brand-50/40 ring-1 ring-primary'
+          : 'border-gray-200 bg-card hover:border-gray-400'
       }`}
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
             <span className="pill pill-neutral">{address.label || 'Home'}</span>
-            <p className="font-black text-gray-900">{address.fullName}</p>
+            <p className="font-semibold text-gray-900">{address.fullName}</p>
           </div>
-          <p className="mt-1.5 text-sm font-bold text-gray-600">{address.phone}</p>
-          <p className="mt-1 text-sm font-medium text-gray-500">
+          <p className="mt-1.5 text-sm text-gray-700">{address.phone}</p>
+          <p className="mt-1 text-sm text-gray-500">
             {address.addressLine1}
             {address.addressLine2 && `, ${address.addressLine2}`}
           </p>
-          <p className="text-sm font-medium text-gray-500">
+          <p className="text-sm text-gray-500">
             {address.city}, {address.district}
             {address.division && `, ${address.division}`}
             {address.postalCode && ` ${address.postalCode}`}
@@ -765,10 +747,10 @@ function ShippingMethodCard({ method, isSelected, onSelect }: ShippingMethodCard
       type="button"
       onClick={onSelect}
       aria-pressed={isSelected}
-      className={`w-full rounded-[1.5rem] border-2 p-4 text-left transition-all sm:p-5 ${
+      className={`w-full border p-4 text-left transition-colors sm:p-5 ${
         isSelected
-          ? 'border-primary bg-brand-50/60 shadow-brand-glow'
-          : 'border-foreground/[0.04] bg-card hover:border-foreground/[0.1] hover:shadow-bento-hover'
+          ? 'border-primary bg-brand-50/40 ring-1 ring-primary'
+          : 'border-gray-200 bg-card hover:border-gray-400'
       }`}
     >
       <div className="flex items-center justify-between gap-3">
@@ -783,14 +765,14 @@ function ShippingMethodCard({ method, isSelected, onSelect }: ShippingMethodCard
 
           <div>
             <div className="flex items-center gap-2">
-              <span className="font-black text-gray-900">{method.name}</span>
+              <span className="font-semibold text-gray-900">{method.name}</span>
               {method.isFree && <span className="pill pill-success">Free</span>}
             </div>
-            <p className="mt-1 text-xs font-bold text-gray-500">
+            <p className="mt-1 text-[13px] text-gray-500">
               Estimated delivery: {method.estimatedDays}
             </p>
             {!method.isFree && method.freeAbove > 0 && (
-              <p className="mt-1 text-[11px] font-black text-brand-700">
+              <p className="mt-1 text-xs font-medium text-primary">
                 Free on orders above {formatPrice(method.freeAbove)}
               </p>
             )}
@@ -800,15 +782,11 @@ function ShippingMethodCard({ method, isSelected, onSelect }: ShippingMethodCard
         <div className="shrink-0 text-right">
           {method.isFree ? (
             <div className="flex items-baseline justify-end gap-2">
-              <span className="text-xs font-bold text-gray-400 line-through">
-                {formatPrice(method.baseCost)}
-              </span>
-              <span className="text-lg font-black uppercase tracking-tight text-emerald-600">
-                Free
-              </span>
+              <span className="price-original">{formatPrice(method.baseCost)}</span>
+              <span className="text-base font-bold text-emerald-600">Free</span>
             </div>
           ) : (
-            <span className="text-lg font-black tabular-nums tracking-tighter text-gray-900">
+            <span className="text-base font-bold tabular-nums text-primary">
               {formatPrice(method.cost)}
             </span>
           )}
@@ -884,7 +862,7 @@ function CheckoutLoginForm() {
   return (
     <form onSubmit={handleSubmit} className="space-y-4 max-w-md mx-auto py-2">
       {error && (
-        <div className="rounded-2xl border border-rose-100 bg-rose-50 p-4 text-sm font-bold text-rose-700">
+        <div className="border border-rose-200 bg-rose-50 p-4 text-sm font-medium text-rose-700">
           {error}
         </div>
       )}
@@ -911,7 +889,7 @@ function CheckoutLoginForm() {
           </label>
           <Link
             href="/forgot-password"
-            className="text-xs font-bold text-brand-700 hover:underline"
+            className="text-xs font-medium text-primary hover:underline"
             target="_blank"
             rel="noopener noreferrer"
           >
@@ -929,7 +907,7 @@ function CheckoutLoginForm() {
         />
       </div>
 
-      <button type="submit" disabled={isSubmitting} className="btn btn-primary btn-lg mt-2 w-full">
+      <button type="submit" disabled={isSubmitting} className="btn btn-dark btn-lg mt-2 w-full">
         {isSubmitting ? (
           <span className="flex items-center justify-center gap-2">
             <Loader2 className="h-4 w-4 animate-spin" strokeWidth={2.5} />
@@ -940,11 +918,11 @@ function CheckoutLoginForm() {
         )}
       </button>
 
-      <p className="mt-4 text-center text-sm font-medium text-gray-500">
+      <p className="mt-4 text-center text-sm text-gray-500">
         Don&apos;t have an account?{' '}
         <Link
           href={`/register?redirect=${encodeURIComponent('/checkout')}`}
-          className="font-bold text-brand-700 hover:underline"
+          className="font-semibold text-primary hover:underline"
         >
           Create one now
         </Link>
@@ -1410,10 +1388,10 @@ export default function CheckoutPage() {
                   type="button"
                   onClick={() => setCheckoutMode('guest')}
                   aria-pressed={checkoutMode === 'guest'}
-                  className={`flex items-start gap-4 rounded-[1.5rem] border-2 p-4 text-left transition-all sm:p-5 ${
+                  className={`flex items-start gap-4 border p-4 text-left transition-colors sm:p-5 ${
                     checkoutMode === 'guest'
-                      ? 'border-primary bg-brand-50/60 shadow-brand-glow'
-                      : 'border-foreground/[0.04] bg-card hover:border-foreground/[0.1] hover:shadow-bento-hover'
+                      ? 'border-primary bg-brand-50/40 ring-1 ring-primary'
+                      : 'border-gray-200 bg-card hover:border-gray-400'
                   }`}
                 >
                   <div
@@ -1426,8 +1404,10 @@ export default function CheckoutPage() {
                     )}
                   </div>
                   <div>
-                    <h3 className="text-sm font-black text-gray-900">Checkout as Guest</h3>
-                    <p className="mt-1 text-xs font-medium text-gray-500">
+                    <h3 className="font-heading text-sm font-semibold text-gray-900">
+                      Checkout as Guest
+                    </h3>
+                    <p className="mt-1 text-[13px] text-gray-500">
                       No account needed. Fast and simple checkout.
                     </p>
                   </div>
@@ -1437,10 +1417,10 @@ export default function CheckoutPage() {
                   type="button"
                   onClick={() => setCheckoutMode('login')}
                   aria-pressed={checkoutMode === 'login'}
-                  className={`flex items-start gap-4 rounded-[1.5rem] border-2 p-4 text-left transition-all sm:p-5 ${
+                  className={`flex items-start gap-4 border p-4 text-left transition-colors sm:p-5 ${
                     checkoutMode === 'login'
-                      ? 'border-primary bg-brand-50/60 shadow-brand-glow'
-                      : 'border-foreground/[0.04] bg-card hover:border-foreground/[0.1] hover:shadow-bento-hover'
+                      ? 'border-primary bg-brand-50/40 ring-1 ring-primary'
+                      : 'border-gray-200 bg-card hover:border-gray-400'
                   }`}
                 >
                   <div
@@ -1453,8 +1433,10 @@ export default function CheckoutPage() {
                     )}
                   </div>
                   <div>
-                    <h3 className="text-sm font-black text-gray-900">Sign In / Register</h3>
-                    <p className="mt-1 text-xs font-medium text-gray-500">
+                    <h3 className="font-heading text-sm font-semibold text-gray-900">
+                      Sign In / Register
+                    </h3>
+                    <p className="mt-1 text-[13px] text-gray-500">
                       Use saved addresses, track orders, and more.
                     </p>
                   </div>
@@ -1464,7 +1446,7 @@ export default function CheckoutPage() {
 
             {/* Inline Login Form */}
             {isGuest && checkoutMode === 'login' && (
-              <div className="bento-tile mb-6 p-6">
+              <div className="mb-6 bg-gray-50 p-6">
                 <div className="mb-4 flex items-center gap-3">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -1499,7 +1481,7 @@ export default function CheckoutPage() {
             {/* Guest address form */}
             {isGuest && checkoutMode === 'guest' && (
               <div className="mb-6">
-                <h3 className="mb-4 text-base font-black tracking-tight text-gray-900">
+                <h3 className="mb-4 font-heading text-base font-semibold text-gray-900">
                   Delivery Address
                 </h3>
                 <GuestAddressForm
@@ -1546,7 +1528,7 @@ export default function CheckoutPage() {
                       <button
                         type="button"
                         onClick={() => setShowAddAddress(true)}
-                        className="mb-6 w-full rounded-[1.5rem] border-2 border-dashed border-gray-200 bg-gray-50/60 px-4 py-4 text-sm font-black text-gray-500 transition-all hover:border-primary hover:bg-brand-50/50 hover:text-brand-700"
+                        className="mb-6 w-full border border-dashed border-gray-300 bg-card px-4 py-4 text-sm font-medium text-gray-600 transition-colors hover:border-primary hover:text-primary"
                       >
                         {savedAddresses.length > 0
                           ? '+ Deliver to a different address'
@@ -1559,7 +1541,7 @@ export default function CheckoutPage() {
             )}
 
             {(!isGuest || checkoutMode === 'guest') && (
-              <div className="flex justify-end border-t border-foreground/[0.04] pt-6">
+              <div className="flex justify-end border-t border-gray-200 pt-6">
                 <button
                   type="button"
                   onClick={handleAddressContinue}
@@ -1581,13 +1563,13 @@ export default function CheckoutPage() {
 
             {/* Zone indicator */}
             <div
-              className={`mb-6 inline-flex items-center gap-2 rounded-xl px-4 py-2 text-[10px] font-black uppercase tracking-widest ${
+              className={`mb-6 inline-flex items-center gap-2 border px-4 py-2 text-[13px] font-medium ${
                 shippingZone === 'INSIDE_DHAKA'
-                  ? 'bg-brand-50 text-brand-700'
-                  : 'bg-amber-50 text-amber-700'
+                  ? 'border-brand-200 bg-brand-50 text-brand-700'
+                  : 'border-amber-200 bg-amber-50 text-amber-700'
               }`}
             >
-              <MapPin className="h-3.5 w-3.5" strokeWidth={2.5} />
+              <MapPin className="h-3.5 w-3.5" strokeWidth={2} />
               <span>
                 {shippingZone === 'INSIDE_DHAKA'
                   ? 'Delivering Inside Dhaka'
@@ -1612,8 +1594,10 @@ export default function CheckoutPage() {
               </div>
             )}
 
-            <div className="bento-tile mt-6 p-5 text-xs font-bold text-gray-500">
-              <p className="eyebrow mb-2">Delivery Information</p>
+            <div className="mt-6 bg-gray-50 p-5 text-[13px] text-gray-600">
+              <p className="mb-2 font-heading text-sm font-semibold text-gray-900">
+                Delivery Information
+              </p>
               <ul className="list-inside list-disc space-y-1">
                 <li>Inside Dhaka: Standard ৳60, Express ৳120</li>
                 <li>Outside Dhaka: Standard ৳120, Express ৳200</li>
@@ -1621,11 +1605,11 @@ export default function CheckoutPage() {
               </ul>
             </div>
 
-            <div className="mt-6 flex flex-col-reverse gap-3 border-t border-foreground/[0.04] pt-6 sm:flex-row sm:items-center sm:justify-between">
+            <div className="mt-6 flex flex-col-reverse gap-3 border-t border-gray-200 pt-6 sm:flex-row sm:items-center sm:justify-between">
               <button
                 type="button"
                 onClick={goToPreviousStep}
-                className="btn btn-soft w-full sm:w-auto"
+                className="btn btn-secondary w-full sm:w-auto"
               >
                 Back to Address
               </button>
@@ -1658,12 +1642,12 @@ export default function CheckoutPage() {
                   }
                   disabled={option.disabled}
                   aria-pressed={checkoutData.paymentMethod === option.id}
-                  className={`w-full rounded-[1.5rem] border-2 p-4 text-left transition-all sm:p-5 ${
+                  className={`w-full border p-4 text-left transition-colors sm:p-5 ${
                     option.disabled
-                      ? 'cursor-not-allowed border-transparent bg-gray-50 opacity-60'
+                      ? 'cursor-not-allowed border-gray-200 bg-gray-50 opacity-60'
                       : checkoutData.paymentMethod === option.id
-                        ? 'border-primary bg-brand-50/60 shadow-brand-glow'
-                        : 'border-foreground/[0.04] bg-card hover:border-foreground/[0.1] hover:shadow-bento-hover'
+                        ? 'border-primary bg-brand-50/40 ring-1 ring-primary'
+                        : 'border-gray-200 bg-card hover:border-gray-400'
                   }`}
                 >
                   <div className="flex items-center gap-4">
@@ -1683,7 +1667,7 @@ export default function CheckoutPage() {
 
                     <div className="flex-1 min-w-0">
                       <div className="flex flex-wrap items-center gap-2">
-                        <span className="font-black text-gray-900">{option.name}</span>
+                        <span className="font-semibold text-gray-900">{option.name}</span>
                         {option.badge && (
                           <span
                             className={`pill ${option.disabled ? 'pill-neutral' : 'pill-brand'}`}
@@ -1692,7 +1676,7 @@ export default function CheckoutPage() {
                           </span>
                         )}
                       </div>
-                      <p className="mt-1 text-xs font-bold text-gray-500">{option.description}</p>
+                      <p className="mt-1 text-[13px] text-gray-500">{option.description}</p>
                     </div>
                   </div>
                 </button>
@@ -1700,9 +1684,9 @@ export default function CheckoutPage() {
             </div>
 
             {checkoutData.paymentMethod === 'COD' && (
-              <div className="mt-6 rounded-[1.5rem] bg-amber-50 p-5 text-sm text-amber-800">
-                <p className="mb-2 font-black">Cash on Delivery</p>
-                <ul className="list-inside list-disc space-y-1 text-xs font-bold">
+              <div className="mt-6 border border-amber-200 bg-amber-50 p-5 text-sm text-amber-800">
+                <p className="mb-2 font-semibold">Cash on Delivery</p>
+                <ul className="list-inside list-disc space-y-1 text-[13px]">
                   <li>Pay the delivery person when you receive your order</li>
                   <li>Please keep exact change ready</li>
                   <li>Available for orders up to ৳10,000</li>
@@ -1710,11 +1694,11 @@ export default function CheckoutPage() {
               </div>
             )}
 
-            <div className="mt-6 flex flex-col-reverse gap-3 border-t border-foreground/[0.04] pt-6 sm:flex-row sm:items-center sm:justify-between">
+            <div className="mt-6 flex flex-col-reverse gap-3 border-t border-gray-200 pt-6 sm:flex-row sm:items-center sm:justify-between">
               <button
                 type="button"
                 onClick={goToPreviousStep}
-                className="btn btn-soft w-full sm:w-auto"
+                className="btn btn-secondary w-full sm:w-auto"
               >
                 Back to Shipping
               </button>
@@ -1740,33 +1724,33 @@ export default function CheckoutPage() {
             {isGuest && (
               <div className="mb-6">
                 <div className="flex items-center justify-between mb-3">
-                  <h3 className="eyebrow">Contact Info</h3>
+                  <h3 className="font-heading text-sm font-semibold text-gray-900">Contact Info</h3>
                   <button
                     type="button"
                     onClick={() => setCurrentStep('address')}
-                    className="btn btn-soft btn-sm"
+                    className="btn btn-secondary btn-sm"
                   >
                     Edit
                   </button>
                 </div>
-                <div className="bento-tile p-4 text-sm sm:p-5">
-                  <p className="font-black text-gray-900">{checkoutData.guestInfo.fullName}</p>
-                  <p className="mt-1 font-bold text-gray-600">{checkoutData.guestInfo.email}</p>
-                  <p className="font-bold text-gray-600">{checkoutData.guestInfo.phone}</p>
+                <div className="bg-gray-50 p-4 text-sm sm:p-5">
+                  <p className="font-semibold text-gray-900">{checkoutData.guestInfo.fullName}</p>
+                  <p className="mt-1 text-gray-700">{checkoutData.guestInfo.email}</p>
+                  <p className="text-gray-700">{checkoutData.guestInfo.phone}</p>
                 </div>
               </div>
             )}
 
             {/* Cart items */}
             <div className="mb-6">
-              <h3 className="eyebrow mb-3">Items</h3>
-              <div className="divide-y divide-foreground/[0.04] overflow-hidden rounded-[1.5rem] border border-foreground/[0.04]">
+              <h3 className="mb-3 font-heading text-sm font-semibold text-gray-900">Items</h3>
+              <div className="divide-y divide-gray-200 overflow-hidden border border-gray-200">
                 {cartItems.map((item) => (
                   <div
                     key={item.id}
                     className="flex items-center gap-3 bg-card p-3 sm:gap-4 sm:p-4"
                   >
-                    <div className="relative h-14 w-14 flex-shrink-0 overflow-hidden rounded-[1rem] bg-gray-50 sm:h-16 sm:w-16">
+                    <div className="relative h-14 w-14 flex-shrink-0 overflow-hidden bg-gray-50 sm:h-16 sm:w-16">
                       {item.product.images[0] && (
                         <img
                           src={item.product.images[0].url}
@@ -1776,20 +1760,16 @@ export default function CheckoutPage() {
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="line-clamp-1 text-sm font-black text-gray-900">
-                        {item.product.name}
-                      </p>
-                      <p className="mt-0.5 text-[11px] font-bold text-gray-400">
+                      <p className="line-clamp-1 text-sm text-gray-900">{item.product.name}</p>
+                      <p className="mt-0.5 text-xs text-gray-500">
                         SKU: {item.product.sku} &middot; Qty: {item.quantity}
                       </p>
                     </div>
                     <div className="text-right flex-shrink-0">
-                      <p className="text-sm font-black tabular-nums text-gray-900">
+                      <p className="text-sm font-bold tabular-nums text-primary">
                         {formatPrice(item.lineTotal)}
                       </p>
-                      <p className="text-[11px] font-bold text-gray-400">
-                        {formatPrice(item.price)} each
-                      </p>
+                      <p className="text-xs text-gray-500">{formatPrice(item.price)} each</p>
                     </div>
                   </div>
                 ))}
@@ -1800,23 +1780,25 @@ export default function CheckoutPage() {
             {reviewAddress && (
               <div className="mb-6">
                 <div className="flex items-center justify-between mb-3">
-                  <h3 className="eyebrow">Shipping Address</h3>
+                  <h3 className="font-heading text-sm font-semibold text-gray-900">
+                    Shipping Address
+                  </h3>
                   <button
                     type="button"
                     onClick={() => setCurrentStep('address')}
-                    className="btn btn-soft btn-sm"
+                    className="btn btn-secondary btn-sm"
                   >
                     Edit
                   </button>
                 </div>
-                <div className="bento-tile p-4 text-sm sm:p-5">
-                  <p className="font-black text-gray-900">{reviewAddress.name}</p>
-                  <p className="mt-1 font-bold text-gray-600">{reviewAddress.phone}</p>
-                  <p className="mt-1 font-medium text-gray-500">
+                <div className="bg-gray-50 p-4 text-sm sm:p-5">
+                  <p className="font-semibold text-gray-900">{reviewAddress.name}</p>
+                  <p className="mt-1 text-gray-700">{reviewAddress.phone}</p>
+                  <p className="mt-1 text-gray-500">
                     {reviewAddress.line1}
                     {reviewAddress.line2 && `, ${reviewAddress.line2}`}
                   </p>
-                  <p className="font-medium text-gray-500">
+                  <p className="text-gray-500">
                     {reviewAddress.area}, {reviewAddress.district}
                     {reviewAddress.division && `, ${reviewAddress.division}`}
                     {reviewAddress.postalCode && ` ${reviewAddress.postalCode}`}
@@ -1829,27 +1811,31 @@ export default function CheckoutPage() {
             {selectedShippingMethod && (
               <div className="mb-6">
                 <div className="flex items-center justify-between mb-3">
-                  <h3 className="eyebrow">Delivery Method</h3>
+                  <h3 className="font-heading text-sm font-semibold text-gray-900">
+                    Delivery Method
+                  </h3>
                   <button
                     type="button"
                     onClick={() => setCurrentStep('shipping')}
-                    className="btn btn-soft btn-sm"
+                    className="btn btn-secondary btn-sm"
                   >
                     Edit
                   </button>
                 </div>
-                <div className="bento-tile p-4 text-sm sm:p-5">
+                <div className="bg-gray-50 p-4 text-sm sm:p-5">
                   <div className="flex items-center justify-between">
-                    <span className="font-black text-gray-900">{selectedShippingMethod.name}</span>
+                    <span className="font-semibold text-gray-900">
+                      {selectedShippingMethod.name}
+                    </span>
                     {selectedShippingMethod.isFree ? (
-                      <span className="flex items-baseline gap-2 font-black">
-                        <span className="text-xs text-gray-400 line-through">
+                      <span className="flex items-baseline gap-2 font-semibold">
+                        <span className="price-original">
                           {formatPrice(selectedShippingMethod.baseCost)}
                         </span>
                         <span className="text-emerald-600">Free</span>
                       </span>
                     ) : (
-                      <span className="font-black tabular-nums text-gray-900">
+                      <span className="font-semibold tabular-nums text-gray-900">
                         {formatPrice(selectedShippingMethod.cost)}
                       </span>
                     )}
@@ -1861,17 +1847,17 @@ export default function CheckoutPage() {
             {/* Payment method */}
             <div className="mb-6">
               <div className="flex items-center justify-between mb-3">
-                <h3 className="eyebrow">Payment Method</h3>
+                <h3 className="font-heading text-sm font-semibold text-gray-900">Payment Method</h3>
                 <button
                   type="button"
                   onClick={() => setCurrentStep('payment')}
-                  className="btn btn-soft btn-sm"
+                  className="btn btn-secondary btn-sm"
                 >
                   Edit
                 </button>
               </div>
-              <div className="bento-tile p-4 text-sm sm:p-5">
-                <span className="font-black text-gray-900">
+              <div className="bg-gray-50 p-4 text-sm sm:p-5">
+                <span className="font-semibold text-gray-900">
                   {PAYMENT_OPTIONS.find((o) => o.id === checkoutData.paymentMethod)?.name ??
                     checkoutData.paymentMethod}
                 </span>
@@ -1880,44 +1866,46 @@ export default function CheckoutPage() {
 
             {/* Cost breakdown */}
             <div className="mb-6">
-              <h3 className="eyebrow mb-3">Order Total</h3>
-              <div className="bento-tile p-4 sm:p-5">
+              <h3 className="mb-3 font-heading text-sm font-semibold text-gray-900">Order Total</h3>
+              <div className="border border-gray-200 bg-gray-50 p-4 sm:p-5">
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between gap-3">
-                    <span className="font-bold text-gray-500">
+                    <span className="text-gray-600">
                       Subtotal ({itemCount} {itemCount === 1 ? 'item' : 'items'})
                     </span>
-                    <span className="font-black tabular-nums text-gray-900">
+                    <span className="font-semibold tabular-nums text-gray-900">
                       {formatPrice(subtotal)}
                     </span>
                   </div>
                   {discount > 0 && (
                     <div className="flex justify-between gap-3 text-emerald-600">
-                      <span className="font-bold">Discount</span>
-                      <span className="font-black tabular-nums">-{formatPrice(discount)}</span>
+                      <span>Discount</span>
+                      <span className="font-semibold tabular-nums">-{formatPrice(discount)}</span>
                     </div>
                   )}
                   <div className="flex justify-between gap-3">
-                    <span className="font-bold text-gray-500">Shipping</span>
+                    <span className="text-gray-600">Shipping</span>
                     {selectedShippingMethod?.isFree ? (
-                      <span className="flex items-baseline gap-2 font-black">
-                        <span className="text-gray-400 line-through">
+                      <span className="flex items-baseline gap-2 font-semibold">
+                        <span className="price-original">
                           {formatPrice(selectedShippingMethod.baseCost)}
                         </span>
                         <span className="text-emerald-600">Free</span>
                       </span>
                     ) : checkoutData.shippingCost === 0 ? (
-                      <span className="font-black text-emerald-600">Free</span>
+                      <span className="font-semibold text-emerald-600">Free</span>
                     ) : (
-                      <span className="font-black tabular-nums text-gray-900">
+                      <span className="font-semibold tabular-nums text-gray-900">
                         {formatPrice(checkoutData.shippingCost)}
                       </span>
                     )}
                   </div>
-                  <div className="my-3 border-t-2 border-dashed border-gray-200" />
+                  <div className="my-3 border-t border-gray-200" />
                   <div className="flex items-baseline justify-between gap-3">
-                    <span className="text-base font-black text-gray-900">Total</span>
-                    <span className="text-2xl font-black tabular-nums tracking-tighter text-brand-700">
+                    <span className="font-heading text-base font-semibold text-gray-900">
+                      Total
+                    </span>
+                    <span className="text-xl font-bold tabular-nums text-primary">
                       {formatPrice(orderSummary.total)}
                     </span>
                   </div>
@@ -1932,15 +1920,15 @@ export default function CheckoutPage() {
                   type="checkbox"
                   checked={termsAccepted}
                   onChange={(e) => setTermsAccepted(e.target.checked)}
-                  className="mt-0.5 h-4 w-4 rounded border-gray-300 text-brand-600 focus:ring-brand-500"
+                  className="mt-0.5 h-4 w-4 border-gray-300 accent-primary focus:ring-primary"
                 />
-                <span className="text-sm font-bold text-gray-600">
+                <span className="text-sm text-gray-600">
                   I agree to the{' '}
-                  <a href="/terms" className="font-black text-brand-700 hover:underline">
+                  <a href="/terms" className="font-medium text-primary hover:underline">
                     Terms &amp; Conditions
                   </a>{' '}
                   and{' '}
-                  <a href="/privacy" className="font-black text-brand-700 hover:underline">
+                  <a href="/privacy" className="font-medium text-primary hover:underline">
                     Privacy Policy
                   </a>
                   .
@@ -1948,11 +1936,11 @@ export default function CheckoutPage() {
               </label>
             </div>
 
-            <div className="flex flex-col-reverse gap-3 border-t border-foreground/[0.04] pt-6 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex flex-col-reverse gap-3 border-t border-gray-200 pt-6 sm:flex-row sm:items-center sm:justify-between">
               <button
                 type="button"
                 onClick={goToPreviousStep}
-                className="btn btn-soft w-full sm:w-auto"
+                className="btn btn-secondary w-full sm:w-auto"
               >
                 Back to Payment
               </button>
@@ -1987,19 +1975,22 @@ export default function CheckoutPage() {
   // Empty cart guard
   if (!authLoading && itemCount === 0) {
     return (
-      <div className="site-container px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
-        <EmptyState
-          icon={ShoppingBag}
-          title="Your cart is empty"
-          description="Add some items to your cart before checkout."
-          action={
-            <a href="/products" className="btn btn-primary btn-lg">
-              Continue Shopping
-            </a>
-          }
-          className="mx-auto max-w-2xl"
-        />
-      </div>
+      <>
+        <Breadcrumbs items={CHECKOUT_CRUMBS} />
+        <div className="site-container px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
+          <EmptyState
+            icon={ShoppingBag}
+            title="Your cart is empty"
+            description="Add some items to your cart before checkout."
+            action={
+              <a href="/products" className="btn btn-primary btn-lg">
+                Continue Shopping
+              </a>
+            }
+            className="mx-auto max-w-2xl"
+          />
+        </div>
+      </>
     );
   }
 
@@ -2022,37 +2013,40 @@ export default function CheckoutPage() {
     .filter((m): m is string => m !== null);
 
   return (
-    <div className="site-container px-4 py-6 sm:px-6 sm:py-8 lg:px-8 lg:py-10">
-      <PageHeader title="Checkout" description="Complete your order in four quick steps." />
+    <>
+      <Breadcrumbs items={CHECKOUT_CRUMBS} />
+      <div className="site-container px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
+        <PageHeader title="Checkout" description="Complete your order in four quick steps." />
 
-      {priceChangeNotices.length > 0 && (
-        <div className="mb-6 rounded-lg border border-yellow-200 bg-yellow-50 px-4 py-3">
-          <p className="text-sm font-medium text-yellow-800">Prices have changed</p>
-          <ul className="mt-1 list-disc pl-5 text-sm text-yellow-700">
-            {priceChangeNotices.map((msg) => (
-              <li key={msg}>{msg}</li>
-            ))}
-          </ul>
-          <p className="mt-2 text-xs text-yellow-700">
-            Your cart total still uses the prices at the time you added these items. Remove and
-            re-add the items to use the latest price.
-          </p>
-        </div>
-      )}
+        {priceChangeNotices.length > 0 && (
+          <div className="mb-6 border border-yellow-200 bg-yellow-50 px-4 py-3">
+            <p className="text-sm font-medium text-yellow-800">Prices have changed</p>
+            <ul className="mt-1 list-disc pl-5 text-sm text-yellow-700">
+              {priceChangeNotices.map((msg) => (
+                <li key={msg}>{msg}</li>
+              ))}
+            </ul>
+            <p className="mt-2 text-xs text-yellow-700">
+              Your cart total still uses the prices at the time you added these items. Remove and
+              re-add the items to use the latest price.
+            </p>
+          </div>
+        )}
 
-      <Stepper
-        currentStep={currentStep}
-        completedSteps={completedSteps}
-        onStepClick={handleStepClick}
-      />
+        <Stepper
+          currentStep={currentStep}
+          completedSteps={completedSteps}
+          onStepClick={handleStepClick}
+        />
 
-      <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-12">
-        <div className="min-w-0 lg:col-span-8">{renderStepContent()}</div>
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-12 lg:gap-8">
+          <div className="min-w-0 lg:col-span-8">{renderStepContent()}</div>
 
-        <div className="lg:col-span-4">
-          <OrderSummary {...orderSummary} />
+          <div className="lg:col-span-4">
+            <OrderSummary {...orderSummary} />
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }

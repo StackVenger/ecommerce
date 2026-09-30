@@ -28,6 +28,24 @@ interface ColorSettingsProps {
 
 const COLOR_PRESETS: { name: string; colors: Partial<ColorConfig> }[] = [
   {
+    // Default storefront theme (watch-store coral on white).
+    name: 'Timekeeper',
+    colors: {
+      primary: '#f9706a',
+      primaryLight: '#fa8a84',
+      primaryDark: '#e5554f',
+      secondary: '#f2f2f2',
+      secondaryLight: '#f7f7f7',
+      secondaryDark: '#e8e8e8',
+      accent: '#f2f2f2',
+      background: '#ffffff',
+      surface: '#f7f7f7',
+      text: '#333333',
+      textSecondary: '#868686',
+      border: '#e8e8e8',
+    },
+  },
+  {
     name: 'Ocean Blue',
     colors: {
       primary: '#2563eb',
@@ -173,13 +191,13 @@ export default function ColorSettings({ colors, onChange }: ColorSettingsProps) 
     <div className="space-y-6">
       {/* Color Presets */}
       <div>
-        <h3 className="text-sm font-black text-gray-900 mb-3 tracking-tight">Quick Presets</h3>
+        <h3 className="font-heading text-base font-semibold text-gray-900 mb-3">Quick Presets</h3>
         <div className="grid grid-cols-3 gap-3">
           {COLOR_PRESETS.map((preset) => (
             <button
               key={preset.name}
               onClick={() => applyPreset(preset)}
-              className="rounded-2xl border border-foreground/[0.05] bg-card p-3 text-left shadow-sm transition-all hover:border-brand-300 hover:bg-brand-50"
+              className="border border-gray-200 bg-card p-3 text-left transition-colors hover:border-primary"
             >
               <div className="flex gap-1 mb-2">
                 {Object.values(preset.colors).map((color, i) => (
@@ -199,7 +217,7 @@ export default function ColorSettings({ colors, onChange }: ColorSettingsProps) 
       {/* Color Groups */}
       {COLOR_GROUPS.map((group) => (
         <div key={group.label}>
-          <h3 className="text-sm font-black text-gray-900 mb-3 tracking-tight">{group.label}</h3>
+          <h3 className="font-heading text-base font-semibold text-gray-900 mb-3">{group.label}</h3>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             {group.fields.map((field) => (
               <ColorPicker
@@ -215,9 +233,9 @@ export default function ColorSettings({ colors, onChange }: ColorSettingsProps) 
 
       {/* Live Preview */}
       <div>
-        <h3 className="text-sm font-black text-gray-900 mb-3 tracking-tight">Live Preview</h3>
+        <h3 className="font-heading text-base font-semibold text-gray-900 mb-3">Live Preview</h3>
         <div
-          className="overflow-hidden rounded-[1.5rem] border border-foreground/[0.05]"
+          className="overflow-hidden border border-gray-200"
           style={{ backgroundColor: colors.background }}
         >
           {/* Preview Header */}

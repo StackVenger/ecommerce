@@ -160,7 +160,7 @@ export default function ProfilePage() {
   const avatarSrc = avatarPreview || user?.avatar;
 
   return (
-    <div className="space-y-4 sm:space-y-6">
+    <div className="space-y-6">
       <PageHeader
         title="Edit Profile"
         description="Update your personal information"
@@ -169,26 +169,28 @@ export default function ProfilePage() {
 
       {/* Success/Error Messages */}
       {successMessage && (
-        <div className="flex items-center gap-2 rounded-2xl border border-emerald-100 bg-emerald-50 px-4 py-3 text-sm font-bold text-emerald-700">
-          <CheckCircle className="h-5 w-5" strokeWidth={2.25} />
+        <div className="flex items-center gap-2 border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-700">
+          <CheckCircle className="h-5 w-5" strokeWidth={1.75} />
           {successMessage}
         </div>
       )}
 
       {error && (
-        <div className="rounded-2xl border border-rose-100 bg-rose-50 px-4 py-3 text-sm font-bold text-rose-600">
+        <div className="border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-600">
           {error}
         </div>
       )}
 
-      <div className="grid grid-cols-1 gap-4 sm:gap-6 xl:grid-cols-12">
+      <div className="grid grid-cols-1 gap-6 xl:grid-cols-12">
         {/* Avatar Section */}
-        <section className="bento-card flex flex-col items-center p-6 text-center sm:p-8 xl:col-span-4">
-          <p className="eyebrow mb-6 self-start">Profile Photo</p>
+        <section className="bento-card flex flex-col items-center p-5 text-center sm:p-6 xl:col-span-4">
+          <h3 className="section-title mb-6 w-full border-b border-gray-200 pb-3 text-left">
+            Profile Photo
+          </h3>
 
           {/* Avatar Preview */}
           <div className="relative">
-            <div className="relative h-28 w-28 overflow-hidden rounded-[2rem] border-4 border-card bg-gray-100 shadow-bento">
+            <div className="relative h-28 w-28 overflow-hidden rounded-full border border-gray-200 bg-gray-100">
               {avatarSrc ? (
                 <img
                   src={avatarSrc}
@@ -197,7 +199,7 @@ export default function ProfilePage() {
                 />
               ) : (
                 <div className="flex h-full w-full items-center justify-center bg-brand-50">
-                  <User className="h-10 w-10 text-brand-600" strokeWidth={2.25} />
+                  <User className="h-10 w-10 text-primary" strokeWidth={1.5} />
                 </div>
               )}
 
@@ -212,10 +214,10 @@ export default function ProfilePage() {
             <button
               onClick={handleAvatarClick}
               disabled={isUploading}
-              className="absolute -bottom-2 -right-2 flex h-10 w-10 items-center justify-center rounded-2xl border-2 border-card bg-primary text-white shadow-brand-glow transition-all hover:scale-105 active:scale-95"
+              className="absolute bottom-0 right-0 flex h-9 w-9 items-center justify-center rounded-full border-2 border-card bg-primary text-white transition-colors hover:bg-brand-700"
               aria-label="Change profile photo"
             >
-              <Camera className="h-4 w-4" strokeWidth={2.5} />
+              <Camera className="h-4 w-4" strokeWidth={2} />
             </button>
 
             <input
@@ -227,31 +229,33 @@ export default function ProfilePage() {
             />
           </div>
 
-          <p className="mt-6 text-base font-black tracking-tight text-gray-900">
+          <p className="mt-5 font-heading text-base font-semibold text-gray-900">
             {user?.fullName || 'Your profile'}
           </p>
-          <p className="mt-1 max-w-[16rem] text-xs font-medium text-gray-500">
+          <p className="mt-1 max-w-[16rem] text-xs text-gray-500">
             JPG, PNG, or WebP. Max 5MB. Will be resized to 200x200 and 50x50.
           </p>
           <button
             onClick={handleAvatarClick}
             disabled={isUploading}
-            className="btn btn-soft btn-sm mt-5"
+            className="btn btn-secondary btn-sm mt-5"
           >
             {isUploading ? 'Uploading...' : 'Choose file'}
           </button>
         </section>
 
         {/* Profile Form */}
-        <form onSubmit={handleSave} className="bento-card p-6 sm:p-8 xl:col-span-8">
-          <h3 className="section-title">Personal Information</h3>
-          <p className="eyebrow mb-6 mt-1">How we reach you</p>
+        <form onSubmit={handleSave} className="bento-card p-5 sm:p-6 xl:col-span-8">
+          <div className="mb-6 border-b border-gray-200 pb-3">
+            <h3 className="section-title">Personal Information</h3>
+            <p className="text-sm text-gray-500">How we reach you</p>
+          </div>
 
           <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
             {/* Name */}
             <div className="md:col-span-2">
               <label htmlFor="profile-name" className="field-label flex items-center gap-1.5">
-                <User className="h-3.5 w-3.5" strokeWidth={2.5} />
+                <User className="h-3.5 w-3.5" strokeWidth={2} />
                 Full Name
               </label>
               <input
@@ -267,7 +271,7 @@ export default function ProfilePage() {
             {/* Email (read-only) */}
             <div>
               <label htmlFor="profile-email" className="field-label flex items-center gap-1.5">
-                <Mail className="h-3.5 w-3.5" strokeWidth={2.5} />
+                <Mail className="h-3.5 w-3.5" strokeWidth={2} />
                 Email Address
               </label>
               <input
@@ -283,7 +287,7 @@ export default function ProfilePage() {
             {/* Phone */}
             <div>
               <label htmlFor="profile-phone" className="field-label flex items-center gap-1.5">
-                <Phone className="h-3.5 w-3.5" strokeWidth={2.5} />
+                <Phone className="h-3.5 w-3.5" strokeWidth={2} />
                 Phone Number
               </label>
               <input
@@ -298,12 +302,12 @@ export default function ProfilePage() {
           </div>
 
           {/* Save Button */}
-          <div className="mt-8 flex justify-end border-t border-foreground/[0.04] pt-6">
+          <div className="mt-6 flex justify-end border-t border-gray-200 pt-5">
             <button type="submit" disabled={isSaving} className="btn btn-primary">
               {isSaving ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
-                <Save className="h-4 w-4" strokeWidth={2.5} />
+                <Save className="h-4 w-4" strokeWidth={2} />
               )}
               {isSaving ? 'Saving...' : 'Save Changes'}
             </button>
@@ -312,14 +316,16 @@ export default function ProfilePage() {
       </div>
 
       {/* Danger Zone */}
-      <section className="bento-card flex flex-col gap-5 border-rose-100 p-6 sm:flex-row sm:items-center sm:p-8">
-        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-rose-50 text-rose-500">
-          <AlertTriangle className="h-6 w-6" strokeWidth={2.25} />
+      <section className="flex flex-col gap-5 border border-rose-200 bg-card p-5 sm:flex-row sm:items-center sm:p-6">
+        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-rose-50 text-rose-500">
+          <AlertTriangle className="h-5 w-5" strokeWidth={1.75} />
         </div>
         <div className="flex-1">
-          <p className="eyebrow text-rose-500">Danger zone</p>
-          <h3 className="mt-1 text-base font-black tracking-tight text-gray-900">Delete account</h3>
-          <p className="mt-1 text-xs font-medium text-gray-500">
+          <p className="text-sm font-medium text-rose-500">Danger zone</p>
+          <h3 className="mt-0.5 font-heading text-base font-semibold text-gray-900">
+            Delete account
+          </h3>
+          <p className="mt-1 text-sm text-gray-500">
             Permanently delete your account and personal data. Past orders are kept for our records
             but will no longer be linked to you. This cannot be undone.
           </p>
@@ -334,7 +340,7 @@ export default function ProfilePage() {
           }}
           className="btn btn-danger-soft shrink-0"
         >
-          <Trash2 className="h-4 w-4" strokeWidth={2.5} />
+          <Trash2 className="h-4 w-4" strokeWidth={2} />
           Delete my account
         </button>
       </section>
@@ -342,26 +348,26 @@ export default function ProfilePage() {
       {/* Delete confirmation dialog */}
       {showDeleteDialog && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
           onClick={() => !isDeleting && setShowDeleteDialog(false)}
         >
           <div
-            className="w-full max-w-md rounded-[2rem] border border-foreground/[0.04] bg-card p-6 shadow-2xl sm:p-8"
+            className="w-full max-w-md border border-gray-200 bg-card p-6 sm:p-8"
             onClick={(e) => e.stopPropagation()}
             role="dialog"
             aria-modal="true"
             aria-labelledby="delete-account-title"
           >
-            <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-rose-50 text-rose-500">
-              <AlertTriangle className="h-7 w-7" strokeWidth={2.25} />
+            <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-full bg-rose-50 text-rose-500">
+              <AlertTriangle className="h-6 w-6" strokeWidth={1.75} />
             </div>
             <h3
               id="delete-account-title"
-              className="text-xl font-black tracking-tight text-gray-900"
+              className="font-heading text-xl font-semibold text-gray-900"
             >
               Delete account permanently?
             </h3>
-            <p className="mb-5 mt-2 text-sm font-medium text-gray-500">
+            <p className="mb-5 mt-2 text-sm text-gray-500">
               This will remove your profile, addresses, cart, wishlist, reviews and notifications.
               Orders you placed will be kept but disconnected from your account.
             </p>
@@ -370,7 +376,7 @@ export default function ProfilePage() {
               <div>
                 <label htmlFor="delete-password" className="field-label">
                   Current password{' '}
-                  <span className="font-medium text-gray-400">
+                  <span className="font-normal text-gray-400">
                     (leave blank if you signed up with Google)
                   </span>
                 </label>
@@ -386,7 +392,8 @@ export default function ProfilePage() {
               </div>
               <div>
                 <label htmlFor="delete-confirm" className="field-label">
-                  Type <span className="font-mono font-black text-rose-600">DELETE</span> to confirm
+                  Type <span className="font-mono font-semibold text-rose-600">DELETE</span> to
+                  confirm
                 </label>
                 <input
                   id="delete-confirm"
@@ -408,7 +415,7 @@ export default function ProfilePage() {
                 type="button"
                 onClick={() => setShowDeleteDialog(false)}
                 disabled={isDeleting}
-                className="btn btn-soft"
+                className="btn btn-secondary"
               >
                 Cancel
               </button>
@@ -421,7 +428,7 @@ export default function ProfilePage() {
                 {isDeleting ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
                 ) : (
-                  <Trash2 className="h-4 w-4" strokeWidth={2.5} />
+                  <Trash2 className="h-4 w-4" strokeWidth={2} />
                 )}
                 {isDeleting ? 'Deleting...' : 'Delete account'}
               </button>

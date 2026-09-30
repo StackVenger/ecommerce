@@ -123,7 +123,7 @@ export default function AdminQuestionsPage() {
         <p className="page-subtitle">Answer customer questions on product pages</p>
       </div>
 
-      <div className="flex w-fit max-w-full gap-1 overflow-x-auto rounded-[1.5rem] border border-foreground/[0.04] bg-card p-2 shadow-bento scrollbar-none">
+      <div className="flex w-fit max-w-full gap-1 overflow-x-auto rounded-xl border border-gray-200 bg-card p-2 shadow-bento scrollbar-none">
         {STATUS_TABS.map((tab) => (
           <button
             key={tab.key}
@@ -222,7 +222,7 @@ export default function AdminQuestionsPage() {
                       rows={3}
                       maxLength={2000}
                       disabled={busyId === q.id}
-                      className="field-input w-full resize-none disabled:bg-gray-50 rounded-[1.25rem]"
+                      className="field-input w-full resize-none disabled:bg-gray-50 rounded-xl"
                     />
                     <div className="flex justify-end gap-2">
                       {respondingId === q.id && (
@@ -258,7 +258,7 @@ export default function AdminQuestionsPage() {
         )}
 
         {pagination && pagination.pages > 1 && (
-          <div className="flex items-center justify-end gap-1 border-t border-foreground/[0.04] px-4 py-3">
+          <div className="flex items-center justify-end gap-1 border-t border-gray-200 px-4 py-3">
             <button
               type="button"
               onClick={() => setPage((p) => Math.max(1, p - 1))}

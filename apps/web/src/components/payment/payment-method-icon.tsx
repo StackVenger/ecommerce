@@ -74,7 +74,7 @@ export function PaymentMethodIcon({
       <div className={cn('flex items-center gap-2', className)}>
         <div
           className={cn(
-            'flex shrink-0 items-center justify-center rounded-xl',
+            'flex shrink-0 items-center justify-center',
             config.bg,
             containerSizes[size],
           )}
@@ -82,8 +82,8 @@ export function PaymentMethodIcon({
           <Icon className={cn(iconSizes[size], config.color)} strokeWidth={2.25} />
         </div>
         <div>
-          <p className="text-sm font-black text-gray-900">{config.label}</p>
-          <p className="text-[11px] font-bold text-gray-500">{config.description}</p>
+          <p className="text-sm font-semibold text-gray-900">{config.label}</p>
+          <p className="text-xs text-gray-500">{config.description}</p>
         </div>
       </div>
     );
@@ -92,7 +92,7 @@ export function PaymentMethodIcon({
   return (
     <div
       className={cn(
-        'flex shrink-0 items-center justify-center rounded-xl',
+        'flex shrink-0 items-center justify-center',
         config.bg,
         containerSizes[size],
         className,

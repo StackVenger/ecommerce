@@ -29,7 +29,7 @@ import { LowStockWidget } from '@/components/admin/dashboard/low-stock-widget';
 import { QuickActions } from '@/components/admin/dashboard/quick-actions';
 import { RecentOrdersWidget } from '@/components/admin/dashboard/recent-orders-widget';
 import { useDashboardActivity } from '@/components/admin/dashboard/use-dashboard-activity';
-import { BentoGlow, PageHeader, SkeletonBlock, StatCard, TrendPill } from '@/components/ui/bento';
+import { PageHeader, SkeletonBlock, StatCard, TrendPill } from '@/components/ui/bento';
 import { fetchDashboardStats, formatBDT, type DashboardStats } from '@/lib/api/admin';
 import { cn } from '@/lib/utils';
 
@@ -84,7 +84,7 @@ export default function AdminDashboardPage() {
           <div className="icon-tile bg-rose-50 text-rose-500">
             <AlertTriangle className="h-6 w-6" strokeWidth={2.25} />
           </div>
-          <p className="text-sm font-black text-gray-900">{error ?? 'Something went wrong'}</p>
+          <p className="text-sm font-semibold text-gray-900">{error ?? 'Something went wrong'}</p>
         </div>
       ) : (
         <DashboardGrid stats={stats} statsLoading={isLoading} dateRange={dateRange} />
@@ -227,7 +227,7 @@ function RevenueHero({ stats, loading, className }: TileProps) {
         className,
       )}
     >
-      <div className="icon-tile mb-6 h-16 w-16 bg-orange-50 text-orange-500 group-hover:scale-110">
+      <div className="icon-tile mb-6 h-16 w-16 bg-orange-50 text-orange-500">
         <Wallet className="h-8 w-8" strokeWidth={2.25} />
       </div>
       <p className="eyebrow mb-2">Total Revenue</p>
@@ -238,11 +238,11 @@ function RevenueHero({ stats, loading, className }: TileProps) {
       )}
       <div className="flex flex-wrap items-center justify-center gap-2">
         {stats && <TrendPill value={stats.revenueGrowth} />}
-        <span className="text-[11px] font-bold text-gray-400">vs previous period</span>
+        <span className="text-xs text-gray-500">vs previous period</span>
       </div>
-      <div className="mt-6 w-full max-w-[16rem] rounded-2xl bg-gray-50 px-4 py-3">
+      <div className="mt-6 w-full max-w-[16rem] border border-gray-200 px-4 py-3">
         <p className="eyebrow">Avg. order value</p>
-        <p className="mt-1 text-lg font-black tabular-nums tracking-tighter text-gray-900">
+        <p className="mt-1 text-lg font-heading font-semibold tabular-nums text-gray-900">
           {loading || !stats ? '—' : formatBDT(avgOrder)}
         </p>
       </div>
@@ -255,34 +255,26 @@ function OrdersTile({ stats, loading, className }: TileProps) {
     <Link
       href="/admin/orders"
       className={cn(
-        'group relative flex flex-col items-center justify-center overflow-hidden rounded-[2rem] bg-indigo-600 p-5 dark:bg-[#4f46e5] text-center sm:p-8 shadow-lg shadow-indigo-500/20 transition-all hover:scale-[1.02]',
+        'bento-card group flex flex-col items-center justify-center p-5 text-center transition-all sm:p-8 hover:border-gray-300 hover:shadow-bento-hover',
         className,
       )}
     >
-      <div className="relative z-10 flex flex-col items-center">
-        <div className="mb-6 flex h-14 w-14 items-center justify-center rounded-xl bg-white/20 text-white backdrop-blur-md">
+      <div className="flex flex-col items-center">
+        <div className="icon-tile mb-6 h-14 w-14 bg-indigo-50 text-indigo-500">
           <ShoppingBag className="h-7 w-7" strokeWidth={2.25} />
         </div>
-        <p className="mb-2 text-[10px] font-black uppercase tracking-widest text-white/60">
-          Total Orders
-        </p>
+        <p className="eyebrow mb-2">Total Orders</p>
         {loading || !stats ? (
-          <div className="h-10 w-20 animate-pulse rounded-xl bg-white/20" />
+          <SkeletonBlock className="h-10 w-20" />
         ) : (
-          <h2 className="text-3xl font-black tabular-nums tracking-tighter text-white sm:text-4xl">
-            {stats.totalOrders.toLocaleString()}
-          </h2>
+          <h2 className="stat-value text-3xl sm:text-4xl">{stats.totalOrders.toLocaleString()}</h2>
         )}
         {stats && (
-          <span className="mt-3 rounded-xl bg-white/15 px-2.5 py-1 text-[10px] font-black tabular-nums text-white">
+          <span className="mt-3 bg-gray-100 px-2.5 py-1 text-xs font-medium tabular-nums text-gray-600">
             {stats.ordersGrowth >= 0 ? '↑' : '↓'} {Math.abs(stats.ordersGrowth).toFixed(1)}%
           </span>
         )}
       </div>
-      <div
-        className="bento-glow right-0 top-0 h-32 w-32 bg-white/10 transition-transform duration-700 group-hover:scale-110"
-        aria-hidden
-      />
     </Link>
   );
 }
@@ -296,7 +288,7 @@ function CustomersTile({ stats, loading, className }: TileProps) {
         className,
       )}
     >
-      <div className="icon-tile mb-6 h-14 w-14 rounded-xl bg-blue-50 text-blue-500 group-hover:rotate-12">
+      <div className="icon-tile mb-6 h-14 w-14 bg-blue-50 text-blue-500">
         <Users className="h-7 w-7" strokeWidth={2.25} />
       </div>
       {loading || !stats ? (
@@ -315,22 +307,19 @@ function CustomersTile({ stats, loading, className }: TileProps) {
 function AttentionTile({ stats, loading, className }: TileProps) {
   const pending = stats?.pendingOrders ?? 0;
   return (
-    <div className={cn('bento-primary group p-8', className)}>
-      <BentoGlow variant="primary" />
-      <div className="relative z-10 flex h-full flex-col justify-between gap-8">
+    <div className={cn('bento-card border-t-2 border-t-primary p-8', className)}>
+      <div className="flex h-full flex-col justify-between gap-8">
         <div className="flex items-start justify-between">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/20 text-white backdrop-blur-md">
+          <div className="icon-tile bg-brand-50 text-primary">
             <ArrowUpRight className="h-6 w-6" strokeWidth={2.25} />
           </div>
-          <span className="rounded-xl bg-white/15 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-white">
+          <span className="bg-gray-100 px-3 py-1 text-xs font-medium text-gray-600">
             {loading ? '…' : `${stats?.processingOrders ?? 0} processing`}
           </span>
         </div>
         <div>
-          <p className="mb-2 text-[10px] font-black uppercase tracking-widest text-white/70">
-            Needs attention
-          </p>
-          <h3 className="mb-5 text-2xl font-black leading-tight text-white">
+          <p className="eyebrow mb-2">Needs attention</p>
+          <h3 className="mb-5 font-heading text-xl font-semibold leading-snug text-gray-900">
             {loading
               ? 'Checking your order queue…'
               : pending > 0
@@ -338,16 +327,10 @@ function AttentionTile({ stats, loading, className }: TileProps) {
                 : 'Your order queue is clear. Nice work!'}
           </h3>
           <div className="flex flex-wrap gap-2">
-            <Link
-              href="/admin/orders"
-              className="inline-flex items-center gap-1.5 rounded-xl bg-card px-5 py-2.5 text-xs font-black text-primary transition-all hover:scale-105 active:scale-95"
-            >
+            <Link href="/admin/orders" className="btn btn-primary btn-sm">
               Review orders
             </Link>
-            <Link
-              href="/admin/products/new"
-              className="inline-flex items-center gap-1.5 rounded-xl bg-white/15 px-5 py-2.5 text-xs font-black text-white transition-all hover:bg-white/25"
-            >
+            <Link href="/admin/products/new" className="btn btn-secondary btn-sm">
               Add product
             </Link>
           </div>
@@ -375,7 +358,7 @@ function HubStat({
   return (
     <Link
       href={href}
-      className="block h-full rounded-[2rem] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-500/20"
+      className="block h-full rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
     >
       <StatCard
         label={label}

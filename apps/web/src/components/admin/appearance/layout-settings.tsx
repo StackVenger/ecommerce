@@ -292,7 +292,7 @@ function StyleSelector({
 }) {
   return (
     <div>
-      <h3 className="text-sm font-black text-gray-900 mb-3 tracking-tight">{label}</h3>
+      <h3 className="font-heading text-base font-semibold text-gray-900 mb-3">{label}</h3>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {options.map((option) => (
           <button
@@ -351,7 +351,9 @@ export default function LayoutSettings({ layout, onChange }: LayoutSettingsProps
 
       {/* Container & Layout Settings */}
       <div>
-        <h3 className="text-sm font-black text-gray-900 mb-3 tracking-tight">Container & Layout</h3>
+        <h3 className="font-heading text-base font-semibold text-gray-900 mb-3">
+          Container & Layout
+        </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label className="field-label">Container Max Width</label>

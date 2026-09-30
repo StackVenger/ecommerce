@@ -157,18 +157,21 @@ export function AdminSidebar({
       {/* Desktop sidebar */}
       <aside
         className={cn(
-          'fixed left-0 top-0 z-40 hidden h-screen flex-col bg-gray-50 transition-all duration-300 lg:flex',
-          collapsed ? 'w-20' : 'w-72',
+          'fixed inset-y-0 left-0 z-40 hidden h-screen flex-col bg-card transition-all duration-300 lg:flex',
+          collapsed ? 'w-20' : 'w-64',
         )}
       >
         {/* Logo / Brand */}
         <div
-          className={cn('flex items-center justify-between pb-8 pt-8', collapsed ? 'px-4' : 'px-6')}
+          className={cn(
+            'flex h-16 shrink-0 items-center justify-between border-b border-gray-200',
+            collapsed ? 'px-4' : 'px-6',
+          )}
         >
           {!collapsed && (
             <Link href="/admin" className="flex items-center gap-3">
               <BrandMark />
-              <span className="text-lg font-black tracking-tight text-gray-900">Admin</span>
+              <span className="font-heading text-lg font-semibold text-gray-900">Admin</span>
             </Link>
           )}
           {collapsed && (
@@ -181,7 +184,7 @@ export function AdminSidebar({
         {/* Collapse toggle */}
         <button
           onClick={onToggle}
-          className="absolute -right-3 top-[4.5rem] z-50 flex h-7 w-7 items-center justify-center rounded-full border border-foreground/[0.05] bg-card text-gray-500 shadow-sm transition-colors hover:text-gray-900"
+          className="absolute -right-3 top-[4.75rem] z-50 flex h-6 w-6 items-center justify-center border border-gray-200 bg-card text-gray-500 transition-colors hover:border-primary hover:text-primary"
           aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
         >
           {collapsed ? (
@@ -193,7 +196,7 @@ export function AdminSidebar({
 
         {/* Navigation */}
         <nav
-          className={cn('scrollbar-thin flex-1 overflow-y-auto pb-4', collapsed ? 'px-3' : 'px-4')}
+          className={cn('scrollbar-thin flex-1 overflow-y-auto py-4', collapsed ? 'px-2' : 'px-0')}
         >
           <SidebarNav
             items={navigation}
@@ -206,8 +209,8 @@ export function AdminSidebar({
 
         {/* Footer */}
         {!collapsed && (
-          <div className="mx-4 mb-4 border-t border-foreground/[0.05] px-2 pt-4">
-            <p className="eyebrow text-gray-400">ShopBD Admin v1.0</p>
+          <div className="border-t border-gray-200 px-6 py-4">
+            <p className="text-xs text-gray-400">ShopBD Admin v1.0</p>
           </div>
         )}
       </aside>
@@ -215,19 +218,19 @@ export function AdminSidebar({
       {/* Mobile sidebar */}
       <aside
         className={cn(
-          'fixed left-0 top-0 z-50 flex h-screen w-[18rem] max-w-[85vw] flex-col rounded-r-[2rem] bg-gray-50 shadow-2xl shadow-black/10 transition-transform duration-300 lg:hidden',
+          'fixed left-0 top-0 z-50 flex h-screen w-[18rem] max-w-[85vw] flex-col border-r border-gray-200 bg-card transition-transform duration-300 lg:hidden',
           mobileOpen ? 'translate-x-0' : '-translate-x-full',
         )}
       >
         {/* Mobile header */}
-        <div className="flex items-center justify-between px-6 pb-6 pt-6">
+        <div className="flex h-16 shrink-0 items-center justify-between border-b border-gray-200 px-6">
           <Link href="/admin" className="flex items-center gap-3" onClick={handleLinkClick}>
             <BrandMark />
-            <span className="text-lg font-black tracking-tight text-gray-900">Admin</span>
+            <span className="font-heading text-lg font-semibold text-gray-900">Admin</span>
           </Link>
           <button
             onClick={onMobileClose}
-            className="flex h-9 w-9 items-center justify-center rounded-xl text-gray-500 transition-colors hover:bg-card hover:text-gray-900"
+            className="flex h-9 w-9 items-center justify-center text-gray-500 transition-colors hover:text-primary"
             aria-label="Close sidebar"
           >
             <X className="h-5 w-5" />
@@ -235,7 +238,7 @@ export function AdminSidebar({
         </div>
 
         {/* Mobile Navigation */}
-        <nav className="scrollbar-thin flex-1 overflow-y-auto px-4 pb-4">
+        <nav className="scrollbar-thin flex-1 overflow-y-auto py-4">
           <SidebarNav
             items={navigation}
             collapsed={false}
@@ -246,18 +249,18 @@ export function AdminSidebar({
           />
         </nav>
 
-        <div className="mx-4 mb-4 border-t border-foreground/[0.05] px-2 pt-4">
-          <p className="eyebrow text-gray-400">ShopBD Admin v1.0</p>
+        <div className="border-t border-gray-200 px-6 py-4">
+          <p className="text-xs text-gray-400">ShopBD Admin v1.0</p>
         </div>
       </aside>
     </>
   );
 }
 
-/** Coral rounded monogram used for the admin brand. */
+/** Square coral monogram used for the admin brand. */
 function BrandMark() {
   return (
-    <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-sm font-black text-white shadow-brand-glow">
+    <div className="flex h-9 w-9 items-center justify-center bg-primary font-heading text-sm font-semibold text-white">
       S
     </div>
   );
@@ -283,7 +286,7 @@ function SidebarNav({
   onLinkClick?: () => void;
 }) {
   return (
-    <ul className="space-y-1.5">
+    <ul className="space-y-0.5">
       {items.map((item) => (
         <li key={item.label}>
           {/* Simple link (no children) */}
@@ -292,10 +295,10 @@ function SidebarNav({
               href={item.href}
               onClick={onLinkClick}
               className={cn(
-                'flex h-12 items-center gap-3 rounded-[14px] px-4 text-sm font-bold transition-all',
+                'relative flex h-11 items-center gap-3 border-l-2 px-6 font-heading text-sm font-semibold transition-colors',
                 isActive(item.href)
-                  ? 'bg-card text-gray-900 shadow-sm'
-                  : 'text-gray-500 hover:bg-card/60 hover:text-gray-900',
+                  ? 'border-primary bg-brand-50 text-primary'
+                  : 'border-transparent text-gray-700 hover:text-primary',
                 collapsed && 'justify-center px-0',
               )}
               title={collapsed ? item.label : undefined}
@@ -303,9 +306,9 @@ function SidebarNav({
               <item.icon
                 className={cn(
                   'h-5 w-5 flex-shrink-0',
-                  isActive(item.href) ? 'text-primary' : 'text-gray-500',
+                  isActive(item.href) ? 'text-primary' : 'text-gray-400',
                 )}
-                strokeWidth={2.25}
+                strokeWidth={1.75}
               />
               {!collapsed && <span>{item.label}</span>}
             </Link>
@@ -315,10 +318,10 @@ function SidebarNav({
               <button
                 onClick={() => toggleSection(item.label)}
                 className={cn(
-                  'flex h-12 w-full items-center gap-3 rounded-[14px] px-4 text-sm font-bold transition-all',
+                  'flex h-11 w-full items-center gap-3 border-l-2 border-transparent px-6 font-heading text-sm font-semibold transition-colors',
                   item.children?.some((child) => isActive(child.href))
-                    ? 'bg-card text-gray-900 shadow-sm'
-                    : 'text-gray-500 hover:bg-card/60 hover:text-gray-900',
+                    ? 'text-primary'
+                    : 'text-gray-700 hover:text-primary',
                   collapsed && 'justify-center px-0',
                 )}
                 title={collapsed ? item.label : undefined}
@@ -328,9 +331,9 @@ function SidebarNav({
                     'h-5 w-5 flex-shrink-0',
                     item.children?.some((child) => isActive(child.href))
                       ? 'text-primary'
-                      : 'text-gray-500',
+                      : 'text-gray-400',
                   )}
-                  strokeWidth={2.25}
+                  strokeWidth={1.75}
                 />
                 {!collapsed && (
                   <>
@@ -347,17 +350,17 @@ function SidebarNav({
 
               {/* Children */}
               {!collapsed && expandedSections.includes(item.label) && item.children && (
-                <ul className="relative ml-[1.625rem] mt-1.5 space-y-0.5 border-l border-foreground/[0.06] pl-4">
+                <ul className="relative mb-1 ml-[2.125rem] space-y-0.5 border-l border-gray-200 pl-3">
                   {item.children.map((child) => (
                     <li key={child.href}>
                       <Link
                         href={child.href}
                         onClick={onLinkClick}
                         className={cn(
-                          'block rounded-xl px-3 py-2 text-[13px] font-bold transition-all',
+                          'block px-3 py-1.5 text-[13px] transition-colors',
                           isActive(child.href)
-                            ? 'bg-card/70 text-primary'
-                            : 'text-gray-500 hover:bg-card/50 hover:text-gray-900',
+                            ? 'font-medium text-primary'
+                            : 'text-gray-500 hover:text-primary',
                         )}
                       >
                         {child.label}

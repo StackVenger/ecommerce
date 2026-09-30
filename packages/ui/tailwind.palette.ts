@@ -2,7 +2,7 @@ import defaultColors from 'tailwindcss/colors';
 import plugin from 'tailwindcss/plugin';
 
 /**
- * Theme-aware colour palettes for the bento design system.
+ * Theme-aware colour palettes for the watch-store design system.
  *
  * Every shade of the palettes below is exposed to Tailwind as
  * `rgb(var(--palette-<name>-<shade>) / <alpha-value>)`, so utilities such as
@@ -10,8 +10,8 @@ import plugin from 'tailwindcss/plugin';
  * opacity modifiers while their actual colour comes from CSS variables.
  *
  * `:root` carries the light values; `html.dark` swaps in a dark set derived
- * from the same hues: light tints (50–200) become deep warm tints, text
- * shades (700–950) lighten for contrast, and the warm gray scale inverts.
+ * from the same hues: light tints (50–200) become deep tints, text
+ * shades (700–950) lighten for contrast, and the neutral gray scale inverts.
  * Toggling the `dark` class on <html> therefore re-themes the whole app
  * without per-component `dark:` variants.
  */
@@ -32,49 +32,49 @@ const SHADES = [
   '950',
 ] as const;
 
-/** Warm neutral scale (light) — off-white canvas through near-black ink. */
+/** Neutral scale (light) — #f7f7f7 image wells through the #333 body ink. */
 const GRAY_LIGHT: Scale = {
-  50: '#fbf9f6',
-  100: '#f5f2ee',
-  200: '#ebe7e1',
-  300: '#dcd7d0',
-  400: '#a8a49e',
-  500: '#78746f',
-  600: '#5b5854',
-  700: '#44423f',
-  800: '#2d2b29',
-  900: '#1a1a1a',
-  950: '#0d0c0b',
+  50: '#f7f7f7',
+  100: '#f2f2f2',
+  200: '#e8e8e8',
+  300: '#d7d7d7',
+  400: '#a4a4a4',
+  500: '#868686',
+  600: '#6e6e6e',
+  700: '#555555',
+  800: '#444444',
+  900: '#333333',
+  950: '#1a1a1a',
 };
 
-/** Warm neutral scale (dark) — inverted so text stays light and surfaces stay dark. */
+/** Neutral scale (dark) — inverted so text stays light and surfaces stay dark. */
 const GRAY_DARK: Scale = {
-  50: '#141210',
-  100: '#24201c',
-  200: '#302b27',
-  300: '#3e3934',
-  400: '#6f6a63',
-  500: '#9a948c',
-  600: '#b8b2aa',
-  700: '#d3cec7',
-  800: '#e7e3dd',
-  900: '#f4f1ec',
-  950: '#faf8f5',
+  50: '#141414',
+  100: '#1f1f1f',
+  200: '#2a2a2a',
+  300: '#3a3a3a',
+  400: '#646464',
+  500: '#949494',
+  600: '#b0b0b0',
+  700: '#c8c8c8',
+  800: '#dddddd',
+  900: '#eeeeee',
+  950: '#f7f7f7',
 };
 
-/** Coral accent scale; 600 is the --primary token. */
+/** Watch-store coral accent scale; 600 is the --primary token (#f9706a). */
 const BRAND_LIGHT: Scale = {
-  50: '#fff4ef',
-  100: '#ffe7de',
-  200: '#ffd0c0',
-  300: '#fdb29b',
-  400: '#f99177',
-  500: '#f67e63',
-  600: '#f46e54',
-  700: '#dc5a40',
-  800: '#b4452f',
-  900: '#8a3525',
-  950: '#4a1a10',
+  50: '#fff3f2',
+  100: '#ffe4e2',
+  200: '#fec9c6',
+  300: '#fca6a1',
+  400: '#fa8a84',
+  500: '#f97d77',
+  600: '#f9706a',
+  700: '#e5554f',
+  800: '#bf433e',
+  900: '#933632',
+  950: '#4f1917',
 };
 
 /** Dark-mode canvas the tints are blended toward (matches gray-50 dark). */
@@ -174,8 +174,8 @@ function varsFor(mode: 'light' | 'dark'): Record<string, string> {
   }
   // Ink: the emphasis tile colour. In dark mode it lifts slightly above the
   // canvas so ink tiles still read as a distinct, raised surface.
-  out['--palette-ink'] = mode === 'light' ? triplet('#1a1a1a') : triplet('#2a2521');
-  out['--palette-ink-soft'] = mode === 'light' ? triplet('#262626') : triplet('#35302b');
+  out['--palette-ink'] = mode === 'light' ? triplet('#222222') : triplet('#262626');
+  out['--palette-ink-soft'] = mode === 'light' ? triplet('#333333') : triplet('#303030');
   return out;
 }
 

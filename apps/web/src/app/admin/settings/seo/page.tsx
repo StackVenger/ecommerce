@@ -67,7 +67,7 @@ export default function SeoSettingsPage() {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-8">
-      <h2 className="text-lg font-black text-gray-900 tracking-tight">SEO Settings</h2>
+      <h2 className="text-lg font-heading font-semibold text-gray-900">SEO Settings</h2>
 
       {/* Meta Tags */}
       <section className="space-y-4">
@@ -102,7 +102,7 @@ export default function SeoSettingsPage() {
               rows={3}
               value={form.meta_description}
               onChange={(e) => handleChange('meta_description', e.target.value)}
-              className="field-input block w-full rounded-[1.25rem]"
+              className="field-input block w-full rounded-xl"
             />
             <p className="field-hint">{form.meta_description.length}/160 characters</p>
           </div>
@@ -113,7 +113,7 @@ export default function SeoSettingsPage() {
               rows={3}
               value={form.meta_description_bn}
               onChange={(e) => handleChange('meta_description_bn', e.target.value)}
-              className="field-input block w-full rounded-[1.25rem]"
+              className="field-input block w-full rounded-xl"
             />
             <p className="field-hint">{form.meta_description_bn.length}/160 characters</p>
           </div>
@@ -178,7 +178,7 @@ export default function SeoSettingsPage() {
           rows={5}
           value={form.robots_txt}
           onChange={(e) => handleChange('robots_txt', e.target.value)}
-          className="field-input block w-full font-mono rounded-[1.25rem]"
+          className="field-input block w-full font-mono rounded-xl"
         />
       </section>
 

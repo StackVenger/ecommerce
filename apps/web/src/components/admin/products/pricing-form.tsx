@@ -59,13 +59,13 @@ function CurrencyInput({
       </label>
       <div
         className={cn(
-          'flex overflow-hidden rounded-2xl border bg-card shadow-sm transition-all focus-within:ring-4',
+          'flex overflow-hidden border bg-card transition-colors focus-within:ring-1',
           error
-            ? 'border-rose-300 focus-within:border-rose-400 focus-within:ring-rose-500/10'
-            : 'border-foreground/[0.06] focus-within:border-brand-300 focus-within:ring-brand-500/10',
+            ? 'border-rose-300 focus-within:border-rose-400 focus-within:ring-rose-400'
+            : 'border-gray-300 focus-within:border-primary focus-within:ring-primary',
         )}
       >
-        <span className="inline-flex items-center border-r border-foreground/[0.06] bg-gray-50 px-4 text-sm font-bold text-gray-500">
+        <span className="inline-flex items-center border-r border-gray-200 bg-gray-50 px-4 text-sm font-bold text-gray-500">
           ৳
         </span>
         <input
@@ -116,7 +116,7 @@ export function PricingForm({
       <div className="bento-card p-6 sm:p-8">
         <div className="mb-6 flex items-center gap-2">
           <DollarSign className="h-5 w-5 text-gray-400" />
-          <h2 className="text-lg font-black text-gray-900 tracking-tight">Pricing (BDT ৳)</h2>
+          <h2 className="font-heading text-lg font-semibold text-gray-900">Pricing (BDT ৳)</h2>
         </div>
 
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -197,7 +197,7 @@ export function PricingForm({
       <div className="bento-card p-6 sm:p-8">
         <div className="mb-6 flex items-center gap-2">
           <Package className="h-5 w-5 text-gray-400" />
-          <h2 className="text-lg font-black text-gray-900 tracking-tight">Inventory</h2>
+          <h2 className="font-heading text-lg font-semibold text-gray-900">Inventory</h2>
         </div>
 
         {hasVariants && (

@@ -24,6 +24,7 @@ const GOOGLE_FONTS = [
   'Open Sans',
   'Lato',
   'Montserrat',
+  'IBM Plex Sans',
   'Poppins',
   'Source Sans Pro',
   'Nunito',
@@ -91,7 +92,7 @@ export default function TypographySettings({ typography, onChange }: TypographyS
     <div className="space-y-8">
       {/* Font Families */}
       <div>
-        <h3 className="text-sm font-black text-gray-900 mb-4 tracking-tight">Font Families</h3>
+        <h3 className="font-heading text-base font-semibold text-gray-900 mb-4">Font Families</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label className="field-label">Heading Font</label>
@@ -180,7 +181,7 @@ export default function TypographySettings({ typography, onChange }: TypographyS
 
       {/* Font Settings */}
       <div>
-        <h3 className="text-sm font-black text-gray-900 mb-4 tracking-tight">Font Settings</h3>
+        <h3 className="font-heading text-base font-semibold text-gray-900 mb-4">Font Settings</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label className="field-label">Base Font Size</label>
@@ -246,7 +247,7 @@ export default function TypographySettings({ typography, onChange }: TypographyS
 
       {/* Typography Scale Preview */}
       <div>
-        <h3 className="text-sm font-black text-gray-900 mb-4 tracking-tight">
+        <h3 className="font-heading text-base font-semibold text-gray-900 mb-4">
           Typography Scale Preview
         </h3>
         <div

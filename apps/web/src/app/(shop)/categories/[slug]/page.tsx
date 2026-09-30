@@ -1,19 +1,12 @@
 'use client';
 
-import {
-  ChevronRight,
-  LayoutGrid,
-  Package,
-  ShoppingCart,
-  SlidersHorizontal,
-  X,
-} from 'lucide-react';
+import { ShoppingCart, SlidersHorizontal, X } from 'lucide-react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 
 import { ProductCard, ProductCardSkeleton, ProductGrid } from '@/components/products/product-card';
-import { BentoGlow, EmptyState, StatCard } from '@/components/ui/bento';
+import { Breadcrumbs, EmptyState } from '@/components/ui/bento';
 import { RichText } from '@/components/ui/rich-text';
 import { useCart } from '@/hooks/use-cart';
 import { useWishlist } from '@/hooks/use-wishlist';
@@ -235,7 +228,7 @@ export default function CategoryPage() {
         setPage(1);
       }}
       aria-label="Sort products"
-      className="field-input w-auto cursor-pointer py-2.5 pr-9 text-xs font-bold"
+      className="h-9 cursor-pointer border-0 bg-gray-100 px-3 pr-8 text-sm text-gray-700 outline-none focus:ring-1 focus:ring-primary"
     >
       {SORT_OPTIONS.map((opt) => (
         <option key={opt.value} value={opt.value}>
@@ -245,122 +238,38 @@ export default function CategoryPage() {
     </select>
   );
 
+  const pageButtonClass =
+    'flex h-9 min-w-[36px] items-center justify-center border border-gray-200 bg-card px-2.5 text-sm tabular-nums text-gray-700 transition-colors hover:text-primary disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:text-gray-700';
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Category hero */}
-      <div className="site-container px-4 pt-6 sm:pt-8">
-        <nav className="mb-4 flex flex-wrap items-center gap-2 text-xs font-bold text-gray-400">
-          <Link href="/" className="transition-colors hover:text-gray-900">
-            Home
-          </Link>
-          <ChevronRight className="h-3.5 w-3.5" />
-          <Link href="/categories" className="transition-colors hover:text-gray-900">
-            Categories
-          </Link>
-          <ChevronRight className="h-3.5 w-3.5" />
-          <span className="text-gray-900">{category?.name ?? slug}</span>
-        </nav>
-
-        <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-12">
-          <div className="bento-dark rounded-[2rem] p-8 sm:p-10 lg:col-span-9">
-            <BentoGlow variant="dark" />
-            <div className="relative z-10">
-              <div className="mb-5 flex items-center gap-3 text-white/50">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/10 backdrop-blur-md">
-                  <LayoutGrid className="h-5 w-5" strokeWidth={2.25} />
-                </div>
-                <span className="text-[10px] font-black uppercase tracking-widest">Category</span>
-              </div>
-
-              <h1 className="text-3xl font-black leading-none tracking-tighter text-white sm:text-4xl">
-                {categoryLoading ? (
-                  <span className="inline-block h-9 w-48 animate-pulse rounded-xl bg-white/10" />
-                ) : (
-                  (category?.name ?? slug)
-                )}
-              </h1>
-
-              {category?.nameBn && (
-                <p className="mt-2 text-sm font-bold text-white/60">{category.nameBn}</p>
-              )}
-              {pagination && (
-                <p className="mt-2 text-[10px] font-black uppercase tracking-widest text-white/50 lg:hidden">
-                  {pagination.total} product{pagination.total !== 1 ? 's' : ''} found
-                </p>
-              )}
-              {category?.description && (
-                <RichText
-                  html={category.description}
-                  className="mt-3 max-w-2xl text-sm font-medium text-white/60 prose-headings:text-white prose-strong:text-white prose-a:text-white"
-                />
-              )}
-
-              {/* Subcategory chips */}
-              {category?.children && category.children.length > 0 && (
-                <div className="mt-6 flex flex-wrap gap-2">
-                  {category.children.map((sub) => (
-                    <Link
-                      key={sub.slug}
-                      href={`/categories/${sub.slug}`}
-                      className="rounded-xl bg-white/10 px-4 py-2 text-xs font-bold text-white backdrop-blur-md transition-all hover:bg-primary"
-                    >
-                      {sub.name}
-                    </Link>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-
-          <StatCard
-            className="hidden lg:col-span-3 lg:flex"
-            icon={Package}
-            tone="brand"
-            label="Products found"
-            value={pagination ? pagination.total : '—'}
-            loading={!pagination && loading}
-          />
-        </div>
-      </div>
-
-      {/* Sticky mobile filter bar */}
-      <div className="sticky top-20 z-20 mt-4 border-y border-foreground/[0.04] bg-gray-50/90 backdrop-blur-lg lg:hidden">
-        <div className="site-container flex items-center justify-between gap-3 px-4 py-3">
-          <button onClick={() => setMobileFilterOpen(true)} className="btn btn-secondary btn-sm">
-            <SlidersHorizontal className="h-4 w-4" strokeWidth={2.5} />
-            Filters
-            {hasActiveFilters && (
-              <span className="flex h-5 w-5 items-center justify-center rounded-lg bg-primary text-[10px] font-black text-white">
-                {[minPrice, maxPrice, selectedBrand].filter(Boolean).length}
-              </span>
-            )}
-          </button>
-          {sortSelect}
-        </div>
-      </div>
+    <div className="min-h-screen bg-background">
+      <Breadcrumbs
+        items={[
+          { label: 'Home', href: '/' },
+          { label: 'Categories', href: '/categories' },
+          { label: category?.name ?? slug },
+        ]}
+      />
 
       {/* Mobile filter sheet */}
       {mobileFilterOpen && (
         <div className="fixed inset-0 z-50 lg:hidden">
-          <div
-            className="absolute inset-0 bg-ink/40 backdrop-blur-sm"
-            onClick={() => setMobileFilterOpen(false)}
-          />
-          <div className="absolute inset-x-0 bottom-0 max-h-[85vh] overflow-y-auto rounded-t-[2rem] bg-card p-6 shadow-2xl">
-            <div className="mb-6 flex items-center justify-between">
+          <div className="absolute inset-0 bg-ink/40" onClick={() => setMobileFilterOpen(false)} />
+          <div className="absolute inset-x-0 bottom-0 max-h-[85vh] overflow-y-auto border-t border-gray-200 bg-card p-5">
+            <div className="mb-5 flex items-center justify-between border-b border-gray-200 pb-4">
               <h2 className="section-title">Filters</h2>
               <button
                 onClick={() => setMobileFilterOpen(false)}
                 aria-label="Close filters"
-                className="btn-icon h-10 w-10 bg-gray-100 text-gray-600 hover:bg-gray-200"
+                className="btn-icon h-9 w-9 border border-gray-200 text-gray-600 hover:text-primary"
               >
-                <X className="h-5 w-5" strokeWidth={2.5} />
+                <X className="h-5 w-5" strokeWidth={2} />
               </button>
             </div>
-            {filterSidebar()}
+            <div className="bg-gray-50 p-5">{filterSidebar()}</div>
             <button
               onClick={() => setMobileFilterOpen(false)}
-              className="btn btn-primary btn-lg mt-6 w-full"
+              className="btn btn-primary btn-lg mt-5 w-full"
             >
               Show Results
             </button>
@@ -368,33 +277,83 @@ export default function CategoryPage() {
         </div>
       )}
 
-      <div className="site-container px-4 py-6 sm:py-8">
-        <div className="flex gap-6 lg:gap-8">
+      <div className="site-container px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
+        <div className="flex gap-8">
           {/* Desktop sidebar */}
-          <aside className="hidden w-60 flex-shrink-0 lg:block">
-            <div className="bento-card sticky top-24 p-6">{filterSidebar()}</div>
+          <aside className="hidden w-[270px] flex-shrink-0 lg:block">
+            <div className="bg-gray-50 p-5">{filterSidebar()}</div>
           </aside>
 
           {/* Main content */}
           <div className="min-w-0 flex-1">
-            {/* Desktop sort bar */}
-            <div className="mb-6 hidden items-center justify-between lg:flex">
-              <p className="text-[11px] font-bold text-gray-500">
-                {pagination ? (
-                  <>
-                    Showing{' '}
-                    <span className="text-gray-900">
-                      {Math.min((pagination.page - 1) * pagination.limit + 1, pagination.total)}–
-                      {Math.min(pagination.page * pagination.limit, pagination.total)}
-                    </span>{' '}
-                    of <span className="text-gray-900">{pagination.total}</span>
-                  </>
+            {/* Category header */}
+            <div className="mb-6">
+              <h1 className="shop-heading">
+                {categoryLoading ? (
+                  <span className="inline-block h-7 w-48 animate-pulse bg-gray-100 align-middle" />
                 ) : (
-                  'Loading...'
+                  (category?.name ?? slug)
                 )}
-              </p>
-              {sortSelect}
+              </h1>
+              {category?.nameBn && <p className="mt-3 text-sm text-gray-500">{category.nameBn}</p>}
+              {category?.description && (
+                <RichText
+                  html={category.description}
+                  className="mt-3 max-w-3xl text-sm text-gray-600"
+                />
+              )}
+
+              {/* Subcategory chips */}
+              {category?.children && category.children.length > 0 && (
+                <div className="mt-5 flex flex-wrap gap-2">
+                  {category.children.map((sub) => (
+                    <Link key={sub.slug} href={`/categories/${sub.slug}`} className="chip">
+                      {sub.name}
+                    </Link>
+                  ))}
+                </div>
+              )}
             </div>
+
+            {/* Toolbar */}
+            <div className="mb-7 flex items-center justify-between gap-3 border border-gray-200 px-3 py-2.5 sm:px-4 sm:py-3">
+              <div className="flex min-w-0 items-center gap-3">
+                <button
+                  onClick={() => setMobileFilterOpen(true)}
+                  className="btn btn-secondary btn-sm h-9 lg:hidden"
+                >
+                  <SlidersHorizontal className="h-4 w-4" strokeWidth={2} />
+                  Filters
+                  {hasActiveFilters && (
+                    <span className="flex h-5 min-w-[20px] items-center justify-center bg-primary px-1 text-[11px] font-semibold text-white">
+                      {[minPrice, maxPrice, selectedBrand].filter(Boolean).length}
+                    </span>
+                  )}
+                </button>
+                <p className="hidden truncate text-[13px] text-gray-500 sm:block">
+                  {pagination ? (
+                    <>
+                      Showing{' '}
+                      {Math.min((pagination.page - 1) * pagination.limit + 1, pagination.total)}–
+                      {Math.min(pagination.page * pagination.limit, pagination.total)} of{' '}
+                      {pagination.total}
+                    </>
+                  ) : (
+                    'Loading...'
+                  )}
+                </p>
+              </div>
+              <div className="flex shrink-0 items-center gap-2">
+                <span className="hidden text-[13px] text-gray-700 sm:inline">Sort by:</span>
+                {sortSelect}
+              </div>
+            </div>
+
+            {pagination && (
+              <p className="-mt-4 mb-5 text-[13px] text-gray-500 sm:hidden">
+                {pagination.total} product{pagination.total !== 1 ? 's' : ''} found
+              </p>
+            )}
 
             {/* Product grid */}
             {loading ? (
@@ -461,11 +420,11 @@ export default function CategoryPage() {
 
             {/* Pagination */}
             {pagination && pagination.pages > 1 && (
-              <div className="mt-10 flex flex-wrap items-center justify-center gap-1.5">
+              <div className="mt-10 flex flex-wrap items-center justify-center gap-1.5 border border-gray-200 px-3 py-3 sm:justify-start sm:px-4">
                 <button
                   onClick={() => setPage((p) => Math.max(1, p - 1))}
                   disabled={page === 1}
-                  className="btn btn-soft btn-sm"
+                  className={pageButtonClass}
                 >
                   Previous
                 </button>
@@ -485,10 +444,10 @@ export default function CategoryPage() {
                       key={pageNum}
                       onClick={() => setPage(pageNum)}
                       aria-current={pageNum === page ? 'page' : undefined}
-                      className={`h-10 min-w-[40px] rounded-xl px-3 text-xs font-black tabular-nums transition-all ${
+                      className={`${pageButtonClass} ${
                         pageNum === page
-                          ? 'bg-ink text-white shadow-lg shadow-black/10'
-                          : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900'
+                          ? 'border-primary bg-primary text-white hover:text-white'
+                          : ''
                       }`}
                     >
                       {pageNum}
@@ -498,7 +457,7 @@ export default function CategoryPage() {
                 <button
                   onClick={() => setPage((p) => Math.min(pagination.pages, p + 1))}
                   disabled={page === pagination.pages}
-                  className="btn btn-dark btn-sm"
+                  className={pageButtonClass}
                 >
                   Next
                 </button>
@@ -512,17 +471,16 @@ export default function CategoryPage() {
 
   function filterSidebar() {
     const optionClass = (active: boolean) =>
-      `flex w-full items-center rounded-xl px-3 py-2 text-left text-sm transition-all ${
-        active
-          ? 'bg-brand-50 font-black text-brand-700'
-          : 'font-bold text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+      `flex w-full items-center py-1.5 text-left text-sm transition-colors ${
+        active ? 'font-medium text-primary' : 'text-gray-700 hover:text-primary'
       }`;
+    const widgetTitleClass = 'mb-4 font-heading text-base font-semibold text-gray-900';
 
     return (
-      <div className="space-y-7">
+      <div>
         {/* Price range */}
         <div>
-          <h3 className="eyebrow mb-3">Price Range</h3>
+          <h3 className={widgetTitleClass}>Price Range</h3>
           <div className="flex items-center gap-2">
             <input
               type="number"
@@ -533,9 +491,9 @@ export default function CategoryPage() {
                 setMinPrice(e.target.value);
                 setPage(1);
               }}
-              className="field-input px-3 py-2.5"
+              className="field-input h-10 px-3"
             />
-            <span className="font-bold text-gray-300">—</span>
+            <span className="text-gray-400">–</span>
             <input
               type="number"
               placeholder="Max"
@@ -545,16 +503,16 @@ export default function CategoryPage() {
                 setMaxPrice(e.target.value);
                 setPage(1);
               }}
-              className="field-input px-3 py-2.5"
+              className="field-input h-10 px-3"
             />
           </div>
         </div>
 
         {/* Brand filter */}
         {brands.length > 0 && (
-          <div>
-            <h3 className="eyebrow mb-3">Brand</h3>
-            <ul className="space-y-0.5">
+          <div className="mt-5 border-t border-gray-200 pt-5">
+            <h3 className={widgetTitleClass}>Brand</h3>
+            <ul>
               <li>
                 <button
                   onClick={() => {
@@ -585,10 +543,12 @@ export default function CategoryPage() {
 
         {/* Clear all */}
         {hasActiveFilters && (
-          <button onClick={clearFilters} className="btn btn-soft w-full">
-            <X className="h-4 w-4" strokeWidth={2.5} />
-            Clear All Filters
-          </button>
+          <div className="mt-5 border-t border-gray-200 pt-5">
+            <button onClick={clearFilters} className="btn btn-secondary btn-sm w-full">
+              <X className="h-4 w-4" strokeWidth={2} />
+              Clear All Filters
+            </button>
+          </div>
         )}
       </div>
     );

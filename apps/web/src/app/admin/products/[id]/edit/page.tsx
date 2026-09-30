@@ -809,7 +809,7 @@ export default function AdminProductEditPage() {
       </div>
 
       {/* Status Toggle */}
-      <div className="flex flex-wrap items-center gap-3 rounded-[1.5rem] border border-foreground/[0.04] bg-card px-4 py-3 shadow-bento sm:gap-4 sm:px-5">
+      <div className="flex flex-wrap items-center gap-3 rounded-xl border border-gray-200 bg-card px-4 py-3 shadow-bento sm:gap-4 sm:px-5">
         <label className="flex items-center gap-3">
           <select
             value={formData.status}
@@ -846,7 +846,7 @@ export default function AdminProductEditPage() {
 
       {/* Tab Navigation */}
       <nav
-        className="flex gap-1 overflow-x-auto rounded-[1.5rem] border border-foreground/[0.04] bg-card p-2 shadow-bento scrollbar-none"
+        className="flex gap-1 overflow-x-auto rounded-xl border border-gray-200 bg-card p-2 shadow-bento scrollbar-none"
         aria-label="Product sections"
       >
         {tabs.map((tab) => (
@@ -866,7 +866,7 @@ export default function AdminProductEditPage() {
       {/* Tab Content */}
       {activeTab === 'basic' && (
         <div className="bento-card p-6 sm:p-8">
-          <h2 className="mb-6 text-lg font-black text-gray-900 tracking-tight">
+          <h2 className="mb-6 text-lg font-heading font-semibold text-gray-900">
             Basic Information
           </h2>
           <div className="space-y-6">
@@ -893,8 +893,8 @@ export default function AdminProductEditPage() {
               <label htmlFor="edit-slug" className="field-label">
                 URL Slug
               </label>
-              <div className="flex min-w-0 overflow-hidden rounded-2xl border border-foreground/[0.06] bg-card shadow-sm transition-all focus-within:border-brand-300 focus-within:ring-4 focus-within:ring-brand-500/10">
-                <span className="inline-flex shrink-0 items-center border-r border-foreground/[0.06] bg-gray-50 px-4 text-sm font-bold text-gray-500">
+              <div className="flex min-w-0 overflow-hidden rounded-2xl border border-gray-200 bg-card transition-all focus-within:border-brand-300 focus-within:ring-2 focus-within:ring-brand-500/10">
+                <span className="inline-flex shrink-0 items-center border-r border-gray-200 bg-gray-50 px-4 text-sm text-gray-500">
                   /products/
                 </span>
                 <input

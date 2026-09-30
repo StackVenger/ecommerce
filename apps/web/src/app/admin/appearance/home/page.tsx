@@ -260,7 +260,7 @@ export default function AdminHomeSectionsPage() {
                     <span className="inline-flex h-6 w-6 items-center justify-center rounded-md bg-gray-100 text-xs font-semibold text-gray-600">
                       {index + 1}
                     </span>
-                    <h3 className="text-lg font-black tracking-tight text-gray-900">
+                    <h3 className="text-lg font-heading font-semibold text-gray-900">
                       {meta.label}
                     </h3>
                     {!section.visible && (

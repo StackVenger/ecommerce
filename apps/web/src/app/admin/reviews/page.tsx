@@ -123,7 +123,7 @@ export default function AdminReviewsPage() {
       </div>
 
       {/* Status Tabs */}
-      <div className="flex w-fit max-w-full gap-1 overflow-x-auto rounded-[1.5rem] border border-foreground/[0.04] bg-card p-2 shadow-bento scrollbar-none">
+      <div className="flex w-fit max-w-full gap-1 overflow-x-auto rounded-xl border border-gray-200 bg-card p-2 shadow-bento scrollbar-none">
         {STATUS_TABS.map((tab) => (
           <button
             key={tab}
@@ -131,7 +131,7 @@ export default function AdminReviewsPage() {
               setStatus(tab);
               setPage(1);
             }}
-            className={`chip uppercase tracking-wider ${status === tab ? 'chip-active' : ''}`}
+            className={`chip ${status === tab ? 'chip-active' : ''}`}
           >
             {tab}
           </button>
@@ -228,13 +228,13 @@ export default function AdminReviewsPage() {
                   <>
                     <button
                       onClick={() => moderate(review.id, 'APPROVED')}
-                      className="rounded-xl bg-emerald-50 px-4 py-2 text-xs text-emerald-600 hover:bg-emerald-100 font-bold transition-all"
+                      className="bg-emerald-50 px-4 py-2 text-xs text-emerald-600 hover:bg-emerald-100 font-semibold transition-colors"
                     >
                       Approve
                     </button>
                     <button
                       onClick={() => moderate(review.id, 'REJECTED')}
-                      className="rounded-xl bg-rose-50 px-4 py-2 text-xs text-rose-600 hover:bg-rose-100 font-bold transition-all"
+                      className="bg-rose-50 px-4 py-2 text-xs text-rose-600 hover:bg-rose-100 font-semibold transition-colors"
                     >
                       Reject
                     </button>
@@ -245,7 +245,7 @@ export default function AdminReviewsPage() {
                 </button>
                 <button
                   onClick={() => deleteReview(review.id)}
-                  className="ml-auto rounded-xl px-4 py-2 text-xs text-rose-500 hover:bg-rose-50 font-bold transition-all"
+                  className="ml-auto px-4 py-2 text-xs font-semibold text-rose-500 transition-colors hover:bg-rose-50"
                 >
                   Delete
                 </button>

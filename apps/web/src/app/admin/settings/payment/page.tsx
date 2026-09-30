@@ -71,10 +71,10 @@ export default function PaymentSettingsPage() {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-8">
-      <h2 className="text-lg font-black text-gray-900 tracking-tight">Payment Settings</h2>
+      <h2 className="text-lg font-heading font-semibold text-gray-900">Payment Settings</h2>
 
       {/* Cash on Delivery */}
-      <section className="space-y-4 rounded-[1.5rem] border border-foreground/[0.05] p-4">
+      <section className="space-y-4 rounded-xl border border-gray-200 p-4">
         <div className="flex items-center justify-between">
           <h3 className="font-medium text-gray-800">Cash on Delivery (COD)</h3>
           <label className="flex items-center gap-2">
@@ -121,7 +121,7 @@ export default function PaymentSettingsPage() {
       </section>
 
       {/* Mobile Banking */}
-      <section className="space-y-4 rounded-[1.5rem] border border-foreground/[0.05] p-4">
+      <section className="space-y-4 rounded-xl border border-gray-200 p-4">
         <h3 className="font-medium text-gray-800">Mobile Banking</h3>
         <div className="flex gap-6">
           <label className="flex items-center gap-2">
@@ -155,7 +155,7 @@ export default function PaymentSettingsPage() {
       </section>
 
       {/* Stripe */}
-      <section className="space-y-4 rounded-[1.5rem] border border-foreground/[0.05] p-4">
+      <section className="space-y-4 rounded-xl border border-gray-200 p-4">
         <div className="flex items-center justify-between">
           <h3 className="font-medium text-gray-800">Stripe</h3>
           <label className="flex items-center gap-2">
@@ -206,7 +206,7 @@ export default function PaymentSettingsPage() {
       </section>
 
       {/* Currency Conversion */}
-      <section className="space-y-3 rounded-[1.5rem] border border-foreground/[0.05] p-4">
+      <section className="space-y-3 rounded-xl border border-gray-200 p-4">
         <h3 className="font-medium text-gray-800">Currency Conversion</h3>
         <p className="text-sm text-gray-500">
           Stripe processes in USD. Set the BDT to USD exchange rate.

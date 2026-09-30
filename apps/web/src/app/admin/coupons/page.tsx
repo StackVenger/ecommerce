@@ -243,13 +243,13 @@ function CouponFormDialog({ isOpen, onClose, onSuccess, editCoupon }: CouponForm
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto">
       <div className="absolute inset-0 bg-black/50" onClick={onClose} />
-      <div className="relative w-full max-w-lg rounded-[2rem] bg-card p-6 shadow-xl">
+      <div className="relative w-full max-w-lg border border-gray-200 bg-card p-6 shadow-bento-hover">
         <div className="mb-6 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-purple-100">
               <Ticket className="h-5 w-5 text-purple-600" />
             </div>
-            <h2 className="text-lg font-black text-gray-900 tracking-tight">
+            <h2 className="text-lg font-heading font-semibold text-gray-900">
               {isEditing ? 'Edit Coupon' : 'Create Coupon'}
             </h2>
           </div>
@@ -326,8 +326,8 @@ function CouponFormDialog({ isOpen, onClose, onSuccess, editCoupon }: CouponForm
               <label className="field-label">
                 Discount Value <span className="text-red-500">*</span>
               </label>
-              <div className="flex overflow-hidden rounded-2xl border border-foreground/[0.06] bg-card shadow-sm transition-all focus-within:border-brand-300 focus-within:ring-4 focus-within:ring-brand-500/10">
-                <span className="inline-flex items-center border-r border-foreground/[0.06] bg-gray-50 px-4 text-sm font-bold text-gray-500">
+              <div className="flex overflow-hidden rounded-2xl border border-gray-200 bg-card transition-all focus-within:border-brand-300 focus-within:ring-2 focus-within:ring-brand-500/10">
+                <span className="inline-flex items-center border-r border-gray-200 bg-gray-50 px-4 text-sm text-gray-500">
                   {formData.discountType === 'PERCENTAGE' ? '%' : '৳'}
                 </span>
                 <input
@@ -457,7 +457,7 @@ function CouponFormDialog({ isOpen, onClose, onSuccess, editCoupon }: CouponForm
           </label>
         </div>
 
-        <div className="mt-6 flex justify-end gap-3 border-t border-foreground/[0.04] pt-4">
+        <div className="mt-6 flex justify-end gap-3 border-t border-gray-200 pt-4">
           <button onClick={onClose} className="btn btn-secondary">
             Cancel
           </button>
@@ -605,32 +605,20 @@ export default function AdminCouponsPage() {
       <div className="bento-card overflow-hidden">
         <div className="overflow-x-auto">
           <table className="min-w-full">
-            <thead className="border-b border-foreground/[0.04]">
+            <thead className="border-b border-gray-200">
               <tr>
-                <th className="px-6 py-4 text-left text-[10px] font-black uppercase tracking-[0.2em] text-gray-500">
-                  Code
-                </th>
-                <th className="px-6 py-4 text-left text-[10px] font-black uppercase tracking-[0.2em] text-gray-500">
-                  Discount
-                </th>
-                <th className="px-6 py-4 text-left text-[10px] font-black uppercase tracking-[0.2em] text-gray-500">
+                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500">Code</th>
+                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500">Discount</th>
+                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500">
                   Conditions
                 </th>
-                <th className="px-6 py-4 text-left text-[10px] font-black uppercase tracking-[0.2em] text-gray-500">
-                  Usage
-                </th>
-                <th className="px-6 py-4 text-left text-[10px] font-black uppercase tracking-[0.2em] text-gray-500">
-                  Dates
-                </th>
-                <th className="px-6 py-4 text-left text-[10px] font-black uppercase tracking-[0.2em] text-gray-500">
-                  Status
-                </th>
-                <th className="px-6 py-4 text-right text-[10px] font-black uppercase tracking-[0.2em] text-gray-500">
-                  Actions
-                </th>
+                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500">Usage</th>
+                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500">Dates</th>
+                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500">Status</th>
+                <th className="px-6 py-4 text-right text-xs font-medium text-gray-500">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-foreground/[0.03]">
+            <tbody className="divide-y divide-gray-200">
               {isLoading ? (
                 Array.from({ length: 5 }).map((_, i) => (
                   <tr key={i}>
@@ -734,7 +722,7 @@ export default function AdminCouponsPage() {
 
         {/* Pagination */}
         {meta.totalPages > 1 && (
-          <div className="flex items-center justify-between border-t border-foreground/[0.04] px-6 py-3">
+          <div className="flex items-center justify-between border-t border-gray-200 px-6 py-3">
             <p className="text-sm text-gray-600">
               {meta.total} coupon{meta.total !== 1 ? 's' : ''} total
             </p>
@@ -742,7 +730,7 @@ export default function AdminCouponsPage() {
               <button
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
                 disabled={page <= 1}
-                className="btn-icon h-10 w-10 border border-foreground/[0.05] bg-card shadow-sm hover:bg-gray-50 disabled:opacity-50"
+                className="btn-icon h-10 w-10 border border-gray-200 bg-card hover:bg-gray-50 disabled:opacity-50"
               >
                 <ChevronLeft className="h-4 w-4" />
               </button>
@@ -752,7 +740,7 @@ export default function AdminCouponsPage() {
               <button
                 onClick={() => setPage((p) => Math.min(meta.totalPages, p + 1))}
                 disabled={page >= meta.totalPages}
-                className="btn-icon h-10 w-10 border border-foreground/[0.05] bg-card shadow-sm hover:bg-gray-50 disabled:opacity-50"
+                className="btn-icon h-10 w-10 border border-gray-200 bg-card hover:bg-gray-50 disabled:opacity-50"
               >
                 <ChevronRight className="h-4 w-4" />
               </button>

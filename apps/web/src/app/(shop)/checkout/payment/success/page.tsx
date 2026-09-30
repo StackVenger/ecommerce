@@ -7,7 +7,7 @@ import { useEffect, useState } from 'react';
 
 import type { PaymentRecord } from '@/lib/api/payment';
 
-import { LoadingState } from '@/components/ui/bento';
+import { Breadcrumbs, LoadingState } from '@/components/ui/bento';
 import { getPaymentByOrder, formatBDT } from '@/lib/api/payment';
 
 export default function PaymentSuccessPage() {
@@ -38,76 +38,83 @@ export default function PaymentSuccessPage() {
   }
 
   return (
-    <div className="flex min-h-[70vh] items-center justify-center bg-gray-50 px-4 py-10">
-      <div className="bento-card w-full max-w-md p-6 text-center sm:p-10">
-        {/* Success Icon */}
-        <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-[1.75rem] bg-emerald-50 text-emerald-500">
-          <CheckCircle className="h-10 w-10" strokeWidth={2.25} />
-        </div>
+    <>
+      <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'Payment Successful' }]} />
+      <div className="site-container px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
+        <div className="mx-auto w-full max-w-md border border-gray-200 bg-card p-6 text-center sm:p-10">
+          {/* Success Icon */}
+          <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center text-emerald-500">
+            <CheckCircle className="h-14 w-14" strokeWidth={1.5} />
+          </div>
 
-        {/* Title */}
-        <p className="eyebrow mb-2 text-emerald-600">Transaction complete</p>
-        <h1 className="page-title mb-2">Payment Successful!</h1>
-        <p className="page-subtitle mb-6">
-          Thank you for your purchase. Your payment has been processed successfully.
-        </p>
+          {/* Title */}
+          <p className="mb-2 text-sm font-medium text-emerald-600">Transaction complete</p>
+          <h1 className="page-title mb-2">Payment Successful!</h1>
+          <p className="page-subtitle mb-6">
+            Thank you for your purchase. Your payment has been processed successfully.
+          </p>
 
-        {/* Payment Details */}
-        {payment && (
-          <div className="bento-tile mb-6 p-5 text-left">
-            <h3 className="eyebrow mb-3">Payment Details</h3>
-            <div className="space-y-2.5">
-              <div className="flex justify-between gap-3 text-sm">
-                <span className="font-bold text-gray-500">Order ID</span>
-                <span className="font-mono font-bold text-gray-900">{orderId?.slice(0, 8)}...</span>
-              </div>
-              <div className="flex justify-between gap-3 text-sm">
-                <span className="font-bold text-gray-500">Amount</span>
-                <span className="font-black tabular-nums text-gray-900">
-                  {formatBDT(payment.amount)}
-                </span>
-              </div>
-              <div className="flex justify-between gap-3 text-sm">
-                <span className="font-bold text-gray-500">Method</span>
-                <span className="font-black text-gray-900">{payment.method}</span>
-              </div>
-              <div className="flex items-center justify-between gap-3 text-sm">
-                <span className="font-bold text-gray-500">Status</span>
-                <span className="pill pill-success">{payment.status}</span>
+          {/* Payment Details */}
+          {payment && (
+            <div className="mb-6 bg-gray-50 p-5 text-left">
+              <h3 className="mb-3 font-heading text-sm font-semibold text-gray-900">
+                Payment Details
+              </h3>
+              <div className="space-y-2.5">
+                <div className="flex justify-between gap-3 text-sm">
+                  <span className="text-gray-500">Order ID</span>
+                  <span className="font-mono font-semibold text-gray-900">
+                    {orderId?.slice(0, 8)}...
+                  </span>
+                </div>
+                <div className="flex justify-between gap-3 text-sm">
+                  <span className="text-gray-500">Amount</span>
+                  <span className="font-bold tabular-nums text-primary">
+                    {formatBDT(payment.amount)}
+                  </span>
+                </div>
+                <div className="flex justify-between gap-3 text-sm">
+                  <span className="text-gray-500">Method</span>
+                  <span className="font-semibold text-gray-900">{payment.method}</span>
+                </div>
+                <div className="flex items-center justify-between gap-3 text-sm">
+                  <span className="text-gray-500">Status</span>
+                  <span className="pill pill-success">{payment.status}</span>
+                </div>
               </div>
             </div>
-          </div>
-        )}
-
-        {sessionId && !payment && (
-          <div className="bento-tile mb-6 p-4">
-            <p className="break-all text-sm font-bold text-gray-600">
-              Session ID: <span className="font-mono">{sessionId.slice(0, 20)}...</span>
-            </p>
-          </div>
-        )}
-
-        {/* Action Buttons */}
-        <div className="space-y-3">
-          {orderId && (
-            <Link href={`/account/orders/${orderId}`} className="btn btn-primary btn-lg w-full">
-              <Package className="h-5 w-5" strokeWidth={2.25} />
-              Track Your Order
-              <ArrowRight className="w-4 h-4" />
-            </Link>
           )}
 
-          <Link href="/" className="btn btn-soft btn-lg w-full">
-            <Home className="h-5 w-5" strokeWidth={2.25} />
-            Continue Shopping
-          </Link>
-        </div>
+          {sessionId && !payment && (
+            <div className="mb-6 bg-gray-50 p-4">
+              <p className="break-all text-sm text-gray-600">
+                Session ID: <span className="font-mono">{sessionId.slice(0, 20)}...</span>
+              </p>
+            </div>
+          )}
 
-        {/* Confirmation Note */}
-        <p className="mt-6 text-xs font-bold text-gray-400">
-          A confirmation email has been sent to your registered email address.
-        </p>
+          {/* Action Buttons */}
+          <div className="space-y-3">
+            {orderId && (
+              <Link href={`/account/orders/${orderId}`} className="btn btn-primary btn-lg w-full">
+                <Package className="h-5 w-5" strokeWidth={1.75} />
+                Track Your Order
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+            )}
+
+            <Link href="/" className="btn btn-outline btn-lg w-full">
+              <Home className="h-5 w-5" strokeWidth={1.75} />
+              Continue Shopping
+            </Link>
+          </div>
+
+          {/* Confirmation Note */}
+          <p className="mt-6 text-xs text-gray-500">
+            A confirmation email has been sent to your registered email address.
+          </p>
+        </div>
       </div>
-    </div>
+    </>
   );
 }

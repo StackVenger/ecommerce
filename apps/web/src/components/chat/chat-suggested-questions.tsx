@@ -12,7 +12,7 @@ export function ChatSuggestedQuestions({ questions, onSelect }: ChatSuggestedQue
         <button
           key={index}
           onClick={() => onSelect(question)}
-          className="rounded-xl bg-brand-50 px-3 py-1.5 text-left text-xs font-bold text-brand-700 transition-colors hover:bg-brand-100"
+          className="border border-primary px-3 py-1.5 text-left text-xs font-medium text-primary transition-colors hover:bg-primary hover:text-white"
         >
           {question}
         </button>

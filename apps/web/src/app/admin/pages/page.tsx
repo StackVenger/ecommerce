@@ -131,29 +131,17 @@ export default function AdminPagesPage() {
 
       <div className="bento-card overflow-hidden">
         <table className="min-w-full">
-          <thead className="border-b border-foreground/[0.04]">
+          <thead className="border-b border-gray-200">
             <tr>
-              <th className="px-6 py-4 text-left text-[10px] font-black text-gray-500 uppercase tracking-[0.2em]">
-                Title
-              </th>
-              <th className="px-6 py-4 text-left text-[10px] font-black text-gray-500 uppercase tracking-[0.2em]">
-                Slug
-              </th>
-              <th className="px-6 py-4 text-left text-[10px] font-black text-gray-500 uppercase tracking-[0.2em]">
-                Status
-              </th>
-              <th className="px-6 py-4 text-left text-[10px] font-black text-gray-500 uppercase tracking-[0.2em]">
-                Author
-              </th>
-              <th className="px-6 py-4 text-left text-[10px] font-black text-gray-500 uppercase tracking-[0.2em]">
-                Updated
-              </th>
-              <th className="px-6 py-4 text-right text-[10px] font-black text-gray-500 uppercase tracking-[0.2em]">
-                Actions
-              </th>
+              <th className="px-6 py-4 text-left text-xs font-medium text-gray-500">Title</th>
+              <th className="px-6 py-4 text-left text-xs font-medium text-gray-500">Slug</th>
+              <th className="px-6 py-4 text-left text-xs font-medium text-gray-500">Status</th>
+              <th className="px-6 py-4 text-left text-xs font-medium text-gray-500">Author</th>
+              <th className="px-6 py-4 text-left text-xs font-medium text-gray-500">Updated</th>
+              <th className="px-6 py-4 text-right text-xs font-medium text-gray-500">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-foreground/[0.03]">
+          <tbody className="divide-y divide-gray-200">
             {loading ? (
               <tr>
                 <td colSpan={6} className="px-6 py-12 text-center text-gray-500">

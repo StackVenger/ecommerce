@@ -130,7 +130,7 @@ export function SearchBar() {
           onFocus={() => suggestions.length > 0 && setIsOpen(true)}
           onKeyDown={handleKeyDown}
           placeholder="Search products..."
-          className="w-full rounded-2xl border border-foreground/[0.04] bg-card py-3 pl-11 pr-4 text-sm font-medium shadow-sm outline-none transition-all placeholder:text-gray-400 focus:ring-4 focus:ring-primary/10"
+          className="h-11 w-full border border-gray-300 bg-card pl-11 pr-4 text-sm text-gray-900 outline-none transition-colors placeholder:text-gray-400 focus:border-primary focus:ring-1 focus:ring-primary"
           autoComplete="off"
           role="combobox"
           aria-expanded={isOpen}
@@ -167,7 +167,7 @@ export function SearchBar() {
           ref={dropdownRef}
           id="search-suggestions"
           role="listbox"
-          className="absolute top-full z-50 mt-2 w-full overflow-hidden rounded-3xl border border-foreground/[0.04] bg-card p-2 shadow-bento-hover"
+          className="absolute top-full z-50 mt-1 w-full overflow-hidden border border-gray-200 bg-card shadow-bento-hover"
         >
           {suggestions.map((item, index) => (
             <Link
@@ -175,15 +175,15 @@ export function SearchBar() {
               href={`/product/${item.slug}`}
               role="option"
               aria-selected={index === selectedIndex}
-              className={`flex items-center gap-3 rounded-2xl px-3 py-2.5 transition-colors ${
+              className={`flex items-center gap-3 border-b border-gray-200 px-3 py-2.5 transition-colors ${
                 index === selectedIndex ? 'bg-gray-50' : 'hover:bg-gray-50'
               }`}
               onClick={() => setIsOpen(false)}
             >
               {item.image ? (
-                <img src={item.image} alt="" className="h-11 w-11 rounded-2xl object-cover" />
+                <img src={item.image} alt="" className="h-11 w-11 bg-gray-50 object-cover" />
               ) : (
-                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gray-100">
+                <div className="flex h-11 w-11 items-center justify-center bg-gray-50">
                   <svg
                     className="h-5 w-5 text-gray-400"
                     fill="none"
@@ -200,29 +200,33 @@ export function SearchBar() {
                 </div>
               )}
               <div className="flex-1 min-w-0">
-                <p className="truncate text-sm font-bold text-gray-900">{item.name}</p>
+                <p className="truncate text-sm text-gray-900">{item.name}</p>
                 {item.categoryName && <p className="text-xs text-gray-500">{item.categoryName}</p>}
               </div>
               <div className="text-right">
                 {item.salePrice ? (
                   <>
-                    <p className="text-sm font-black text-rose-600">
+                    <p className="text-sm font-bold tabular-nums text-primary">
                       {formatPrice(item.salePrice)}
                     </p>
-                    <p className="text-xs text-gray-400 line-through">{formatPrice(item.price)}</p>
+                    <p className="text-xs font-light tabular-nums text-gray-500 line-through">
+                      {formatPrice(item.price)}
+                    </p>
                   </>
                 ) : (
-                  <p className="text-sm font-black text-gray-900">{formatPrice(item.price)}</p>
+                  <p className="text-sm font-bold tabular-nums text-primary">
+                    {formatPrice(item.price)}
+                  </p>
                 )}
               </div>
             </Link>
           ))}
 
           {/* View all results link */}
-          <div className="mt-1 border-t border-foreground/[0.04] px-2 pt-2">
+          <div className="p-2">
             <button
               onClick={handleSubmit as any}
-              className="w-full rounded-xl py-2 text-center text-sm font-bold text-brand-700 hover:bg-brand-50"
+              className="w-full py-2 text-center text-sm font-medium text-primary hover:bg-gray-50"
             >
               View all results for &quot;{query}&quot;
             </button>

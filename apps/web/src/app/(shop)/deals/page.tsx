@@ -1,11 +1,11 @@
 'use client';
 
-import { ChevronRight, Flame, Percent, Tag } from 'lucide-react';
+import { Flame, Percent, Tag } from 'lucide-react';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 
 import { ProductCard, ProductCardSkeleton, ProductGrid } from '@/components/products/product-card';
-import { BentoGlow, EmptyState, StatCard } from '@/components/ui/bento';
+import { Breadcrumbs, EmptyState } from '@/components/ui/bento';
 import { apiClient } from '@/lib/api/client';
 
 interface Product {
@@ -86,92 +86,87 @@ export default function DealsPage() {
   const biggestDiscount = products.reduce((max, p) => Math.max(max, dealPercent(p)), 0);
 
   return (
-    <div className="site-container px-4 py-6 sm:py-8">
-      <nav className="mb-4 flex items-center gap-2 text-xs font-bold text-gray-400">
-        <Link href="/" className="transition-colors hover:text-gray-900">
-          Home
-        </Link>
-        <ChevronRight className="h-3.5 w-3.5" />
-        <span className="text-gray-900">Deals</span>
-      </nav>
+    <div className="min-h-screen bg-background">
+      <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'Deals' }]} />
 
-      {/* Bento hero: coral banner + deal stats */}
-      <div className="mb-6 grid grid-cols-2 gap-4 sm:mb-8 sm:gap-6 lg:grid-cols-12">
-        <div className="bento-primary col-span-2 flex flex-col justify-between p-8 sm:p-10 lg:col-span-8">
-          <BentoGlow />
-          <div className="relative z-10">
-            <div className="mb-6 flex h-12 w-12 items-center justify-center rounded-2xl bg-white/20 backdrop-blur-md">
-              <Flame className="h-6 w-6" strokeWidth={2.25} />
-            </div>
-            <p className="mb-2 text-[10px] font-black uppercase tracking-widest text-white/70">
+      <div className="site-container px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
+        {/* Promo banner + deal stats */}
+        <div className="mb-8 flex flex-col gap-8 bg-gray-50 p-8 sm:mb-10 sm:p-10 lg:flex-row lg:items-end lg:justify-between">
+          <div>
+            <p className="mb-2 flex items-center gap-2 text-sm font-medium text-primary">
+              <Flame className="h-4 w-4" strokeWidth={2} />
               Limited time only
             </p>
-            <h1 className="text-3xl font-black leading-none tracking-tighter sm:text-5xl">
+            <h1 className="font-heading text-3xl font-semibold text-gray-900 sm:text-[2.5rem] sm:leading-tight">
               Hot Deals & Offers
             </h1>
-            <p className="mt-3 max-w-lg text-sm font-bold text-white/80 sm:text-base">
+            <p className="mt-3 max-w-lg text-sm text-gray-600 sm:text-base">
               Grab the best discounts on top products — limited time only!
             </p>
           </div>
+          <dl className="flex shrink-0 gap-8">
+            <div className="border-l-2 border-primary pl-4">
+              <dd className="font-heading text-2xl font-semibold tabular-nums text-gray-900">
+                {loading ? '—' : products.length}
+              </dd>
+              <dt className="flex items-center gap-1.5 text-sm text-gray-500">
+                <Tag className="h-3.5 w-3.5" strokeWidth={2} />
+                Live deals
+              </dt>
+            </div>
+            <div className="border-l-2 border-primary pl-4">
+              <dd className="font-heading text-2xl font-semibold tabular-nums text-gray-900">
+                {loading ? '—' : `${biggestDiscount}%`}
+              </dd>
+              <dt className="flex items-center gap-1.5 text-sm text-gray-500">
+                <Percent className="h-3.5 w-3.5" strokeWidth={2} />
+                Max savings
+              </dt>
+            </div>
+          </dl>
         </div>
-        <StatCard
-          className="lg:col-span-2"
-          icon={Tag}
-          tone="rose"
-          label="Live deals"
-          value={loading ? '—' : products.length}
-          loading={loading}
-        />
-        <StatCard
-          className="lg:col-span-2"
-          icon={Percent}
-          tone="emerald"
-          label="Max savings"
-          value={loading ? '—' : `${biggestDiscount}%`}
-          loading={loading}
-        />
-      </div>
 
-      {loading ? (
-        <ProductGrid>
-          {Array.from({ length: 8 }).map((_, i) => (
-            <ProductCardSkeleton key={i} />
-          ))}
-        </ProductGrid>
-      ) : products.length === 0 ? (
-        <EmptyState
-          icon={Tag}
-          title="No deals available right now."
-          description="Check back soon for exciting offers!"
-          action={
-            <Link href="/shop" className="btn btn-primary">
-              Browse all products
-            </Link>
-          }
-        />
-      ) : (
-        <ProductGrid>
-          {products.map((product) => (
-            <ProductCard
-              key={product.id}
-              href={`/products/${product.slug}`}
-              name={product.name}
-              image={product.images?.[0]}
-              brand={product.brandName}
-              rating={product.reviewCount > 0 ? product.averageRating : null}
-              reviewCount={product.reviewCount}
-              price={product.price}
-              originalPrice={product.compareAtPrice}
-              formatPrice={formatPrice}
-              badges={
-                product.compareAtPrice
-                  ? [{ label: `${dealPercent(product)}% OFF`, tone: 'sale' }]
-                  : []
-              }
-            />
-          ))}
-        </ProductGrid>
-      )}
+        {loading ? (
+          <ProductGrid>
+            {Array.from({ length: 8 }).map((_, i) => (
+              <ProductCardSkeleton key={i} />
+            ))}
+          </ProductGrid>
+        ) : products.length === 0 ? (
+          <EmptyState
+            icon={Tag}
+            title="No deals available right now."
+            description="Check back soon for exciting offers!"
+            action={
+              <Link href="/shop" className="btn btn-primary">
+                Browse all products
+              </Link>
+            }
+          />
+        ) : (
+          <ProductGrid>
+            {products.map((product) => (
+              <ProductCard
+                key={product.id}
+                href={`/products/${product.slug}`}
+                name={product.name}
+                image={product.images?.[0]}
+                brand={product.brandName}
+                rating={product.reviewCount > 0 ? product.averageRating : null}
+                reviewCount={product.reviewCount}
+                price={product.price}
+                originalPrice={product.compareAtPrice}
+                formatPrice={formatPrice}
+                badges={
+                  product.compareAtPrice
+                    ? [{ label: `${dealPercent(product)}% OFF`, tone: 'sale' }]
+                    : []
+                }
+              />
+            ))}
+          </ProductGrid>
+        )}
+      </div>
     </div>
   );
 }

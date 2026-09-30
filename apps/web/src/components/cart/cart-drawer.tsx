@@ -92,10 +92,10 @@ function QuantitySelector({ itemId, quantity, maxStock }: QuantitySelectorProps)
   };
 
   return (
-    <div className="flex items-center rounded-xl bg-gray-100 p-1">
+    <div className="flex h-8 items-center border border-gray-300">
       <button
         type="button"
-        className="flex h-7 w-7 items-center justify-center rounded-lg text-gray-600 transition-all hover:bg-card hover:text-gray-900 hover:shadow-sm disabled:cursor-not-allowed disabled:opacity-40"
+        className="flex h-full w-7 items-center justify-center text-gray-600 transition-colors hover:text-primary disabled:cursor-not-allowed disabled:opacity-40"
         disabled={quantity <= 1 || isUpdating}
         onClick={() => updateItemQuantity(itemId, quantity - 1)}
         aria-label="Decrease quantity"
@@ -114,13 +114,13 @@ function QuantitySelector({ itemId, quantity, maxStock }: QuantitySelectorProps)
         onFocus={handleFocus}
         onBlur={handleBlur}
         onKeyDown={handleKeyDown}
-        className="w-10 bg-transparent py-0.5 text-center text-sm font-black tabular-nums text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary/20 rounded-lg [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+        className="h-full w-10 border-x border-gray-300 bg-transparent text-center text-sm font-medium tabular-nums text-gray-900 focus:outline-none focus:ring-1 focus:ring-inset focus:ring-primary [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
         aria-label="Quantity"
       />
 
       <button
         type="button"
-        className="flex h-7 w-7 items-center justify-center rounded-lg text-gray-600 transition-all hover:bg-card hover:text-gray-900 hover:shadow-sm disabled:cursor-not-allowed disabled:opacity-40"
+        className="flex h-full w-7 items-center justify-center text-gray-600 transition-colors hover:text-primary disabled:cursor-not-allowed disabled:opacity-40"
         disabled={quantity >= maxStock || isUpdating}
         onClick={() => updateItemQuantity(itemId, quantity + 1)}
         aria-label="Increase quantity"
@@ -146,16 +146,10 @@ function CartItemRow({ item }: CartItemRowProps) {
   const imageUrl = item.product.images?.[0]?.url || '/placeholder-product.png';
 
   return (
-    <div className="group flex gap-4 border-b border-dashed border-foreground/[0.06] py-5 last:border-0">
+    <div className="flex gap-4 border-b border-gray-200 py-5 last:border-0">
       {/* Product image */}
-      <div className="relative h-20 w-20 flex-shrink-0 overflow-hidden rounded-2xl bg-gray-50">
-        <Image
-          src={imageUrl}
-          alt={item.product.name}
-          fill
-          sizes="80px"
-          className="object-cover transition-transform duration-300 group-hover:scale-105"
-        />
+      <div className="relative h-20 w-20 flex-shrink-0 overflow-hidden bg-gray-50">
+        <Image src={imageUrl} alt={item.product.name} fill sizes="80px" className="object-cover" />
       </div>
 
       {/* Product details */}
@@ -163,20 +157,20 @@ function CartItemRow({ item }: CartItemRowProps) {
         <div>
           <Link
             href={`/products/${item.product.slug}`}
-            className="line-clamp-2 text-sm font-bold text-gray-900 transition-colors hover:text-primary"
+            className="line-clamp-2 text-sm text-gray-900 transition-colors hover:text-primary"
           >
             {item.product.name}
           </Link>
 
           {item.variant && Object.keys(item.variant.options).length > 0 && (
-            <p className="mt-1 text-[10px] font-black uppercase tracking-widest text-gray-400">
+            <p className="mt-1 text-xs text-gray-500">
               {Object.entries(item.variant.options)
                 .map(([k, v]) => `${k}: ${v}`)
                 .join(' · ')}
             </p>
           )}
 
-          <p className="mt-1 text-xs font-black text-primary">{formatPrice(item.price)}</p>
+          <p className="mt-1 text-sm font-bold text-primary">{formatPrice(item.price)}</p>
         </div>
 
         <div className="mt-2 flex items-center justify-between">
@@ -188,7 +182,7 @@ function CartItemRow({ item }: CartItemRowProps) {
 
           <button
             type="button"
-            className="flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 transition-all hover:bg-rose-50 hover:text-rose-500 disabled:opacity-40"
+            className="flex h-8 w-8 items-center justify-center text-gray-500 transition-colors hover:text-primary disabled:opacity-40"
             disabled={isUpdating}
             onClick={() => removeItem(item.id)}
             aria-label={`Remove ${item.product.name}`}
@@ -212,7 +206,7 @@ function CartItemRow({ item }: CartItemRowProps) {
       </div>
 
       {/* Line total */}
-      <div className="flex-shrink-0 text-sm font-black tabular-nums tracking-tight text-gray-900">
+      <div className="flex-shrink-0 text-sm font-bold tabular-nums text-gray-900">
         {formatPrice(item.lineTotal)}
       </div>
     </div>
@@ -238,15 +232,15 @@ function EmptyCartState() {
         strokeWidth="1"
         strokeLinecap="round"
         strokeLinejoin="round"
-        className="mb-6 text-brand-500"
+        className="mb-6 text-gray-300"
       >
         <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" />
         <line x1="3" y1="6" x2="21" y2="6" />
         <path d="M16 10a4 4 0 01-8 0" />
       </svg>
 
-      <h3 className="mb-1 text-lg font-black tracking-tight text-gray-900">Your cart is empty</h3>
-      <p className="mb-6 text-sm font-medium text-gray-500">
+      <h3 className="mb-1 font-heading text-lg font-semibold text-gray-900">Your cart is empty</h3>
+      <p className="mb-6 text-sm text-gray-500">
         Looks like you haven&apos;t added anything to your cart yet.
       </p>
 
@@ -276,7 +270,7 @@ export function CartDrawer() {
       {/* Backdrop overlay */}
       {isOpen && (
         <div
-          className="fixed inset-0 z-40 bg-black/30 backdrop-blur-sm transition-opacity"
+          className="fixed inset-0 z-40 bg-black/40 transition-opacity"
           onClick={closeCart}
           aria-hidden="true"
         />
@@ -284,19 +278,19 @@ export function CartDrawer() {
 
       {/* Slide-over panel */}
       <div
-        className={`fixed inset-y-0 right-0 z-50 flex w-full max-w-md flex-col bg-card shadow-2xl transition-[transform,visibility] sm:inset-y-3 sm:right-3 sm:rounded-[2rem] duration-300 ease-in-out ${
-          isOpen ? 'visible translate-x-0' : 'invisible translate-x-[calc(100%+1.5rem)]'
+        className={`fixed inset-y-0 right-0 z-50 flex w-full max-w-md flex-col border-l border-gray-200 bg-card transition-[transform,visibility] duration-300 ease-in-out ${
+          isOpen ? 'visible translate-x-0' : 'invisible translate-x-full'
         }`}
         role="dialog"
         aria-modal="true"
         aria-label="Shopping cart"
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-6 pb-4 pt-6">
-          <h2 className="flex items-center gap-3 text-xl font-black tracking-tight text-gray-900">
+        <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4">
+          <h2 className="flex items-center gap-2 font-heading text-lg font-semibold text-gray-900">
             Shopping Cart
             {itemCount > 0 && (
-              <span className="rounded-lg bg-gray-100 px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-gray-500">
+              <span className="font-sans text-sm font-normal text-gray-500">
                 ({itemCount} {itemCount === 1 ? 'item' : 'items'})
               </span>
             )}
@@ -304,7 +298,7 @@ export function CartDrawer() {
 
           <button
             type="button"
-            className="btn-icon h-10 w-10 bg-gray-100 text-gray-500 hover:bg-gray-200 hover:text-gray-900"
+            className="btn-icon h-9 w-9 border border-gray-200 text-gray-500 hover:border-primary hover:text-primary"
             onClick={closeCart}
             aria-label="Close cart"
           >
@@ -342,52 +336,50 @@ export function CartDrawer() {
             </div>
 
             {/* Footer with subtotal and checkout */}
-            <div className="space-y-4 border-t-2 border-dashed border-foreground/[0.06] px-6 pb-6 pt-5">
+            <div className="space-y-4 border-t border-gray-200 bg-gray-50 px-6 pb-6 pt-5">
               {/* Coupon badge */}
               {cart.couponCode && (
-                <div className="flex items-center justify-between rounded-2xl bg-emerald-50 px-4 py-2.5 text-sm">
+                <div className="flex items-center justify-between border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-sm">
                   <span className="font-medium text-emerald-700">
                     Coupon <strong>{cart.couponCode}</strong> applied
                   </span>
-                  <span className="font-black text-emerald-700">-{formatPrice(cart.discount)}</span>
+                  <span className="font-semibold text-emerald-700">
+                    -{formatPrice(cart.discount)}
+                  </span>
                 </div>
               )}
 
               {/* Subtotal */}
               <div className="space-y-2">
-                <div className="flex items-center justify-between text-sm font-bold text-gray-500">
+                <div className="flex items-center justify-between text-sm text-gray-600">
                   <span>Subtotal</span>
-                  <span className="font-black tabular-nums text-gray-900">
+                  <span className="font-semibold tabular-nums text-gray-900">
                     {formatPrice(cart.subtotal)}
                   </span>
                 </div>
 
                 {cart.discount > 0 && (
-                  <div className="flex items-center justify-between text-sm font-bold text-emerald-600">
+                  <div className="flex items-center justify-between text-sm text-emerald-600">
                     <span>Discount</span>
                     <span>-{formatPrice(cart.discount)}</span>
                   </div>
                 )}
 
-                <div className="!mt-4 flex items-center justify-between rounded-2xl border border-brand-100 bg-brand-50 p-4">
-                  <span className="text-sm font-bold text-brand-700">Total</span>
-                  <span className="text-2xl font-black tabular-nums tracking-tighter text-brand-700">
+                <div className="!mt-3 flex items-center justify-between border-t border-gray-200 pt-3">
+                  <span className="font-heading text-base font-semibold text-gray-900">Total</span>
+                  <span className="text-xl font-bold tabular-nums text-primary">
                     {formatPrice(cart.total)}
                   </span>
                 </div>
               </div>
 
               {/* Shipping notice */}
-              <p className="text-center text-xs font-medium text-gray-400">
+              <p className="text-center text-xs text-gray-500">
                 Shipping and taxes calculated at checkout
               </p>
 
               {/* Checkout button */}
-              <Link
-                href="/checkout"
-                onClick={closeCart}
-                className="btn btn-primary btn-lg w-full uppercase tracking-widest"
-              >
+              <Link href="/checkout" onClick={closeCart} className="btn btn-primary btn-lg w-full">
                 Proceed to Checkout
               </Link>
 
@@ -395,7 +387,7 @@ export function CartDrawer() {
               <button
                 type="button"
                 onClick={closeCart}
-                className="block w-full text-center text-sm font-bold text-gray-500 transition-colors hover:text-gray-900"
+                className="block w-full text-center text-sm text-gray-600 underline-offset-4 transition-colors hover:text-primary hover:underline"
               >
                 or Continue Shopping
               </button>

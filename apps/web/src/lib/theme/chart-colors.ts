@@ -6,17 +6,17 @@
 export function chartNeutrals(isDark: boolean) {
   return isDark
     ? {
-        tick: '#9a948c',
-        label: '#d3cec7',
-        grid: 'rgba(244, 241, 236, 0.06)',
-        tooltipBg: '#2a2521',
-        pointBg: '#1b1815',
+        tick: '#949494',
+        label: '#c8c8c8',
+        grid: 'rgba(255, 255, 255, 0.06)',
+        tooltipBg: '#262626',
+        pointBg: '#1b1b1b',
       }
     : {
-        tick: '#a8a49e',
-        label: '#44423f',
-        grid: 'rgba(26, 26, 26, 0.04)',
-        tooltipBg: '#1a1a1a',
+        tick: '#a4a4a4',
+        label: '#555555',
+        grid: 'rgba(0, 0, 0, 0.05)',
+        tooltipBg: '#222222',
         pointBg: '#ffffff',
       };
 }

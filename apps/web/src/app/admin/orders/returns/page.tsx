@@ -204,7 +204,7 @@ export default function AdminReturnsPage() {
       </div>
 
       {/* Search */}
-      <div className="mb-6 rounded-[1.75rem] border border-foreground/[0.04] bg-card p-3 shadow-bento">
+      <div className="mb-6 rounded-2xl border border-gray-200 bg-card p-3 shadow-bento">
         <div className="group/search relative">
           <Search
             className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400 transition-colors group-focus-within/search:text-gray-700"
@@ -262,25 +262,25 @@ export default function AdminReturnsPage() {
                     <td className="pl-4">
                       <a
                         href={`/admin/orders/${order.id}`}
-                        className="whitespace-nowrap text-sm font-black text-gray-900 transition-colors hover:text-primary"
+                        className="whitespace-nowrap text-sm font-semibold text-gray-900 transition-colors hover:text-primary"
                       >
                         #{order.orderNumber}
                       </a>
                     </td>
                     <td>
-                      <div className="max-w-[200px] truncate text-sm font-black leading-tight text-gray-900">
+                      <div className="max-w-[200px] truncate text-sm font-semibold leading-tight text-gray-900">
                         {order.customer.name}
                       </div>
-                      <div className="max-w-[200px] truncate text-[11px] font-bold text-gray-400">
+                      <div className="max-w-[200px] truncate text-xs text-gray-500">
                         {order.customer.email}
                       </div>
                     </td>
                     <td>
-                      <span className="whitespace-nowrap rounded-xl bg-gray-100 px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-gray-600">
+                      <span className="whitespace-nowrap bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-600">
                         {order.items} item{order.items !== 1 ? 's' : ''}
                       </span>
                     </td>
-                    <td className="whitespace-nowrap text-right text-sm font-black tabular-nums tracking-tight text-gray-900">
+                    <td className="whitespace-nowrap text-right text-sm font-semibold tabular-nums text-gray-900">
                       {formatBDT(order.totalAmount)}
                     </td>
                     <td className="text-center">
@@ -294,12 +294,10 @@ export default function AdminReturnsPage() {
                         className="max-w-[200px] truncate text-sm font-medium text-gray-600"
                         title={order.notes ?? ''}
                       >
-                        {order.notes || (
-                          <span className="text-xs font-bold text-gray-300">No notes</span>
-                        )}
+                        {order.notes || <span className="text-xs text-gray-300">No notes</span>}
                       </p>
                     </td>
-                    <td className="whitespace-nowrap text-xs font-bold text-gray-500">
+                    <td className="whitespace-nowrap text-xs text-gray-500">
                       {new Date(order.updatedAt).toLocaleDateString('en-BD', {
                         day: 'numeric',
                         month: 'short',
@@ -343,37 +341,25 @@ function SummaryCard({
       onClick={onClick}
       aria-pressed={active}
       className={cn(
-        'group flex items-center gap-4 rounded-[2rem] border p-5 text-left transition-all focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-500/20',
-        active
-          ? 'border-transparent bg-ink text-white shadow-xl shadow-black/10'
-          : 'border-foreground/[0.04] bg-card shadow-bento hover:shadow-bento-hover',
+        'group flex items-center gap-4 border bg-card p-5 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40',
+        active ? 'border-primary border-t-2' : 'border-gray-200 hover:border-gray-300',
       )}
     >
       <div
-        className={cn(
-          'icon-tile h-12 w-12 group-hover:scale-110',
-          active ? 'bg-white/10 text-white' : TONE_CLASSES[tone],
-        )}
+        className={cn('icon-tile h-12 w-12', active ? 'bg-primary text-white' : TONE_CLASSES[tone])}
       >
         <Icon className="h-5 w-5" strokeWidth={2.25} />
       </div>
       <div>
         <p
           className={cn(
-            'text-2xl font-black tabular-nums tracking-tighter',
-            !active && 'text-gray-900',
+            'text-2xl font-heading font-semibold tabular-nums',
+            active ? 'text-primary' : 'text-gray-900',
           )}
         >
           {count}
         </p>
-        <p
-          className={cn(
-            'text-[10px] font-black uppercase tracking-widest',
-            active ? 'text-white/50' : 'text-gray-500',
-          )}
-        >
-          {label}
-        </p>
+        <p className={cn('text-sm', active ? 'text-gray-900' : 'text-gray-500')}>{label}</p>
       </div>
     </button>
   );

@@ -107,8 +107,8 @@ function formatBDT(amount: number): string {
 function AddressBlock({ address }: { address: OrderDetail['shippingAddress'] }) {
   return (
     <div>
-      <p className="text-sm font-black text-gray-900">{address.name}</p>
-      <p className="text-xs font-bold text-gray-500">{address.phone}</p>
+      <p className="text-sm font-semibold text-gray-900">{address.name}</p>
+      <p className="text-xs text-gray-500">{address.phone}</p>
       <p className="mt-3 text-sm font-medium leading-relaxed text-gray-600">
         {address.address}
         <br />
@@ -240,7 +240,7 @@ export default function AdminOrderDetailPage() {
         eyebrow={
           <a
             href="/admin/orders"
-            className="mb-1 inline-flex w-fit items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-gray-400 transition-colors hover:text-gray-900"
+            className="mb-1 inline-flex w-fit items-center gap-1.5 text-sm text-gray-500 transition-colors hover:text-primary"
           >
             <ArrowLeft className="h-3.5 w-3.5" strokeWidth={2.5} />
             Orders
@@ -277,14 +277,9 @@ export default function AdminOrderDetailPage() {
 
       {/* Summary tiles */}
       <div className="mb-6 grid grid-cols-2 gap-4 sm:gap-6 lg:grid-cols-4">
-        <div className="bento-primary col-span-2 flex flex-col justify-between gap-4 p-6 lg:col-span-1">
-          <div className="bento-glow -right-10 -top-10 h-32 w-32 bg-white/10" aria-hidden />
-          <p className="relative z-10 text-[10px] font-black uppercase tracking-widest text-white/70">
-            Order total
-          </p>
-          <p className="relative z-10 text-3xl font-black tabular-nums tracking-tighter">
-            {formatBDT(order.totalAmount)}
-          </p>
+        <div className="bento-card col-span-2 flex flex-col justify-between gap-4 border-t-2 border-t-primary p-6 lg:col-span-1">
+          <p className="eyebrow">Order total</p>
+          <p className="stat-value text-3xl text-primary">{formatBDT(order.totalAmount)}</p>
         </div>
         <div className="bento-card flex flex-col justify-between gap-4 p-6">
           <p className="eyebrow">Fulfilment</p>
@@ -301,7 +296,7 @@ export default function AdminOrderDetailPage() {
               {order.trackingNumber}
             </p>
           ) : (
-            <p className="text-sm font-bold text-gray-400">Not assigned yet</p>
+            <p className="text-sm text-gray-500">Not assigned yet</p>
           )}
         </div>
       </div>
@@ -316,14 +311,14 @@ export default function AdminOrderDetailPage() {
               caption={`${itemCount} unit${itemCount !== 1 ? 's' : ''} · ${order.items.length} line${order.items.length !== 1 ? 's' : ''}`}
               icon={Receipt}
             />
-            <div className="divide-y divide-foreground/[0.04]">
+            <div className="divide-y divide-gray-200">
               {order.items.map((item) => (
                 <div
                   key={item.id}
                   className="group flex flex-col gap-3 py-4 first:pt-0 sm:flex-row sm:items-center sm:gap-4"
                 >
                   <div className="flex min-w-0 flex-1 items-center gap-4">
-                    <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-[1.25rem] border border-foreground/[0.04] bg-gray-50 transition-transform group-hover:scale-105">
+                    <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden border border-gray-200 bg-gray-50">
                       {item.image ? (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img
@@ -336,7 +331,7 @@ export default function AdminOrderDetailPage() {
                       )}
                     </div>
                     <div className="min-w-0 flex-1">
-                      <h3 className="truncate text-sm font-black text-gray-900">
+                      <h3 className="truncate font-sans text-sm font-medium text-gray-900">
                         {item.productName}
                       </h3>
                       {item.productNameBn && (
@@ -344,16 +339,16 @@ export default function AdminOrderDetailPage() {
                           {item.productNameBn}
                         </p>
                       )}
-                      <p className="mt-1 text-[10px] font-bold uppercase tracking-wider text-gray-400">
+                      <p className="mt-1 text-xs text-gray-500">
                         SKU {item.sku} {item.variant && `· ${item.variant}`}
                       </p>
                     </div>
                   </div>
                   <div className="flex items-baseline justify-between gap-3 pl-20 sm:block sm:pl-0 sm:text-right">
-                    <p className="text-xs font-bold tabular-nums text-gray-500">
+                    <p className="text-xs tabular-nums text-gray-500">
                       {formatBDT(item.unitPrice)} × {item.quantity}
                     </p>
-                    <p className="text-sm font-black tabular-nums tracking-tight text-gray-900 sm:mt-1">
+                    <p className="text-sm font-semibold tabular-nums text-gray-900 sm:mt-1">
                       {formatBDT(item.totalPrice)}
                     </p>
                   </div>
@@ -362,41 +357,41 @@ export default function AdminOrderDetailPage() {
             </div>
 
             {/* Order Summary */}
-            <div className="mt-4 space-y-2.5 rounded-[1.5rem] bg-gray-50 p-5">
+            <div className="mt-4 space-y-2.5 rounded-xl bg-gray-50 p-5">
               <div className="flex justify-between text-sm">
-                <span className="font-bold text-gray-500">Subtotal</span>
-                <span className="font-black tabular-nums text-gray-900">
+                <span className="text-gray-500">Subtotal</span>
+                <span className="font-semibold tabular-nums text-gray-900">
                   {formatBDT(order.subtotal)}
                 </span>
               </div>
               <div className="flex justify-between gap-3 text-sm">
-                <span className="font-bold text-gray-500">Shipping ({order.shippingMethod})</span>
-                <span className="font-black tabular-nums text-gray-900">
+                <span className="text-gray-500">Shipping ({order.shippingMethod})</span>
+                <span className="font-semibold tabular-nums text-gray-900">
                   {formatBDT(order.shippingCost)}
                 </span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="font-bold text-gray-500">Tax</span>
-                <span className="font-black tabular-nums text-gray-900">
+                <span className="text-gray-500">Tax</span>
+                <span className="font-semibold tabular-nums text-gray-900">
                   {formatBDT(order.tax)}
                 </span>
               </div>
               {order.discount > 0 && (
                 <div className="flex justify-between text-sm">
-                  <span className="font-bold text-gray-500">
+                  <span className="text-gray-500">
                     Discount{' '}
                     {order.couponCode && (
                       <span className="pill pill-success ml-1">{order.couponCode}</span>
                     )}
                   </span>
-                  <span className="font-black tabular-nums text-emerald-600">
+                  <span className="font-semibold tabular-nums text-emerald-600">
                     -{formatBDT(order.discount)}
                   </span>
                 </div>
               )}
               <div className="mt-2 flex items-center justify-between rounded-2xl border border-brand-100 bg-brand-50 px-4 py-3">
-                <span className="text-sm font-black text-brand-700">Total</span>
-                <span className="text-xl font-black tabular-nums tracking-tighter text-brand-700">
+                <span className="text-sm font-semibold text-brand-700">Total</span>
+                <span className="text-xl font-heading font-semibold tabular-nums text-brand-700">
                   {formatBDT(order.totalAmount)}
                 </span>
               </div>
@@ -407,7 +402,7 @@ export default function AdminOrderDetailPage() {
           <div className="bento-card p-6 sm:p-8">
             <SectionHeader title="Order Timeline" caption="Status history" icon={Truck} />
             {order.timeline.length === 0 ? (
-              <p className="rounded-[1.5rem] bg-gray-50 py-8 text-center text-sm font-bold text-gray-400">
+              <p className="rounded-xl bg-gray-50 py-8 text-center text-sm text-gray-500">
                 No timeline events yet.
               </p>
             ) : (
@@ -428,9 +423,11 @@ export default function AdminOrderDetailPage() {
                             <Check className="h-4 w-4" strokeWidth={3} />
                           </span>
                           <div className="min-w-0 flex-1 pt-0.5">
-                            <div className="text-sm font-black text-gray-900">{event.status}</div>
+                            <div className="text-sm font-semibold text-gray-900">
+                              {event.status}
+                            </div>
                             <p className="text-sm font-medium text-gray-500">{event.message}</p>
-                            <p className="mt-1 text-[10px] font-black uppercase tracking-wider text-gray-400">
+                            <p className="mt-1 text-xs text-gray-500">
                               {new Date(event.createdAt).toLocaleString('en-BD')} by{' '}
                               {event.createdBy}
                             </p>
@@ -448,28 +445,27 @@ export default function AdminOrderDetailPage() {
         {/* Sidebar */}
         <div className="space-y-6 lg:col-span-4">
           {/* Customer Info */}
-          <div className="bento-dark p-6 sm:p-8">
-            <div className="bento-glow -right-10 -top-10 h-40 w-40 bg-primary/20" aria-hidden />
-            <div className="relative z-10">
-              <div className="mb-6 flex items-center gap-3 text-white/50">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/10 backdrop-blur-md">
+          <div className="bento-card p-6 sm:p-8">
+            <div>
+              <div className="mb-6 flex items-center gap-3 text-gray-500">
+                <div className="icon-tile h-10 w-10 bg-gray-100 text-gray-600">
                   <User className="h-5 w-5" strokeWidth={2.25} />
                 </div>
-                <span className="text-[10px] font-black uppercase tracking-widest">Customer</span>
+                <span className="font-heading text-base font-semibold text-gray-900">Customer</span>
               </div>
-              <p className="text-xl font-black tracking-tight text-white">{order.customer.name}</p>
-              <p className="mt-1 break-all text-sm font-bold text-white/60">
-                {order.customer.email}
+              <p className="font-heading text-lg font-semibold text-gray-900">
+                {order.customer.name}
               </p>
-              <p className="text-sm font-bold text-white/60">{order.customer.phone}</p>
+              <p className="mt-1 break-all text-sm text-gray-500">{order.customer.email}</p>
+              <p className="text-sm text-gray-500">{order.customer.phone}</p>
               <div className="mt-5 flex items-center justify-between gap-3">
-                <span className="rounded-xl bg-white/10 px-3 py-1.5 text-[10px] font-black uppercase tracking-widest text-white/80">
+                <span className="bg-gray-100 px-3 py-1.5 text-xs font-medium text-gray-600">
                   {order.customer.totalOrders} total orders
                 </span>
                 {order.customer.id && (
                   <a
                     href={`/admin/customers/${order.customer.id}`}
-                    className="text-xs font-black text-primary transition-colors hover:text-brand-300"
+                    className="text-sm font-medium text-primary transition-colors hover:text-brand-700"
                   >
                     View profile &rarr;
                   </a>
@@ -495,24 +491,26 @@ export default function AdminOrderDetailPage() {
             <SectionHeader title="Payment" icon={CreditCard} className="mb-4" />
             <div className="space-y-3">
               <div className="flex items-center justify-between text-sm">
-                <span className="font-bold text-gray-500">Method</span>
-                <span className="font-black capitalize text-gray-900">{order.paymentMethod}</span>
+                <span className="text-gray-500">Method</span>
+                <span className="font-semibold capitalize text-gray-900">
+                  {order.paymentMethod}
+                </span>
               </div>
               <div className="flex items-center justify-between text-sm">
-                <span className="font-bold text-gray-500">Status</span>
+                <span className="text-gray-500">Status</span>
                 <PaymentStatusPill status={order.paymentStatus} />
               </div>
               {order.transactionId && (
                 <div className="flex items-center justify-between gap-3 text-sm">
-                  <span className="shrink-0 font-bold text-gray-500">Transaction ID</span>
+                  <span className="shrink-0 text-gray-500">Transaction ID</span>
                   <span className="truncate font-mono text-xs font-bold text-gray-900">
                     {order.transactionId}
                   </span>
                 </div>
               )}
-              <div className="flex items-center justify-between border-t border-foreground/[0.04] pt-3 text-sm">
-                <span className="font-black text-gray-900">Total Paid</span>
-                <span className="font-black tabular-nums text-gray-900">
+              <div className="flex items-center justify-between border-t border-gray-200 pt-3 text-sm">
+                <span className="font-semibold text-gray-900">Total Paid</span>
+                <span className="font-semibold tabular-nums text-gray-900">
                   {formatBDT(order.totalAmount)}
                 </span>
               </div>
@@ -523,7 +521,7 @@ export default function AdminOrderDetailPage() {
           {order.notes && (
             <div className="bento-card p-6 sm:p-8">
               <SectionHeader title="Order Notes" icon={StickyNote} className="mb-4" />
-              <p className="rounded-[1.25rem] bg-amber-50 p-4 text-sm font-medium text-gray-700">
+              <p className="rounded-xl bg-amber-50 p-4 text-sm font-medium text-gray-700">
                 {order.notes}
               </p>
             </div>

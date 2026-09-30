@@ -1,5 +1,6 @@
 'use client';
 
+import { Cookie } from 'lucide-react';
 import { useState, useEffect, useCallback } from 'react';
 
 interface CookiePreferences {
@@ -83,18 +84,16 @@ export function CookieConsent() {
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-[9999] p-4 sm:p-6">
-      <div className="mx-auto max-w-4xl overflow-hidden rounded-[2rem] border border-foreground/[0.04] bg-card shadow-2xl shadow-black/10">
+      <div className="mx-auto max-w-4xl overflow-hidden border border-gray-200 bg-card shadow-bento-hover">
         {/* Main banner */}
         <div className="p-6 sm:p-8">
           <div className="flex items-start gap-4">
-            <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl bg-brand-50 text-2xl">
-              🍪
-            </div>
+            <Cookie className="mt-0.5 h-8 w-8 flex-shrink-0 text-primary" strokeWidth={1.5} />
             <div className="flex-1">
-              <h3 className="mb-1 text-lg font-black tracking-tight text-gray-900">
+              <h3 className="mb-1 font-heading text-lg font-semibold text-gray-900">
                 We use cookies
               </h3>
-              <p className="mb-1 text-sm font-medium text-gray-600">
+              <p className="mb-1 text-sm text-gray-600">
                 We use cookies to enhance your browsing experience, serve personalized content, and
                 analyze our traffic.
               </p>
@@ -105,7 +104,7 @@ export function CookieConsent() {
 
               <button
                 onClick={() => setShowDetails(!showDetails)}
-                className="mt-2 text-sm font-bold text-brand-700 underline underline-offset-4 hover:text-brand-800"
+                className="mt-2 text-sm font-medium text-primary underline underline-offset-4 hover:text-brand-700"
               >
                 {showDetails ? 'Hide details' : 'Customize preferences'}
               </button>
@@ -114,7 +113,7 @@ export function CookieConsent() {
 
           {/* Detailed preferences */}
           {showDetails && (
-            <div className="mt-5 space-y-3 border-t border-foreground/[0.05] pt-5">
+            <div className="mt-5 space-y-3 border-t border-gray-200 pt-5">
               <CookieCategory
                 title="Necessary"
                 titleBn="প্রয়োজনীয়"
@@ -157,7 +156,7 @@ export function CookieConsent() {
                 Save Preferences
               </button>
             ) : (
-              <button onClick={acceptNecessary} className="btn btn-soft flex-1">
+              <button onClick={acceptNecessary} className="btn btn-secondary flex-1">
                 Necessary Only / শুধু প্রয়োজনীয়
               </button>
             )}
@@ -189,7 +188,7 @@ function CookieCategory({
     <div className="flex items-start justify-between gap-4">
       <div className="flex-1">
         <div className="flex items-center gap-2">
-          <span className="text-sm font-bold text-gray-900">{title}</span>
+          <span className="text-sm font-semibold text-gray-900">{title}</span>
           <span className="text-sm text-gray-500 font-bengali">({titleBn})</span>
           {disabled && <span className="pill pill-neutral">Required</span>}
         </div>

@@ -334,7 +334,7 @@ export default function AdminProductCreatePage() {
 
       {/* Tab Navigation */}
       <nav
-        className="flex gap-1 overflow-x-auto rounded-[1.5rem] border border-foreground/[0.04] bg-card p-2 shadow-bento scrollbar-none"
+        className="flex gap-1 overflow-x-auto rounded-xl border border-gray-200 bg-card p-2 shadow-bento scrollbar-none"
         aria-label="Product sections"
       >
         {tabs.map((tab) => (
@@ -354,7 +354,7 @@ export default function AdminProductCreatePage() {
       {/* Tab Content: Basic Info */}
       {activeTab === 'basic' && (
         <div className="bento-card p-6 sm:p-8">
-          <h2 className="mb-6 text-lg font-black text-gray-900 tracking-tight">
+          <h2 className="mb-6 text-lg font-heading font-semibold text-gray-900">
             Basic Information
           </h2>
 
@@ -400,8 +400,8 @@ export default function AdminProductCreatePage() {
               <label htmlFor="slug" className="field-label">
                 URL Slug <span className="text-red-500">*</span>
               </label>
-              <div className="flex min-w-0 overflow-hidden rounded-2xl border border-foreground/[0.06] bg-card shadow-sm transition-all focus-within:border-brand-300 focus-within:ring-4 focus-within:ring-brand-500/10">
-                <span className="inline-flex shrink-0 items-center border-r border-foreground/[0.06] bg-gray-50 px-4 text-sm font-bold text-gray-500">
+              <div className="flex min-w-0 overflow-hidden rounded-2xl border border-gray-200 bg-card transition-all focus-within:border-brand-300 focus-within:ring-2 focus-within:ring-brand-500/10">
+                <span className="inline-flex shrink-0 items-center border-r border-gray-200 bg-gray-50 px-4 text-sm text-gray-500">
                   /products/
                 </span>
                 <input

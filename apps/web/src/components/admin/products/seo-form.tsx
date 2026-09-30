@@ -79,7 +79,7 @@ export function SeoForm({
       <div className="bento-card p-6 sm:p-8">
         <div className="mb-6 flex items-center gap-2">
           <Search className="h-5 w-5 text-gray-400" />
-          <h2 className="text-lg font-black text-gray-900 tracking-tight">
+          <h2 className="font-heading text-lg font-semibold text-gray-900">
             Search Engine Optimization
           </h2>
         </div>
@@ -122,7 +122,7 @@ export function SeoForm({
               onChange={(e) => onMetaDescriptionChange(e.target.value)}
               placeholder="Write a compelling description that summarizes this product for search results..."
               maxLength={160}
-              className="field-input w-full rounded-[1.25rem]"
+              className="field-input w-full"
             />
             <p className="field-hint">
               Recommended: 120-155 characters for optimal display in search results.
@@ -136,7 +136,7 @@ export function SeoForm({
         <div className="mb-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Globe className="h-5 w-5 text-gray-400" />
-            <h3 className="text-lg font-black text-gray-900 tracking-tight">Search Preview</h3>
+            <h3 className="font-heading text-lg font-semibold text-gray-900">Search Preview</h3>
           </div>
           <button
             onClick={() => setShowPreview(!showPreview)}

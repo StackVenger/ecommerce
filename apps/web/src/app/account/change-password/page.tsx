@@ -139,7 +139,7 @@ export default function ChangePasswordPage() {
   };
 
   return (
-    <div className="space-y-4 sm:space-y-6">
+    <div className="space-y-6">
       {/* Header */}
       <div>
         <h1 className="page-title">{isSocialUser ? 'Set Password' : 'Change Password'}</h1>
@@ -152,7 +152,7 @@ export default function ChangePasswordPage() {
 
       {/* Social user info banner */}
       {isSocialUser && (
-        <div className="flex items-start gap-3 rounded-2xl border border-blue-100 bg-blue-50 px-4 py-3 text-sm font-medium text-blue-800">
+        <div className="flex items-start gap-3 border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-800">
           <Info className="w-4 h-4 flex-shrink-0 mt-0.5" />
           <span>
             Your account was created with a social login (Google, Facebook, etc.). You don&apos;t
@@ -163,29 +163,29 @@ export default function ChangePasswordPage() {
 
       {/* Success/Error Messages */}
       {successMessage && (
-        <div className="flex items-center gap-2 rounded-2xl border border-emerald-100 bg-emerald-50 px-4 py-3 text-sm font-bold text-emerald-700">
+        <div className="flex items-center gap-2 border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-700">
           <CheckCircle className="w-5 h-5 flex-shrink-0" />
           {successMessage}
         </div>
       )}
 
       {error && (
-        <div className="flex items-center gap-2 rounded-2xl border border-rose-100 bg-rose-50 px-4 py-3 text-sm font-bold text-rose-600">
+        <div className="flex items-center gap-2 border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-600">
           <AlertCircle className="w-5 h-5 flex-shrink-0" />
           {error}
         </div>
       )}
 
-      <div className="grid grid-cols-1 gap-4 sm:gap-6 xl:grid-cols-12">
+      <div className="grid grid-cols-1 gap-6 xl:grid-cols-12">
         {/* Password Form */}
-        <form onSubmit={handleSubmit} className="bento-card p-6 sm:p-8 xl:col-span-8">
-          <div className="mb-8 flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-brand-50 text-brand-600">
-              <Shield className="h-5 w-5" strokeWidth={2.25} />
+        <form onSubmit={handleSubmit} className="bento-card p-5 sm:p-6 xl:col-span-8">
+          <div className="mb-6 flex items-center gap-3 border-b border-gray-200 pb-4">
+            <div className="flex h-10 w-10 items-center justify-center bg-brand-50 text-primary">
+              <Shield className="h-5 w-5" strokeWidth={1.75} />
             </div>
             <div>
               <h3 className="section-title">Password Settings</h3>
-              <p className="eyebrow mt-0.5">Keep your account secure</p>
+              <p className="mt-0.5 text-sm text-gray-500">Keep your account secure</p>
             </div>
           </div>
 
@@ -194,7 +194,7 @@ export default function ChangePasswordPage() {
             {!isSocialUser && (
               <div>
                 <label className="field-label flex items-center gap-1.5">
-                  <Lock className="h-3.5 w-3.5" strokeWidth={2.5} />
+                  <Lock className="h-3.5 w-3.5" strokeWidth={2} />
                   Current Password
                 </label>
                 <div className="relative">
@@ -225,7 +225,7 @@ export default function ChangePasswordPage() {
             {/* New Password */}
             <div>
               <label className="field-label flex items-center gap-1.5">
-                <Lock className="h-3.5 w-3.5" strokeWidth={2.5} />
+                <Lock className="h-3.5 w-3.5" strokeWidth={2} />
                 {isSocialUser ? 'Password' : 'New Password'}
               </label>
               <div className="relative">
@@ -251,16 +251,13 @@ export default function ChangePasswordPage() {
               {formData.newPassword.length > 0 && (
                 <div className="mt-2">
                   <div className="flex items-center gap-2 mb-1.5">
-                    <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-gray-100">
+                    <div className="h-1 flex-1 overflow-hidden bg-gray-200">
                       <div
-                        className={cn(
-                          'h-full rounded-full transition-all duration-300',
-                          passwordStrength.bg,
-                        )}
+                        className={cn('h-full transition-all duration-300', passwordStrength.bg)}
                         style={{ width: `${((passwordStrength.score + 1) / 5) * 100}%` }}
                       />
                     </div>
-                    <span className={cn('text-xs font-black', passwordStrength.color)}>
+                    <span className={cn('text-xs font-semibold', passwordStrength.color)}>
                       {passwordStrength.label}
                     </span>
                   </div>
@@ -275,9 +272,7 @@ export default function ChangePasswordPage() {
                           )}
                         />
                         <span
-                          className={
-                            req.met ? 'font-bold text-emerald-700' : 'font-medium text-gray-400'
-                          }
+                          className={req.met ? 'font-medium text-emerald-700' : 'text-gray-500'}
                         >
                           {req.label}
                         </span>
@@ -291,7 +286,7 @@ export default function ChangePasswordPage() {
             {/* Confirm Password */}
             <div>
               <label className="field-label flex items-center gap-1.5">
-                <Lock className="h-3.5 w-3.5" strokeWidth={2.5} />
+                <Lock className="h-3.5 w-3.5" strokeWidth={2} />
                 Confirm {isSocialUser ? 'Password' : 'New Password'}
               </label>
               <div className="relative">
@@ -337,12 +332,12 @@ export default function ChangePasswordPage() {
           </div>
 
           {/* Submit Button */}
-          <div className="mt-8 flex justify-end border-t border-foreground/[0.04] pt-6">
+          <div className="mt-6 flex justify-end border-t border-gray-200 pt-5">
             <button type="submit" disabled={!canSubmit} className="btn btn-primary">
               {isLoading ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
               ) : (
-                <Lock className="h-3.5 w-3.5" strokeWidth={2.5} />
+                <Lock className="h-3.5 w-3.5" strokeWidth={2} />
               )}
               {isLoading
                 ? isSocialUser
@@ -356,35 +351,27 @@ export default function ChangePasswordPage() {
         </form>
 
         {/* Security Tips */}
-        <aside className="bento-dark p-6 sm:p-8 xl:col-span-4">
-          <div className="bento-glow -right-10 -top-10 h-56 w-56 bg-primary/20" aria-hidden />
-          <div className="bento-glow -bottom-10 -left-10 h-40 w-40 bg-blue-500/10" aria-hidden />
-          <div className="relative z-10">
-            <div className="flex items-center gap-3 text-white/40">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/10 backdrop-blur-md">
-                <Shield className="h-5 w-5" strokeWidth={2.25} />
-              </div>
-              <span className="text-[10px] font-black uppercase tracking-widest">
-                Security tips
-              </span>
-            </div>
-            <h4 className="mt-6 text-2xl font-black leading-tight tracking-tighter text-white">
-              Stronger passwords, safer account.
-            </h4>
-            <ul className="mt-6 space-y-3 text-sm font-bold text-white/70">
-              {[
-                <>Use a unique password that you don&apos;t use on other sites</>,
-                <>Mix uppercase, lowercase, numbers, and special characters</>,
-                <>Avoid using personal information like name or birthday</>,
-                <>Consider using a password manager for strong, unique passwords</>,
-              ].map((tip, i) => (
-                <li key={i} className="flex gap-3">
-                  <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
-                  <span>{tip}</span>
-                </li>
-              ))}
-            </ul>
+        <aside className="self-start border border-gray-200 bg-gray-50 p-5 sm:p-6 xl:col-span-4">
+          <div className="flex items-center gap-2 text-sm font-medium text-gray-500">
+            <Shield className="h-4 w-4 text-primary" strokeWidth={1.75} />
+            Security tips
           </div>
+          <h4 className="mt-3 font-heading text-lg font-semibold text-gray-900">
+            Stronger passwords, safer account.
+          </h4>
+          <ul className="mt-4 space-y-3 border-t border-gray-200 pt-4 text-sm text-gray-600">
+            {[
+              <>Use a unique password that you don&apos;t use on other sites</>,
+              <>Mix uppercase, lowercase, numbers, and special characters</>,
+              <>Avoid using personal information like name or birthday</>,
+              <>Consider using a password manager for strong, unique passwords</>,
+            ].map((tip, i) => (
+              <li key={i} className="flex gap-3">
+                <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
+                <span>{tip}</span>
+              </li>
+            ))}
+          </ul>
         </aside>
       </div>
     </div>

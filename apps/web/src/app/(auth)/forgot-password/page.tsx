@@ -1,7 +1,6 @@
 'use client';
 
 import {
-  Button,
   Input,
   Form,
   FormControl,
@@ -29,6 +28,11 @@ const forgotPasswordSchema = z.object({
 });
 
 type ForgotPasswordFormValues = z.infer<typeof forgotPasswordSchema>;
+
+// Watch-theme overrides for the shared form primitives: hairline, square inputs.
+const INPUT_CLASS =
+  'h-11 border-gray-300 font-normal shadow-none focus-visible:border-primary focus-visible:ring-1 focus-visible:ring-primary';
+const LABEL_CLASS = 'text-sm font-medium';
 
 // ──────────────────────────────────────────────────────────
 // Page component
@@ -80,26 +84,28 @@ export default function ForgotPasswordPage() {
 
   if (isSubmitted) {
     return (
-      <div className="w-full max-w-md space-y-6 text-center">
-        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-brand-50">
-          <Mail className="h-8 w-8 text-primary" />
+      <div className="w-full space-y-6 border border-gray-200 bg-card p-6 text-center sm:p-8">
+        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-brand-50">
+          <Mail className="h-7 w-7 text-primary" strokeWidth={1.75} />
         </div>
 
         <div className="space-y-2">
-          <h1 className="text-3xl font-black tracking-tighter text-gray-900">Check your email</h1>
-          <p className="text-sm font-medium text-gray-500">
+          <h1 className="font-heading text-2xl font-semibold text-gray-900 sm:text-[1.75rem]">
+            Check your email
+          </h1>
+          <p className="text-sm text-gray-500">
             We sent a password reset link to{' '}
-            <span className="font-black text-gray-900">{submittedEmail}</span>. Please check your
+            <span className="font-medium text-gray-900">{submittedEmail}</span>. Please check your
             inbox and click the link to reset your password.
           </p>
         </div>
 
         <div className="space-y-3 pt-2">
-          <p className="text-xs font-medium text-gray-500">
+          <p className="text-xs text-gray-500">
             Didn&apos;t receive the email? Check your spam folder or{' '}
             <button
               type="button"
-              className="font-black text-primary hover:underline"
+              className="font-medium text-primary hover:underline"
               onClick={() => {
                 setIsSubmitted(false);
                 form.reset();
@@ -110,7 +116,7 @@ export default function ForgotPasswordPage() {
             .
           </p>
 
-          <Link href="/login" className="btn btn-soft btn-sm">
+          <Link href="/login" className="btn btn-secondary btn-sm">
             <ArrowLeft className="h-4 w-4" />
             Back to sign in
           </Link>
@@ -122,61 +128,66 @@ export default function ForgotPasswordPage() {
   // ── Form state ──────────────────────────────────────────
 
   return (
-    <div className="w-full max-w-md space-y-8">
+    <div className="w-full space-y-6">
       {/* Header */}
       <div className="text-center">
-        <p className="eyebrow mb-3">Account recovery</p>
-        <h1 className="text-3xl font-black tracking-tighter text-gray-900">
+        <h1 className="font-heading text-2xl font-semibold text-gray-900 sm:text-[1.75rem]">
           Forgot your password?
         </h1>
-        <p className="mt-2 text-sm font-bold text-gray-500">
+        <p className="mt-1.5 text-sm text-gray-500">
           No worries! Enter the email address associated with your account and we&apos;ll send you a
           link to reset your password.
         </p>
       </div>
 
-      {/* Server error */}
-      {serverError && (
-        <div className="rounded-2xl border border-rose-100 bg-rose-50 px-4 py-3 text-sm font-bold text-rose-600">
-          {serverError}
+      <div className="border border-gray-200 bg-card p-5 sm:p-7">
+        {/* Server error */}
+        {serverError && (
+          <div className="mb-5 border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-600">
+            {serverError}
+          </div>
+        )}
+
+        {/* Form */}
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
+            <FormField
+              control={form.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className={LABEL_CLASS}>Email address</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="email"
+                      placeholder="you@example.com"
+                      autoComplete="email"
+                      autoFocus
+                      className={INPUT_CLASS}
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <button type="submit" className="btn btn-dark btn-lg w-full" disabled={isSubmitting}>
+              {isSubmitting ? 'Sending reset link...' : 'Send reset link'}
+            </button>
+          </form>
+        </Form>
+
+        {/* Back to login */}
+        <div className="mt-6 border-t border-gray-200 pt-5">
+          <Link
+            href="/login"
+            className="inline-flex items-center gap-2 text-sm text-gray-700 transition-colors hover:text-primary"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back to sign in
+          </Link>
         </div>
-      )}
-
-      {/* Form */}
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
-          <FormField
-            control={form.control}
-            name="email"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Email address</FormLabel>
-                <FormControl>
-                  <Input
-                    type="email"
-                    placeholder="you@example.com"
-                    autoComplete="email"
-                    autoFocus
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <Button type="submit" className="w-full" disabled={isSubmitting}>
-            {isSubmitting ? 'Sending reset link...' : 'Send reset link'}
-          </Button>
-        </form>
-      </Form>
-
-      {/* Back to login */}
-      <div className="text-center">
-        <Link href="/login" className="btn btn-soft btn-sm">
-          <ArrowLeft className="h-4 w-4" />
-          Back to sign in
-        </Link>
       </div>
     </div>
   );

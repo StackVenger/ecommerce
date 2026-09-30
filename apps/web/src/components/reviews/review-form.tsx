@@ -69,12 +69,12 @@ export function ReviewForm({ productId, onSubmitted }: Props) {
 
   if (success) {
     return (
-      <div className="bento-card p-8 text-center">
-        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-500">
+      <div className="border border-gray-200 bg-card p-8 text-center">
+        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-50 text-emerald-500">
           <CheckCircle2 className="h-7 w-7" />
         </div>
-        <h3 className="mt-5 text-lg font-black tracking-tight text-gray-900">Review submitted</h3>
-        <p className="mt-1 text-sm font-medium text-gray-500">{message}</p>
+        <h3 className="mt-5 font-heading text-lg font-semibold text-gray-900">Review submitted</h3>
+        <p className="mt-1 text-sm text-gray-500">{message}</p>
       </div>
     );
   }
@@ -84,18 +84,15 @@ export function ReviewForm({ productId, onSubmitted }: Props) {
   const commentNearMax = comment.length >= COMMENT_MAX * 0.9;
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="overflow-hidden rounded-[2rem] border border-foreground/[0.04] bg-card shadow-bento"
-    >
+    <form onSubmit={handleSubmit} className="border border-gray-200 bg-card">
       {/* Header strip */}
-      <div className="flex items-center gap-3 border-b border-foreground/[0.04] px-5 py-5 sm:px-6">
-        <div className="icon-tile h-10 w-10 rounded-xl bg-brand-50 text-brand-600">
-          <PenSquare className="h-5 w-5" strokeWidth={2.25} />
-        </div>
+      <div className="flex items-center gap-3 border-b border-gray-200 px-5 py-5 sm:px-6">
+        <PenSquare className="h-7 w-7 shrink-0 text-primary" strokeWidth={1.25} />
         <div>
-          <h3 className="section-title">Write a review</h3>
-          <p className="eyebrow mt-1">Share your honest experience with other shoppers.</p>
+          <h3 className="font-heading text-lg font-semibold text-gray-900">Write a review</h3>
+          <p className="mt-0.5 text-[13px] text-gray-500">
+            Share your honest experience with other shoppers.
+          </p>
         </div>
       </div>
 
@@ -115,7 +112,7 @@ export function ReviewForm({ productId, onSubmitted }: Props) {
                   onMouseLeave={() => setHoverRating(0)}
                   onClick={() => setRating(star)}
                   aria-label={`${star} star${star > 1 ? 's' : ''}`}
-                  className="group rounded-lg p-0.5 transition-transform hover:scale-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+                  className="group p-0.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
                 >
                   <Star
                     className={`h-8 w-8 transition-colors ${
@@ -128,7 +125,7 @@ export function ReviewForm({ productId, onSubmitted }: Props) {
               ))}
             </div>
             <span
-              className={`ml-2 inline-flex min-w-[5.5rem] items-center justify-center rounded-xl px-3 py-1 text-[10px] font-black uppercase tracking-widest transition-colors ${
+              className={`ml-2 inline-flex min-w-[5.5rem] items-center justify-center px-3 py-1 text-xs font-medium transition-colors ${
                 activeRating ? 'bg-amber-50 text-amber-700' : 'bg-gray-100 text-gray-500'
               }`}
             >
@@ -175,7 +172,7 @@ export function ReviewForm({ productId, onSubmitted }: Props) {
               maxLength={COMMENT_MAX}
               rows={5}
               placeholder="What did you like or dislike? How did it perform?"
-              className="field-input block resize-y rounded-[1.25rem] pb-8"
+              className="field-input block h-auto resize-y py-2.5 pb-8"
             />
             <span
               className={`pointer-events-none absolute bottom-3 right-4 text-[11px] tabular-nums ${
@@ -188,7 +185,7 @@ export function ReviewForm({ productId, onSubmitted }: Props) {
         </div>
 
         {message && !success && (
-          <div className="flex items-start gap-2 rounded-2xl bg-rose-50 px-4 py-3 text-sm font-bold text-rose-600">
+          <div className="flex items-start gap-2 border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-600">
             <span aria-hidden className="mt-0.5">
               ⚠
             </span>
@@ -198,8 +195,8 @@ export function ReviewForm({ productId, onSubmitted }: Props) {
       </div>
 
       {/* Footer / submit row */}
-      <div className="flex flex-col items-stretch gap-3 border-t border-foreground/[0.04] bg-gray-50/70 px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
-        <p className="text-xs font-bold text-gray-500">
+      <div className="flex flex-col items-stretch gap-3 border-t border-gray-200 bg-gray-50 px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+        <p className="text-xs text-gray-500">
           Reviews are published after moderation. Only verified purchasers can post.
         </p>
         <button type="submit" disabled={submitting || rating === 0} className="btn btn-primary">

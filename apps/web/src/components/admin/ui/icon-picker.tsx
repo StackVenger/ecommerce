@@ -163,11 +163,11 @@ export function IconPicker({
 
   return (
     <div className="relative" ref={wrapperRef}>
-      {label && <label className="mb-1.5 block text-xs font-bold text-gray-700">{label}</label>}
+      {label && <label className="field-label">{label}</label>}
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="flex w-full items-center justify-between gap-2 rounded-2xl border border-foreground/[0.06] bg-card px-4 py-2.5 text-sm font-medium shadow-sm transition-all hover:border-foreground/[0.12]"
+        className="flex w-full items-center justify-between gap-2 border border-gray-200 bg-card px-4 py-2.5 text-sm font-medium transition-colors hover:border-gray-400"
       >
         <span className="flex items-center gap-2 text-gray-700">
           {Selected ? <Selected className="h-4 w-4" /> : null}
@@ -177,8 +177,8 @@ export function IconPicker({
       </button>
 
       {open && (
-        <div className="absolute left-0 right-0 top-full z-20 mt-1 max-h-80 overflow-y-auto rounded-2xl border border-foreground/[0.05] bg-card shadow-xl shadow-black/5">
-          <div className="sticky top-0 border-b border-foreground/[0.04] bg-card p-2">
+        <div className="absolute left-0 right-0 top-full z-20 mt-1 max-h-80 overflow-y-auto border border-gray-200 bg-card shadow-bento-hover">
+          <div className="sticky top-0 border-b border-gray-200 bg-card p-2">
             <div className="relative">
               <Search className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
               <input
@@ -187,7 +187,7 @@ export function IconPicker({
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Search icons…"
-                className="w-full rounded-xl border border-foreground/[0.06] bg-gray-50 py-2 pl-8 pr-8 text-sm font-medium outline-none focus:border-brand-300 focus:bg-card"
+                className="w-full border border-gray-200 bg-gray-50 py-2 pl-8 pr-8 text-sm font-medium outline-none focus:border-brand-300 focus:bg-card"
               />
               {query && (
                 <button
@@ -227,7 +227,7 @@ export function IconPicker({
                             setOpen(false);
                             setQuery('');
                           }}
-                          className={`flex aspect-square items-center justify-center rounded-xl border transition-colors ${
+                          className={`flex aspect-square items-center justify-center border transition-colors ${
                             isSelected
                               ? 'border-primary bg-primary/10 text-primary'
                               : 'border-transparent text-gray-600 hover:border-gray-200 hover:bg-gray-50'

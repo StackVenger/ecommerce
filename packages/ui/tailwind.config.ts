@@ -33,12 +33,13 @@ const config: Config = {
     },
     extend: {
       fontFamily: {
-        sans: ['var(--font-inter)', 'Inter', 'system-ui', 'sans-serif'],
+        sans: ['var(--font-plex)', 'IBM Plex Sans', 'system-ui', 'sans-serif'],
+        heading: ['var(--font-montserrat)', 'Montserrat', 'system-ui', 'sans-serif'],
         bengali: ['var(--font-noto-sans-bengali)', 'Noto Sans Bengali', 'sans-serif'],
         mono: ['JetBrains Mono', 'Fira Code', 'monospace'],
       },
       colors: {
-        // Bento design system palettes (see ./tailwind.palette.ts): warm
+        // Watch-store palettes (see ./tailwind.palette.ts): neutral
         // `gray`, coral `brand` and the Tailwind chromatic palettes all
         // resolve through CSS variables, so the `dark` class on <html>
         // re-themes every existing utility (light/dark mode).
@@ -131,22 +132,32 @@ const config: Config = {
         md: 'var(--radius-md, calc(var(--radius) - 2px))',
         lg: 'var(--radius-lg, var(--radius))',
         full: 'var(--radius-full, 9999px)',
-        // Scaled off the 1.5rem bento base radius (x1.4 / x1.8 / x2.2 / x2.6),
-        // mirroring the reference design system, so small controls read as
-        // pills and larger surfaces as soft bento tiles.
+        // Scaled off the base radius (x1.4 / x1.8 / x2.2 / x2.6). The watch
+        // theme ships with a square (0) base, so every surface, control and
+        // badge renders with crisp corners unless the admin raises it.
         xl: 'calc(var(--radius) * 1.4)',
         '2xl': 'calc(var(--radius) * 1.8)',
         '3xl': 'calc(var(--radius) * 2.2)',
         '4xl': 'calc(var(--radius) * 2.6)',
       },
       boxShadow: {
-        // Soft, low-contrast elevation used by bento cards.
-        bento: '0 1px 2px rgba(26, 26, 26, 0.04), 0 1px 1px rgba(26, 26, 26, 0.02)',
-        'bento-hover': '0 20px 40px -12px rgba(26, 26, 26, 0.08)',
-        'brand-glow': '0 12px 28px -8px rgba(244, 110, 84, 0.35)',
+        // Flat, hairline elevation: cards rely on borders, hover lifts softly.
+        bento: '0 1px 3px rgba(0, 0, 0, 0.04)',
+        'bento-hover': '0 12px 30px -12px rgba(0, 0, 0, 0.15)',
+        'brand-glow': 'none',
       },
       letterSpacing: {
-        eyebrow: '0.18em',
+        eyebrow: '0.08em',
+        // Montserrat / IBM Plex are set at normal tracking; keep the tight
+        // utilities used across the app from over-compressing headings.
+        tight: '-0.005em',
+        tighter: '-0.01em',
+      },
+      fontWeight: {
+        // The heaviest weight in the watch type scale is 700; `font-black`
+        // (used for emphasis throughout) maps onto it rather than 900.
+        extrabold: '700',
+        black: '700',
       },
       fontSize: {
         '2xs': ['0.625rem', { lineHeight: '0.875rem' }],

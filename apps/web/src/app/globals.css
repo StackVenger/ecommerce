@@ -3,116 +3,117 @@
 @tailwind utilities;
 
 /* ──────────────────────────────────────────────────────────
-   Bento design system — HSL custom properties
-   Warm off-white canvas, white bento surfaces, coral primary,
-   near-black ink. Admin theme tokens (lib/theme/css-vars.ts)
-   are emitted after this file and override these defaults.
+   Watch design system — HSL custom properties
+   White canvas, #f7f7f7 image wells, coral (#f9706a) accent,
+   #333 ink, square corners. Admin theme tokens
+   (lib/theme/css-vars.ts) are emitted after this file and
+   override these defaults.
    ────────────────────────────────────────────────────────── */
 @layer base {
   :root {
-    --background: 36 38.5% 97.5%;
-    --foreground: 0 0% 10.2%;
+    --background: 0 0% 100%;
+    --foreground: 0 0% 20%;
     --card: 0 0% 100%;
-    --card-foreground: 0 0% 10.2%;
+    --card-foreground: 0 0% 20%;
     --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 10.2%;
-    --primary: 9.8 87.9% 64.3%;
+    --popover-foreground: 0 0% 20%;
+    --primary: 2.6 92.2% 69.6%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 34.3 25.9% 94.7%;
-    --secondary-foreground: 0 0% 10.2%;
-    --muted: 36 27.8% 92.9%;
-    --muted-foreground: 37.5 3.9% 40.4%;
-    --accent: 32.7 25.6% 91.6%;
-    --accent-foreground: 0 0% 10.2%;
+    --secondary: 0 0% 94.9%;
+    --secondary-foreground: 0 0% 20%;
+    --muted: 0 0% 96.9%;
+    --muted-foreground: 0 0% 52.5%;
+    --accent: 0 0% 94.9%;
+    --accent-foreground: 0 0% 20%;
     --destructive: 358.1 75.1% 59%;
     --destructive-foreground: 0 0% 100%;
-    --border: 36 20% 90.2%;
-    --input: 36 20% 90.2%;
-    --ring: 9.8 87.9% 64.3%;
-    /* 1.5rem base radius: rounded-lg = 24px, -xl/-2xl scale from it. */
-    --radius: 1.5rem;
-    --radius-sm: 0.875rem;
-    --radius-md: 1.2rem;
-    --radius-lg: 1.5rem;
+    --border: 0 0% 91%;
+    --input: 0 0% 87%;
+    --ring: 2.6 92.2% 69.6%;
+    /* Square corners throughout; rounded-xl/-2xl scale from --radius. */
+    --radius: 0rem;
+    --radius-sm: 0rem;
+    --radius-md: 0rem;
+    --radius-lg: 0rem;
     --success: 160.1 84.1% 39.4%;
     --success-foreground: 0 0% 100%;
     --warning: 37.7 92.1% 50.2%;
     --warning-foreground: 0 0% 10.2%;
     --info: 217.2 91.2% 59.8%;
     --info-foreground: 0 0% 100%;
-    --chart-1: 9.8 87.9% 64.3%;
-    --chart-2: 243.4 75.4% 58.6%;
+    --chart-1: 2.6 92.2% 69.6%;
+    --chart-2: 0 0% 20%;
     --chart-3: 160.1 84.1% 39.4%;
     --chart-4: 217.2 91.2% 59.8%;
-    --chart-5: 270.7 91% 65.1%;
-    --sidebar-background: 36 38.5% 97.5%;
-    --sidebar-foreground: 37.5 3.9% 40.4%;
-    --sidebar-primary: 9.8 87.9% 64.3%;
+    --chart-5: 37.7 92.1% 50.2%;
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 0 0% 40%;
+    --sidebar-primary: 2.6 92.2% 69.6%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 0 0% 100%;
-    --sidebar-accent-foreground: 0 0% 10.2%;
-    --sidebar-border: 36 20% 90.2%;
-    --sidebar-ring: 9.8 87.9% 64.3%;
+    --sidebar-accent: 0 0% 96.9%;
+    --sidebar-accent-foreground: 0 0% 20%;
+    --sidebar-border: 0 0% 91%;
+    --sidebar-ring: 2.6 92.2% 69.6%;
   }
 
   /* Dark mode. `html.dark` (not `.dark`) so these outrank the admin
      theme's inline `:root` colour tokens, which describe the light theme. */
   html.dark {
     color-scheme: dark;
-    --background: 30 11.1% 7.1%;
-    --foreground: 37.5 26.7% 94.1%;
-    --card: 30 12.5% 9.4%;
-    --card-foreground: 37.5 26.7% 94.1%;
-    --popover: 30 12.5% 9.4%;
-    --popover-foreground: 37.5 26.7% 94.1%;
-    --primary: 9.8 87.9% 64.3%;
+    --background: 0 0% 7.8%;
+    --foreground: 0 0% 93%;
+    --card: 0 0% 10.6%;
+    --card-foreground: 0 0% 93%;
+    --popover: 0 0% 10.6%;
+    --popover-foreground: 0 0% 93%;
+    --primary: 2.6 92.2% 69.6%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 30 12.5% 12.5%;
-    --secondary-foreground: 37.5 26.7% 94.1%;
-    --muted: 30 12.5% 12.5%;
-    --muted-foreground: 34.3 6.5% 57.6%;
-    --accent: 26.7 10.3% 17.1%;
-    --accent-foreground: 37.5 26.7% 94.1%;
+    --secondary: 0 0% 13%;
+    --secondary-foreground: 0 0% 93%;
+    --muted: 0 0% 12.2%;
+    --muted-foreground: 0 0% 58%;
+    --accent: 0 0% 16.5%;
+    --accent-foreground: 0 0% 93%;
     --destructive: 358.1 75.1% 59%;
     --destructive-foreground: 0 0% 100%;
-    --border: 26.7 10.3% 17.1%;
-    --input: 26.7 10.3% 17.1%;
-    --ring: 9.8 87.9% 64.3%;
+    --border: 0 0% 17%;
+    --input: 0 0% 22%;
+    --ring: 2.6 92.2% 69.6%;
     --success: 158.1 64.4% 51.6%;
     --success-foreground: 0 0% 10%;
     --warning: 43.3 96.4% 56.3%;
     --warning-foreground: 0 0% 10%;
     --info: 213.1 93.9% 67.8%;
     --info-foreground: 0 0% 10%;
-    --chart-1: 9.8 87.9% 64.3%;
-    --chart-2: 243.4 75.4% 65%;
+    --chart-1: 2.6 92.2% 69.6%;
+    --chart-2: 0 0% 80%;
     --chart-3: 158.1 64.4% 51.6%;
     --chart-4: 213.1 93.9% 67.8%;
-    --chart-5: 270.7 91% 70%;
-    --sidebar-background: 30 11.1% 7.1%;
-    --sidebar-foreground: 34.3 6.5% 57.6%;
-    --sidebar-primary: 9.8 87.9% 64.3%;
+    --chart-5: 43.3 96.4% 56.3%;
+    --sidebar-background: 0 0% 7.8%;
+    --sidebar-foreground: 0 0% 58%;
+    --sidebar-primary: 2.6 92.2% 69.6%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 30 12.5% 9.4%;
-    --sidebar-accent-foreground: 37.5 26.7% 94.1%;
-    --sidebar-border: 26.7 10.3% 17.1%;
-    --sidebar-ring: 9.8 87.9% 64.3%;
+    --sidebar-accent: 0 0% 12.2%;
+    --sidebar-accent-foreground: 0 0% 93%;
+    --sidebar-border: 0 0% 17%;
+    --sidebar-ring: 2.6 92.2% 69.6%;
   }
 
   /* Regions that must stay light in dark mode (e.g. printable invoices).
      The palette variables are reset by the Tailwind palette plugin. */
   html.dark .theme-light {
     color-scheme: light;
-    --background: 36 38.5% 97.5%;
-    --foreground: 0 0% 10.2%;
+    --background: 0 0% 100%;
+    --foreground: 0 0% 20%;
     --card: 0 0% 100%;
-    --card-foreground: 0 0% 10.2%;
+    --card-foreground: 0 0% 20%;
     --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 10.2%;
-    --muted: 36 27.8% 92.9%;
-    --muted-foreground: 37.5 3.9% 40.4%;
-    --border: 36 20% 90.2%;
-    --input: 36 20% 90.2%;
+    --popover-foreground: 0 0% 20%;
+    --muted: 0 0% 96.9%;
+    --muted-foreground: 0 0% 52.5%;
+    --border: 0 0% 91%;
+    --input: 0 0% 87%;
     background-color: hsl(var(--card));
     color: hsl(var(--foreground));
   }
@@ -132,10 +133,11 @@
     @apply bg-background text-foreground antialiased;
     min-height: 100dvh;
     /* Typography is driven by the admin theme tokens (see
-       lib/theme/css-vars.ts). Inter — loaded via next/font — is the
-       fallback so the site stays readable when the API is unreachable. */
-    font-family: var(--font-body, var(--font-inter)), 'Inter', system-ui, sans-serif;
-    font-weight: var(--font-weight-body, 500);
+       lib/theme/css-vars.ts). IBM Plex Sans — loaded via next/font — is
+       the fallback so the site stays readable when the API is unreachable. */
+    font-family: var(--font-body, var(--font-plex)), 'IBM Plex Sans', system-ui, sans-serif;
+    font-size: 0.9375rem;
+    font-weight: var(--font-weight-body, 400);
     line-height: var(--line-height, 1.6);
   }
 
@@ -145,9 +147,9 @@
   h4,
   h5,
   h6 {
-    font-family: var(--font-heading, var(--font-body, var(--font-inter))), 'Inter', sans-serif;
-    font-weight: var(--font-weight-heading, 800);
-    letter-spacing: -0.025em;
+    font-family: var(--font-heading, var(--font-montserrat)), 'Montserrat', sans-serif;
+    font-weight: var(--font-weight-heading, 600);
+    letter-spacing: normal;
   }
 
   ::selection {
@@ -178,37 +180,35 @@
 }
 
 /* ──────────────────────────────────────────────────────────
-   Bento component layer
-   Reusable surfaces, typography, buttons, fields and pills.
-   React wrappers live in components/ui/bento.tsx.
+   Component layer (watch design system)
+   Reusable surfaces, typography, buttons, fields and badges.
+   Class names are shared with the React wrappers in
+   components/ui/bento.tsx and used across storefront + admin.
    ────────────────────────────────────────────────────────── */
 @layer components {
   /* ─── Surfaces ─────────────────────────────────────────── */
+  /* Flat white panel with a hairline border — cards, forms, tables. */
   .bento-card {
-    @apply rounded-[2rem] border border-foreground/[0.04] bg-card shadow-bento;
+    @apply rounded-lg border border-gray-200 bg-card shadow-bento;
   }
 
   .bento-card-hover {
-    @apply transition-all duration-300 hover:border-foreground/[0.08] hover:shadow-bento-hover;
+    @apply transition-all duration-300 hover:border-gray-300 hover:shadow-bento-hover;
   }
 
-  /* Inner tile nested inside a bento card (stat blocks, list rows). */
+  /* Inset well nested inside a card (stat blocks, list rows, image wells). */
   .bento-tile {
-    @apply rounded-[1.5rem] bg-gray-50;
+    @apply rounded-lg bg-gray-50;
   }
 
-  /* Coral hero tile with decorative glow blobs. */
+  /* Coral emphasis panel. */
   .bento-primary {
-    @apply relative overflow-hidden rounded-[2rem] bg-primary text-white shadow-brand-glow;
+    @apply relative overflow-hidden rounded-lg bg-primary text-white;
   }
 
-  /* Ink tile used for promotional / emphasis blocks. */
+  /* Ink panel for promotional / emphasis blocks. */
   .bento-dark {
-    @apply relative overflow-hidden rounded-[2.5rem] bg-ink text-white shadow-2xl shadow-black/10;
-  }
-
-  .bento-glow {
-    @apply pointer-events-none absolute rounded-full blur-3xl;
+    @apply relative overflow-hidden rounded-lg bg-ink text-white;
   }
 
   .bento-grid {
@@ -216,58 +216,74 @@
   }
 
   /* ─── Typography ───────────────────────────────────────── */
+  .font-heading {
+    font-family: var(--font-heading, var(--font-montserrat)), 'Montserrat', sans-serif;
+  }
+
   .page-title {
-    @apply text-2xl font-black tracking-tighter text-gray-900 sm:text-3xl;
+    @apply font-heading text-2xl font-semibold text-gray-900 sm:text-[1.75rem];
   }
 
   .page-subtitle {
-    @apply text-sm font-bold text-gray-500;
+    @apply text-sm text-gray-500;
   }
 
   .section-title {
-    @apply text-xl font-black tracking-tight text-gray-900;
+    @apply font-heading text-lg font-semibold text-gray-900;
   }
 
-  /* Micro uppercase label ("TOTAL REVENUE", "WEEKLY MOMENTUM"). */
+  /* Storefront section heading: Montserrat 24px with a short coral rule. */
+  .shop-heading {
+    @apply relative pb-2.5 font-heading text-xl font-semibold capitalize text-gray-900 sm:text-2xl;
+  }
+
+  .shop-heading::after {
+    content: '';
+    @apply absolute bottom-0 left-0 h-0.5 w-12 bg-primary;
+  }
+
+  /* Micro uppercase label ("SPECIAL OFFER", table captions). */
   .eyebrow {
-    @apply text-[10px] font-black uppercase tracking-eyebrow text-gray-500;
+    @apply text-[11px] font-medium uppercase tracking-eyebrow text-gray-500;
   }
 
   .stat-value {
-    @apply font-black tabular-nums tracking-tighter text-gray-900;
+    @apply font-heading font-semibold tabular-nums text-gray-900;
   }
 
   /* ─── Buttons ──────────────────────────────────────────── */
   .btn {
-    @apply inline-flex select-none items-center justify-center gap-2 whitespace-nowrap rounded-2xl px-5 py-2.5 text-sm font-black transition-all duration-200 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-500/20 active:scale-95 disabled:pointer-events-none disabled:opacity-50;
+    @apply inline-flex select-none items-center justify-center gap-2 whitespace-nowrap rounded-lg border border-transparent px-6 py-2.5 text-[15px] font-bold transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-50;
   }
 
   .btn-sm {
-    @apply px-4 py-2 text-xs;
+    @apply px-4 py-1.5 text-[13px];
   }
 
   .btn-lg {
-    @apply px-7 py-3.5 text-sm;
+    @apply h-[3.125rem] px-8 text-base;
   }
 
   .btn-primary {
-    @apply bg-primary text-primary-foreground shadow-brand-glow hover:scale-[1.02] hover:bg-brand-700;
+    @apply bg-primary text-primary-foreground hover:bg-brand-700;
   }
 
   .btn-secondary {
-    @apply border border-foreground/[0.05] bg-card text-gray-900 shadow-sm hover:bg-gray-50;
+    @apply border-gray-300 bg-card text-gray-900 hover:border-primary hover:text-primary;
   }
 
   .btn-soft {
     @apply bg-gray-100 text-gray-900 hover:bg-gray-200;
   }
 
+  /* Black button (auth submit). Inverts to light-on-dark in dark mode. */
   .btn-dark {
-    @apply bg-ink text-white shadow-xl shadow-black/10 hover:bg-ink-soft;
+    @apply bg-ink text-white hover:bg-primary dark:bg-gray-900 dark:text-gray-50 dark:hover:bg-primary dark:hover:text-white;
   }
 
+  /* Coral outline ("Explore the shop") — fills on hover. */
   .btn-outline {
-    @apply border border-gray-200 bg-transparent text-gray-700 hover:border-gray-300 hover:bg-card;
+    @apply border-primary bg-transparent text-primary hover:bg-primary hover:text-white;
   }
 
   .btn-ghost {
@@ -275,7 +291,7 @@
   }
 
   .btn-danger {
-    @apply bg-rose-500 text-white shadow-lg shadow-rose-500/20 hover:bg-rose-600 dark:hover:bg-rose-500;
+    @apply bg-rose-500 text-white hover:bg-rose-600 dark:hover:bg-rose-500;
   }
 
   .btn-danger-soft {
@@ -283,29 +299,34 @@
   }
 
   .btn-icon {
-    @apply inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl transition-all duration-200 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-500/20 active:scale-95 disabled:pointer-events-none disabled:opacity-50;
+    @apply inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 disabled:pointer-events-none disabled:opacity-50;
   }
 
   /* ─── Form fields ──────────────────────────────────────── */
   .field-label {
-    @apply mb-1.5 block text-xs font-bold text-gray-700;
+    @apply mb-1.5 block text-sm font-medium text-gray-800;
   }
 
   .field-input {
-    @apply w-full rounded-2xl border border-foreground/[0.06] bg-card px-4 py-3 text-sm font-medium text-gray-900 shadow-sm outline-none transition-all placeholder:font-medium placeholder:text-gray-400 focus:border-brand-300 focus:ring-4 focus:ring-brand-500/10 disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-500;
+    @apply h-11 w-full rounded-lg border border-gray-300 bg-card px-4 text-sm text-gray-900 outline-none transition-colors placeholder:text-gray-400 focus:border-primary focus:ring-1 focus:ring-primary disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-500;
+  }
+
+  textarea.field-input,
+  select[multiple].field-input {
+    @apply h-auto py-3;
   }
 
   .field-error {
-    @apply mt-1.5 text-xs font-bold text-rose-500;
+    @apply mt-1.5 text-xs font-medium text-rose-500;
   }
 
   .field-hint {
-    @apply mt-1.5 text-xs font-medium text-gray-500;
+    @apply mt-1.5 text-xs text-gray-500;
   }
 
-  /* ─── Pills / badges ───────────────────────────────────── */
+  /* ─── Badges ───────────────────────────────────────────── */
   .pill {
-    @apply inline-flex items-center gap-1 whitespace-nowrap rounded-xl px-3 py-1 text-[10px] font-black uppercase tracking-widest;
+    @apply inline-flex items-center gap-1 whitespace-nowrap rounded-lg px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide;
   }
 
   .pill-success {
@@ -336,18 +357,23 @@
     @apply bg-purple-50 text-purple-600;
   }
 
+  /* Solid coral sale tag ("-35%") pinned to product images. */
+  .sale-tag {
+    @apply inline-flex items-center bg-primary px-2.5 py-1 text-xs font-semibold text-white;
+  }
+
   /* Filter / segmented chips. */
   .chip {
-    @apply inline-flex items-center gap-1.5 whitespace-nowrap rounded-xl px-4 py-2 text-xs font-bold text-gray-500 transition-all hover:bg-gray-100 hover:text-gray-900;
+    @apply inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg border border-gray-200 bg-card px-4 py-2 text-[13px] font-medium text-gray-600 transition-colors hover:border-primary hover:text-primary;
   }
 
   .chip-active {
-    @apply bg-primary text-white shadow-sm hover:bg-primary hover:text-white;
+    @apply border-primary bg-primary text-white hover:bg-primary hover:text-white;
   }
 
   /* ─── Icon tiles ───────────────────────────────────────── */
   .icon-tile {
-    @apply flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl transition-transform duration-500;
+    @apply flex h-12 w-12 shrink-0 items-center justify-center rounded-lg transition-transform duration-300;
   }
 
   /* ─── Tables ───────────────────────────────────────────── */
@@ -356,15 +382,15 @@
   }
 
   .bento-table thead tr {
-    @apply border-b border-foreground/[0.04] text-left;
+    @apply border-b border-gray-200 bg-gray-50 text-left;
   }
 
   .bento-table th {
-    @apply whitespace-nowrap px-3 pb-4 pt-1 text-[10px] font-black uppercase tracking-[0.2em] text-gray-500;
+    @apply whitespace-nowrap px-3 py-3 font-heading text-xs font-semibold text-gray-700;
   }
 
   .bento-table tbody {
-    @apply divide-y divide-foreground/[0.03];
+    @apply divide-y divide-gray-200;
   }
 
   .bento-table tbody tr {
@@ -375,9 +401,9 @@
     @apply px-3 py-3.5 align-middle;
   }
 
-  /* ─── Legacy storefront helpers (kept, restyled) ───────── */
+  /* ─── Storefront helpers ───────────────────────────────── */
   .product-card {
-    @apply relative overflow-hidden rounded-[1.75rem] border border-foreground/[0.04] bg-card shadow-bento transition-all duration-300;
+    @apply relative overflow-hidden rounded-lg border border-gray-200 bg-card transition-shadow duration-300;
   }
 
   .product-card:hover {
@@ -393,28 +419,33 @@
   }
 
   .category-banner {
-    @apply relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-brand-50 to-gray-100 p-6;
+    @apply relative overflow-hidden rounded-lg bg-gray-50 p-6;
   }
 
   .price-current {
-    @apply text-lg font-black tracking-tighter text-gray-900 tabular-nums;
+    @apply text-base font-bold tabular-nums text-primary;
   }
 
   .price-original {
-    @apply text-xs font-bold text-gray-400 line-through;
+    @apply text-[13px] font-light tabular-nums text-gray-500 line-through;
   }
 
   .price-discount {
-    @apply inline-flex items-center rounded-lg bg-rose-50 px-2 py-0.5 text-[10px] font-black text-rose-600;
+    @apply sale-tag;
   }
 
   .nav-link-active {
-    @apply relative font-bold text-gray-900;
+    @apply relative font-semibold text-primary;
   }
 
   .nav-link-active::after {
     content: '';
-    @apply absolute -bottom-0.5 left-0 h-0.5 w-full rounded-full bg-primary;
+    @apply absolute -bottom-0.5 left-0 h-0.5 w-full bg-primary;
+  }
+
+  /* Grey breadcrumb strip under the header on inner pages. */
+  .breadcrumb-bar {
+    @apply border-b border-gray-200 bg-card;
   }
 }
 
@@ -427,14 +458,8 @@
     margin-inline: auto;
   }
 
-  .header-blur {
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    @apply bg-background/80;
-  }
-
   .cart-badge {
-    @apply absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-lg border-2 border-card bg-primary text-[10px] font-black text-white;
+    @apply absolute -right-1.5 -top-1 flex h-[1.125rem] min-w-[1.125rem] items-center justify-center rounded-full bg-primary px-1 text-[10px] font-semibold text-white;
   }
 
   .scrollbar-none {

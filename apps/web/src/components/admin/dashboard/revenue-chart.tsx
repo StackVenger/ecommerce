@@ -32,12 +32,12 @@ function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
   }
 
   return (
-    <div className="rounded-2xl bg-ink px-4 py-3 text-white shadow-xl shadow-black/10">
-      <p className="mb-2 text-xs font-black text-white">{label}</p>
+    <div className="border border-gray-200 bg-card px-4 py-3 text-gray-900 shadow-bento-hover">
+      <p className="mb-2 font-heading text-xs font-semibold text-gray-900">{label}</p>
       {payload.map((entry) => (
         <div key={entry.dataKey} className="flex items-center gap-2">
           <div className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: entry.color }} />
-          <span className="text-[11px] font-bold text-white/60">
+          <span className="text-xs text-gray-600">
             {entry.dataKey === 'revenue'
               ? `Revenue: ${formatBDT(entry.value)}`
               : `Orders: ${entry.value}`}
@@ -80,9 +80,9 @@ export function RevenueChart() {
 
   if (isLoading) {
     return (
-      <div className="bento-card p-6 sm:p-8">
-        <div className="mb-4 h-6 w-48 animate-pulse rounded-xl bg-gray-100" />
-        <div className="h-80 animate-pulse rounded-[1.5rem] bg-gray-50" />
+      <div className="bento-card p-5 sm:p-6">
+        <div className="mb-4 h-6 w-48 animate-pulse bg-gray-100" />
+        <div className="h-80 animate-pulse bg-gray-50" />
       </div>
     );
   }
@@ -97,14 +97,14 @@ export function RevenueChart() {
   }));
 
   return (
-    <div className="bento-card p-6 sm:p-8">
+    <div className="bento-card p-5 sm:p-6">
       {/* Header */}
       <div className="mb-6 flex items-center justify-between">
         <div>
           <h3 className="section-title">Revenue & Orders</h3>
-          <p className="eyebrow mt-1">Last 30 days performance</p>
+          <p className="mt-1 text-sm text-gray-500">Last 30 days performance</p>
         </div>
-        <div className="flex items-center gap-1 rounded-2xl bg-gray-50 p-1">
+        <div className="flex items-center gap-1">
           {(['both', 'revenue', 'orders'] as const).map((view) => (
             <button
               key={view}
@@ -122,8 +122,8 @@ export function RevenueChart() {
         <AreaChart data={formattedData}>
           <defs>
             <linearGradient id="revenueGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#f46e54" stopOpacity={0.15} />
-              <stop offset="95%" stopColor="#f46e54" stopOpacity={0} />
+              <stop offset="5%" stopColor="#f9706a" stopOpacity={0.15} />
+              <stop offset="95%" stopColor="#f9706a" stopOpacity={0} />
             </linearGradient>
             <linearGradient id="ordersGradient" x1="0" y1="0" x2="0" y2="1">
               <stop offset="5%" stopColor="#4f46e5" stopOpacity={0.15} />
@@ -133,13 +133,13 @@ export function RevenueChart() {
           <CartesianGrid stroke={neutral.grid} />
           <XAxis
             dataKey="date"
-            tick={{ fontSize: 10, fill: neutral.tick, fontWeight: 700 }}
+            tick={{ fontSize: 10, fill: neutral.tick, fontWeight: 500 }}
             tickLine={false}
             axisLine={false}
           />
           <YAxis
             yAxisId="revenue"
-            tick={{ fontSize: 10, fill: neutral.tick, fontWeight: 700 }}
+            tick={{ fontSize: 10, fill: neutral.tick, fontWeight: 500 }}
             tickLine={false}
             axisLine={false}
             tickFormatter={(val) => `৳${(val / 1000).toFixed(0)}k`}
@@ -148,7 +148,7 @@ export function RevenueChart() {
           <YAxis
             yAxisId="orders"
             orientation="right"
-            tick={{ fontSize: 10, fill: neutral.tick, fontWeight: 700 }}
+            tick={{ fontSize: 10, fill: neutral.tick, fontWeight: 500 }}
             tickLine={false}
             axisLine={false}
             hide={activeView === 'revenue'}
@@ -160,7 +160,7 @@ export function RevenueChart() {
               yAxisId="revenue"
               type="monotone"
               dataKey="revenue"
-              stroke="#f46e54"
+              stroke="#f9706a"
               strokeWidth={2}
               fill="url(#revenueGradient)"
               name="Revenue (৳)"

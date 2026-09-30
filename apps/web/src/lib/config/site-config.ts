@@ -218,19 +218,23 @@ const DEFAULT_SETTINGS: PublicSettings = {
 
 const DEFAULT_THEME: ThemeConfig = {
   colors: {
-    primary: '#f46e54',
-    secondary: '#f5f2ee',
-    secondaryForeground: '#1a1a1a',
-    accent: '#efeae4',
-    accentForeground: '#1a1a1a',
-    background: '#fbf9f6',
-    surface: '#f2eee8',
-    text: '#1a1a1a',
-    textSecondary: '#6b6863',
-    border: '#ebe7e1',
+    primary: '#f9706a',
+    secondary: '#f2f2f2',
+    secondaryForeground: '#333333',
+    accent: '#f2f2f2',
+    accentForeground: '#333333',
+    background: '#ffffff',
+    surface: '#f7f7f7',
+    text: '#333333',
+    textSecondary: '#868686',
+    border: '#e8e8e8',
   },
-  typography: { headingFont: 'Inter', bodyFont: 'Inter', banglaFont: 'Noto Sans Bengali' },
-  borders: { radius: '1.5rem' },
+  typography: {
+    headingFont: 'Montserrat',
+    bodyFont: 'IBM Plex Sans',
+    banglaFont: 'Noto Sans Bengali',
+  },
+  borders: { radius: '0px', radiusSm: '0px', radiusMd: '0px', radiusLg: '0px' },
   layout: {},
 };
 

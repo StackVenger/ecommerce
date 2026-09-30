@@ -10,8 +10,8 @@ import { cn } from '@/lib/utils';
 // ──────────────────────────────────────────────────────────
 
 /**
- * Icon button that flips between light and dark mode, styled like the
- * header's other bento icon buttons. The sun/moon glyphs cross-fade.
+ * Square hairline icon button that flips between light and dark mode,
+ * matching the header's other icon buttons. The sun/moon glyphs cross-fade.
  */
 export function ThemeToggle({ className }: { className?: string }) {
   const { resolved, toggle } = useColorMode();
@@ -25,7 +25,7 @@ export function ThemeToggle({ className }: { className?: string }) {
       aria-label={label}
       title={label}
       className={cn(
-        'btn-icon relative overflow-hidden border border-foreground/[0.05] bg-card text-gray-700 shadow-sm hover:bg-gray-50',
+        'btn-icon relative overflow-hidden border border-gray-200 bg-card text-gray-700 hover:bg-gray-100',
         className,
       )}
     >
@@ -34,7 +34,7 @@ export function ThemeToggle({ className }: { className?: string }) {
           'absolute h-5 w-5 transition-all duration-300',
           isDark ? 'rotate-90 scale-0 opacity-0' : 'rotate-0 scale-100 opacity-100',
         )}
-        strokeWidth={2.25}
+        strokeWidth={1.75}
         aria-hidden
       />
       <Moon
@@ -42,7 +42,7 @@ export function ThemeToggle({ className }: { className?: string }) {
           'absolute h-5 w-5 transition-all duration-300',
           isDark ? 'rotate-0 scale-100 opacity-100' : '-rotate-90 scale-0 opacity-0',
         )}
-        strokeWidth={2.25}
+        strokeWidth={1.75}
         aria-hidden
       />
     </button>
@@ -56,8 +56,8 @@ const OPTIONS: { value: ColorMode; label: string; icon: typeof Sun }[] = [
 ];
 
 /**
- * Segmented Light / Dark / System control for menus and settings panels,
- * using the bento chip styling.
+ * Segmented Light / Dark / System control for menus and settings panels:
+ * flat square segments in a hairline frame, the active one coral.
  */
 export function ThemeModeSwitcher({ className }: { className?: string }) {
   const { mode, setMode } = useColorMode();
@@ -66,7 +66,7 @@ export function ThemeModeSwitcher({ className }: { className?: string }) {
     <div
       role="radiogroup"
       aria-label="Colour theme"
-      className={cn('flex rounded-2xl bg-gray-100 p-1', className)}
+      className={cn('flex divide-x divide-gray-200 border border-gray-200 bg-card', className)}
     >
       {OPTIONS.map(({ value, label, icon: Icon }) => {
         const active = mode === value;
@@ -78,11 +78,11 @@ export function ThemeModeSwitcher({ className }: { className?: string }) {
             aria-checked={active}
             onClick={() => setMode(value)}
             className={cn(
-              'flex flex-1 items-center justify-center gap-1.5 rounded-xl px-3 py-2 text-xs font-bold transition-all',
-              active ? 'bg-card text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-900',
+              'flex flex-1 items-center justify-center gap-1.5 px-3 py-2 text-xs font-medium transition-colors',
+              active ? 'bg-primary text-white' : 'text-gray-600 hover:text-primary',
             )}
           >
-            <Icon className="h-3.5 w-3.5" strokeWidth={2.5} aria-hidden />
+            <Icon className="h-3.5 w-3.5" strokeWidth={2} aria-hidden />
             {label}
           </button>
         );

@@ -79,17 +79,17 @@ export function QuickActions({ className }: { className?: string } = {}) {
             key={action.href}
             href={action.href}
             title={action.description}
-            className="group/btn flex flex-col items-center gap-3 rounded-[1.5rem] p-3 text-center transition-all hover:bg-gray-50"
+            className="group/btn flex flex-col items-center gap-2.5 border border-transparent p-3 text-center transition-colors hover:border-gray-200 hover:bg-gray-50"
           >
             <div
               className={cn(
-                'flex h-11 w-11 items-center justify-center rounded-xl shadow-sm transition-transform group-hover/btn:scale-110',
+                'flex h-11 w-11 items-center justify-center transition-colors',
                 action.toneClass,
               )}
             >
-              <action.icon className="h-5 w-5" strokeWidth={2.25} />
+              <action.icon className="h-5 w-5" strokeWidth={2} />
             </div>
-            <span className="w-full truncate text-[9px] font-black uppercase tracking-widest text-gray-600">
+            <span className="w-full truncate font-heading text-xs font-semibold text-gray-700 group-hover/btn:text-primary">
               {action.label}
             </span>
           </Link>

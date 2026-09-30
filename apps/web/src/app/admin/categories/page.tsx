@@ -107,7 +107,7 @@ function CategoryTreeNode({
         </button>
 
         {/* Category Image */}
-        <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center overflow-hidden rounded-[12px] border border-foreground/[0.04] bg-gray-50">
+        <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center overflow-hidden rounded-lg border border-gray-200 bg-gray-50">
           {category.image ? (
             <img src={category.image} alt={category.name} className="h-full w-full object-cover" />
           ) : (
@@ -355,8 +355,8 @@ export default function AdminCategoriesPage() {
 
       {/* Category Tree */}
       <div className="bento-card">
-        <div className="border-b border-foreground/[0.04] px-6 py-4">
-          <h2 className="text-lg font-black tracking-tight text-gray-900">Category Hierarchy</h2>
+        <div className="border-b border-gray-200 px-6 py-4">
+          <h2 className="text-lg font-heading font-semibold text-gray-900">Category Hierarchy</h2>
           <p className="text-xs text-gray-500">
             Drag categories to reorder. Click the arrow to expand/collapse.
           </p>

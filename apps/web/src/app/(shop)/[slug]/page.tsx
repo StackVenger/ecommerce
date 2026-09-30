@@ -1,6 +1,7 @@
 import { type Metadata } from 'next';
 import { notFound } from 'next/navigation';
 
+import { Breadcrumbs } from '@/components/ui/bento';
 import { getSiteConfig } from '@/lib/config/site-config';
 
 interface CmsPageProps {
@@ -89,26 +90,28 @@ export default async function CmsPage({ params }: CmsPageProps) {
   const content = locale === 'bn' && page.contentBn ? page.contentBn : page.content;
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-6 sm:py-10">
-      <div className="mb-4 rounded-[2rem] border border-foreground/[0.04] bg-card p-6 shadow-bento sm:mb-6 sm:p-10">
-        <p className="eyebrow mb-2">Information</p>
-        <h1 className="text-3xl font-black tracking-tighter text-gray-900 sm:text-4xl">{title}</h1>
-        <p className="mt-3 text-xs font-bold text-gray-400">
-          Last updated:{' '}
-          {new Date(page.updatedAt).toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric',
-          })}
-        </p>
+    <>
+      <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: title }]} />
+      <div className="site-container px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
+        <div className="mx-auto max-w-4xl">
+          <header className="mb-8 border-b border-gray-200 pb-6">
+            <h1 className="shop-heading sm:text-[1.75rem]">{title}</h1>
+            <p className="mt-4 text-[13px] text-gray-500">
+              Last updated:{' '}
+              {new Date(page.updatedAt).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+              })}
+            </p>
+          </header>
+          <article
+            className="prose max-w-none text-[15px] leading-relaxed prose-headings:font-heading prose-headings:font-semibold prose-headings:text-gray-900 prose-p:text-gray-600 prose-a:font-medium prose-a:text-primary prose-a:no-underline hover:prose-a:underline prose-strong:text-gray-900 prose-li:text-gray-600 prose-li:marker:text-primary prose-img:rounded-none"
+            // eslint-disable-next-line react/no-danger
+            dangerouslySetInnerHTML={{ __html: content }}
+          />
+        </div>
       </div>
-      <article className="rounded-[2rem] border border-foreground/[0.04] bg-card p-6 shadow-bento sm:rounded-[2.5rem] sm:p-10">
-        <div
-          className="prose prose-lg max-w-none prose-headings:font-black prose-headings:tracking-tight prose-headings:text-gray-900 prose-p:text-gray-600 prose-a:font-bold prose-a:text-brand-700 prose-strong:text-gray-900 prose-img:rounded-[1.5rem]"
-          // eslint-disable-next-line react/no-danger
-          dangerouslySetInnerHTML={{ __html: content }}
-        />
-      </article>
-    </div>
+    </>
   );
 }

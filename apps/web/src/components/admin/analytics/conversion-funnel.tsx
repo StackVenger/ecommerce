@@ -24,27 +24,20 @@ interface FunnelStepProps {
 
 function FunnelStep({ label, value, percentage, toneClass, barClass, icon }: FunnelStepProps) {
   return (
-    <div className="group flex flex-1 flex-col items-center gap-4 rounded-[1.75rem] bg-gray-50 px-5 py-6 text-center transition-all hover:bg-card hover:shadow-bento-hover">
-      <div
-        className={cn(
-          'flex h-14 w-14 items-center justify-center rounded-2xl transition-transform duration-500 group-hover:scale-110',
-          toneClass,
-        )}
-      >
-        {icon}
-      </div>
+    <div className="group flex flex-1 flex-col items-center gap-4 border border-gray-200 bg-gray-50 px-5 py-6 text-center">
+      <div className={cn('flex h-14 w-14 items-center justify-center', toneClass)}>{icon}</div>
       <div>
         <p className="stat-value text-3xl">{value.toLocaleString()}</p>
-        <p className="eyebrow mt-1">{label}</p>
+        <p className="mt-1 text-sm text-gray-500">{label}</p>
       </div>
       <div className="w-full max-w-[10rem]">
-        <div className="h-1.5 w-full overflow-hidden rounded-full bg-gray-200/70">
+        <div className="h-1.5 w-full overflow-hidden bg-gray-200">
           <div
-            className={cn('h-full rounded-full', barClass)}
+            className={cn('h-full', barClass)}
             style={{ width: `${Math.max(Math.min(percentage, 100), 2)}%` }}
           />
         </div>
-        <p className="mt-2 text-[10px] font-black tabular-nums text-gray-500">{percentage}%</p>
+        <p className="mt-2 text-xs tabular-nums text-gray-500">{percentage}%</p>
       </div>
     </div>
   );
@@ -53,17 +46,17 @@ function FunnelStep({ label, value, percentage, toneClass, barClass, icon }: Fun
 function FunnelArrow({ rate, label }: { rate: number; label: string }) {
   return (
     <div className="flex flex-row items-center justify-center gap-2 px-1 sm:flex-col sm:px-2">
-      <span className="whitespace-nowrap rounded-xl bg-brand-50 px-2.5 py-1 text-[10px] font-black tabular-nums text-brand-700">
+      <span className="whitespace-nowrap bg-brand-50 px-2.5 py-1 text-xs font-semibold tabular-nums text-brand-700">
         {rate}% {label}
       </span>
-      <ArrowRight className="h-4 w-4 rotate-90 text-gray-300 sm:rotate-0" strokeWidth={2.5} />
+      <ArrowRight className="h-4 w-4 rotate-90 text-gray-300 sm:rotate-0" strokeWidth={2} />
     </div>
   );
 }
 
 export function ConversionFunnel({ data }: ConversionFunnelProps) {
   return (
-    <div className="bento-card p-6 sm:p-8">
+    <div className="bento-card p-5 sm:p-6">
       <SectionHeader title="Conversion Funnel" caption="Product views to orders" icon={Filter} />
 
       {/* Horizontal funnel: stacks on mobile, lays out left-to-right on sm+ */}
@@ -74,7 +67,7 @@ export function ConversionFunnel({ data }: ConversionFunnelProps) {
           percentage={100}
           toneClass="bg-indigo-50 text-indigo-500"
           barClass="bg-indigo-500"
-          icon={<Eye className="h-6 w-6" strokeWidth={2.25} />}
+          icon={<Eye className="h-6 w-6" strokeWidth={2} />}
         />
 
         <FunnelArrow rate={data.viewToCartRate} label="add to cart" />
@@ -85,7 +78,7 @@ export function ConversionFunnel({ data }: ConversionFunnelProps) {
           percentage={data.viewToCartRate}
           toneClass="bg-orange-50 text-orange-500"
           barClass="bg-orange-400"
-          icon={<ShoppingCart className="h-6 w-6" strokeWidth={2.25} />}
+          icon={<ShoppingCart className="h-6 w-6" strokeWidth={2} />}
         />
 
         <FunnelArrow rate={data.cartToOrderRate} label="purchase" />
@@ -96,24 +89,21 @@ export function ConversionFunnel({ data }: ConversionFunnelProps) {
           percentage={data.overallConversionRate}
           toneClass="bg-emerald-50 text-emerald-500"
           barClass="bg-emerald-500"
-          icon={<ShoppingBag className="h-6 w-6" strokeWidth={2.25} />}
+          icon={<ShoppingBag className="h-6 w-6" strokeWidth={2} />}
         />
       </div>
 
       {/* Summary row */}
-      <div className="mt-6 grid grid-cols-3 gap-3 border-t border-foreground/[0.04] pt-6">
+      <div className="mt-6 grid grid-cols-3 gap-3 border-t border-gray-200 pt-6">
         {[
           { label: 'View to Cart', value: data.viewToCartRate, className: 'text-orange-500' },
           { label: 'Cart to Order', value: data.cartToOrderRate, className: 'text-primary' },
           { label: 'Overall', value: data.overallConversionRate, className: 'text-emerald-600' },
         ].map((item) => (
           <div key={item.label} className="text-center">
-            <p className="eyebrow">{item.label}</p>
+            <p className="text-sm text-gray-500">{item.label}</p>
             <p
-              className={cn(
-                'mt-1 text-xl font-black tabular-nums tracking-tighter',
-                item.className,
-              )}
+              className={cn('mt-1 font-heading text-xl font-semibold tabular-nums', item.className)}
             >
               {item.value}%
             </p>

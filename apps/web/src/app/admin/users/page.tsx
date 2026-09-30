@@ -96,7 +96,7 @@ export default function AdminUsersPage() {
       />
 
       {/* Filters */}
-      <div className="mb-6 rounded-[1.75rem] border border-foreground/[0.04] bg-card p-3 shadow-bento">
+      <div className="mb-6 rounded-2xl border border-gray-200 bg-card p-3 shadow-bento">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
           <form onSubmit={handleSearch} className="flex flex-1 gap-2">
             <div className="group/search relative flex-1">
@@ -168,22 +168,20 @@ export default function AdminUsersPage() {
                   <tr key={user.id} className="group">
                     <td className="pl-4">
                       <div className="flex items-center gap-3">
-                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[14px] bg-gray-100 text-xs font-black text-gray-700 transition-transform group-hover:scale-105">
+                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gray-100 text-xs font-semibold text-gray-700 transition-transform">
                           {(user.firstName?.charAt(0) ?? '') + (user.lastName?.charAt(0) ?? '') ||
                             user.email.charAt(0).toUpperCase()}
                         </div>
-                        <span className="whitespace-nowrap text-sm font-black text-gray-900">
+                        <span className="whitespace-nowrap text-sm font-semibold text-gray-900">
                           {user.firstName} {user.lastName}
                         </span>
                       </div>
                     </td>
-                    <td className="whitespace-nowrap text-sm font-bold text-gray-500">
-                      {user.email}
-                    </td>
+                    <td className="whitespace-nowrap text-sm text-gray-500">{user.email}</td>
                     <td className="text-center">
                       <RolePill role={user.role} />
                     </td>
-                    <td className="text-center text-sm font-black tabular-nums text-gray-900">
+                    <td className="text-center text-sm font-semibold tabular-nums text-gray-900">
                       {user._count.orders}
                     </td>
                     <td className="text-center">
@@ -191,7 +189,7 @@ export default function AdminUsersPage() {
                         type="button"
                         onClick={() => toggleActive(user.id)}
                         title="Toggle active status"
-                        className={`pill transition-transform hover:scale-105 ${
+                        className={`pill transition-transform ${
                           user.status === 'ACTIVE' ? 'pill-success' : 'pill-danger'
                         }`}
                       >

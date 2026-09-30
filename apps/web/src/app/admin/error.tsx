@@ -21,7 +21,7 @@ export default function AdminError({ error, reset }: AdminErrorPageProps) {
   return (
     <div className="flex min-h-[60vh] items-center justify-center p-2 sm:p-6">
       <div className="bento-card w-full max-w-lg p-8 text-center sm:p-10">
-        <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-rose-50">
+        <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-rose-50">
           <svg
             className="h-8 w-8 text-rose-500"
             fill="none"
@@ -37,13 +37,15 @@ export default function AdminError({ error, reset }: AdminErrorPageProps) {
           </svg>
         </div>
 
-        <h2 className="mb-2 text-2xl font-black tracking-tight text-gray-900">Admin Panel Error</h2>
-        <p className="mb-6 text-sm font-bold text-gray-500">
+        <h2 className="mb-2 font-heading text-2xl font-semibold text-gray-900">
+          Admin Panel Error
+        </h2>
+        <p className="mb-6 text-sm text-gray-500">
           An error occurred in the admin panel. This has been logged and our team will investigate.
         </p>
 
         {process.env.NODE_ENV === 'development' && (
-          <div className="mb-6 rounded-[1.25rem] bg-rose-50 p-4 text-left">
+          <div className="mb-6 rounded-xl bg-rose-50 p-4 text-left">
             <p className="break-all font-mono text-sm text-rose-700">{error.message}</p>
             {error.stack && (
               <pre className="mt-2 max-h-40 overflow-auto text-xs text-rose-600">{error.stack}</pre>
