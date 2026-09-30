@@ -45,6 +45,7 @@ interface Category {
   name: string;
   slug: string;
   icon?: string;
+  image?: string | null;
   _count?: { products: number };
   children?: Category[];
 }
@@ -581,7 +582,7 @@ export default function HomePage() {
               </Link>
             }
           />
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 xl:grid-cols-8">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
             {topCategories.map((cat: any) => {
               const productCount =
                 cat.productCount ??
@@ -595,17 +596,32 @@ export default function HomePage() {
                 <Link
                   key={cat.id}
                   href={`/categories/${cat.slug}`}
-                  className="group flex flex-col items-center border border-gray-200 bg-card px-3 py-5 text-center transition-colors hover:border-primary"
+                  className="group flex flex-col border border-gray-200 bg-card text-center transition-colors hover:border-primary"
                 >
-                  <span className="mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-gray-50 text-2xl transition-transform duration-300 group-hover:scale-110">
-                    {CATEGORY_ICONS[cat.slug] || '📦'}
-                  </span>
-                  <h3 className="w-full truncate font-heading text-sm font-semibold text-gray-900 transition-colors group-hover:text-primary">
-                    {cat.name}
-                  </h3>
-                  {productCount > 0 && (
-                    <span className="mt-1 text-xs text-gray-500">{productCount} products</span>
+                  {cat.image ? (
+                    <span className="relative block aspect-square overflow-hidden bg-gray-50">
+                      <img
+                        src={cat.image}
+                        alt={cat.name}
+                        loading="lazy"
+                        className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      />
+                    </span>
+                  ) : (
+                    <span className="mx-auto mt-5 flex h-14 w-14 items-center justify-center rounded-full bg-gray-50 text-2xl transition-transform duration-300 group-hover:scale-110">
+                      {CATEGORY_ICONS[cat.slug] || '📦'}
+                    </span>
                   )}
+                  <span className="px-3 pb-4 pt-3">
+                    <h3 className="w-full truncate font-heading text-sm font-semibold text-gray-900 transition-colors group-hover:text-primary">
+                      {cat.name}
+                    </h3>
+                    {productCount > 0 && (
+                      <span className="mt-1 block text-xs text-gray-500">
+                        {productCount} products
+                      </span>
+                    )}
+                  </span>
                 </Link>
               );
             })}

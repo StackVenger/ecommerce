@@ -25,7 +25,7 @@ function getCatProductCount(cat: Category): number {
   return own + childTotal;
 }
 
-// Category background images from Unsplash
+// Fallback cover images for categories that have no `image` set in the DB.
 const CATEGORY_IMAGES: Record<string, string> = {
   electronics:
     'https://images.unsplash.com/photo-1498049794561-7780e7231661?w=800&h=600&fit=crop&q=80',
@@ -112,7 +112,7 @@ export default function CategoriesPage() {
             {categories.map((cat) => {
               const totalCount = getCatProductCount(cat);
               const hasChildren = cat.children && cat.children.length > 0;
-              const bgImage = CATEGORY_IMAGES[cat.slug];
+              const bgImage = cat.image || CATEGORY_IMAGES[cat.slug];
 
               // Skip categories with zero products and no children
               if (totalCount === 0 && !hasChildren) {

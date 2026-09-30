@@ -43,6 +43,8 @@ interface Category {
   nameBn?: string;
   slug: string;
   description: string | null;
+  /** Cover photo set in the admin / seed; the header falls back to plain text without it. */
+  image?: string | null;
   children?: Category[];
   productCount?: number;
 }
@@ -286,34 +288,90 @@ export default function CategoryPage() {
 
           {/* Main content */}
           <div className="min-w-0 flex-1">
-            {/* Category header */}
-            <div className="mb-6">
-              <h1 className="shop-heading">
-                {categoryLoading ? (
-                  <span className="inline-block h-7 w-48 animate-pulse bg-gray-100 align-middle" />
-                ) : (
-                  (category?.name ?? slug)
-                )}
-              </h1>
-              {category?.nameBn && <p className="mt-3 text-sm text-gray-500">{category.nameBn}</p>}
-              {category?.description && (
-                <RichText
-                  html={category.description}
-                  className="mt-3 max-w-3xl text-sm text-gray-600"
+            {/* Category header — cover banner when the category has a photo */}
+            {category?.image ? (
+              <div className="relative mb-6 flex min-h-[170px] items-center overflow-hidden bg-ink sm:min-h-[220px]">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={category.image}
+                  alt={category.name}
+                  className="absolute inset-0 h-full w-full object-cover"
                 />
-              )}
-
-              {/* Subcategory chips */}
-              {category?.children && category.children.length > 0 && (
-                <div className="mt-5 flex flex-wrap gap-2">
-                  {category.children.map((sub) => (
-                    <Link key={sub.slug} href={`/categories/${sub.slug}`} className="chip">
-                      {sub.name}
-                    </Link>
-                  ))}
+                <div className="absolute inset-0 bg-gradient-to-r from-black/75 via-black/45 to-black/10" />
+                <div className="relative max-w-xl px-6 py-8 text-white sm:px-10">
+                  <h1 className="font-heading text-2xl font-semibold sm:text-[2rem]">
+                    {category.name}
+                  </h1>
+                  {category.nameBn && (
+                    <p className="mt-1 text-sm text-white/80">{category.nameBn}</p>
+                  )}
+                  {category.description && (
+                    <RichText
+                      html={category.description}
+                      className="mt-3 text-sm text-white/85 [&_*]:text-white/85"
+                    />
+                  )}
                 </div>
-              )}
-            </div>
+              </div>
+            ) : (
+              <div className="mb-6">
+                <h1 className="shop-heading">
+                  {categoryLoading ? (
+                    <span className="inline-block h-7 w-48 animate-pulse bg-gray-100 align-middle" />
+                  ) : (
+                    (category?.name ?? slug)
+                  )}
+                </h1>
+                {category?.nameBn && (
+                  <p className="mt-3 text-sm text-gray-500">{category.nameBn}</p>
+                )}
+                {category?.description && (
+                  <RichText
+                    html={category.description}
+                    className="mt-3 max-w-3xl text-sm text-gray-600"
+                  />
+                )}
+              </div>
+            )}
+
+            {/* Subcategories — photo tiles when covers exist, chips otherwise */}
+            {category?.children && category.children.length > 0 && (
+              <div className="mb-7">
+                {category.children.some((sub) => sub.image) ? (
+                  <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-6">
+                    {category.children.map((sub) => (
+                      <Link
+                        key={sub.slug}
+                        href={`/categories/${sub.slug}`}
+                        className="group relative block aspect-[4/3] overflow-hidden bg-gray-50"
+                      >
+                        {sub.image && (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={sub.image}
+                            alt={sub.name}
+                            loading="lazy"
+                            className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                          />
+                        )}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+                        <span className="absolute inset-x-3 bottom-2.5 font-heading text-sm font-semibold leading-tight text-white">
+                          {sub.name}
+                        </span>
+                      </Link>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="flex flex-wrap gap-2">
+                    {category.children.map((sub) => (
+                      <Link key={sub.slug} href={`/categories/${sub.slug}`} className="chip">
+                        {sub.name}
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Toolbar */}
             <div className="mb-7 flex items-center justify-between gap-3 border border-gray-200 px-3 py-2.5 sm:px-4 sm:py-3">
